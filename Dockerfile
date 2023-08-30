@@ -10,7 +10,7 @@ LABEL maintainer="miguel.cumbay@live.com" \
 WORKDIR /app
 
 # Copy the Spring Boot fat-jar into our container
-COPY target/choretrack-ui-0.0.1-SNAPSHOT.jar /app/choretrack-ui-0.0.1-SNAPSHOT.jar
+COPY choretrack-ui/target/choretrack-ui-0.0.1-SNAPSHOT.jar /app/choretrack-ui-0.0.1-SNAPSHOT.jar
 
 # Specify the command to run on container start
 CMD ["java", "-jar", "/app/app.jar"]
