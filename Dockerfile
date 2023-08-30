@@ -1,9 +1,9 @@
 # Use the official OpenJDK base image
-FROM openjdk:11-jre-slim
+FROM eclipse-temurin:20
 
 # Metadata as described above
 LABEL maintainer="miguel.cumbay@live.com" \
-      version="1.0" \
+      version="3.0" \
       description="ChoreTrack Application"
 
 # Create a directory in the container where the app will be placed
