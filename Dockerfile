@@ -13,4 +13,4 @@ WORKDIR /app
 COPY choretrack-ui/target/choretrack-ui-0.0.1-SNAPSHOT.jar /app/choretrack-ui-0.0.1-SNAPSHOT.jar
 
 # Specify the command to run on container start
-CMD ["java", "-jar", "/app/app.jar"]
+CMD ["java", "-jar", "/app/choretrack-ui-0.0.1-SNAPSHOT.jar"]
