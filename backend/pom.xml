@@ -17,7 +17,7 @@
 		<java.version>20</java.version>
 		<serenity.version>4.1.14</serenity.version>
 		<cucumber.version>7.14.0</cucumber.version>
-		<lombok.version>1.18.32</lombok.version>
+		<lombok.version>1.18.38</lombok.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -158,7 +158,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <nodeVersion>v18.17.0</nodeVersion>
+					<nodeVersion>v20.19.0</nodeVersion>
                 </configuration>
             </plugin>
 			<plugin>
