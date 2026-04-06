@@ -1,120 +1,125 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 import './App.css'
 
+type Chore = {
+  id: number
+  title: string
+  completed: boolean
+}
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [chores, setChores] = useState<Chore[]>([])
+  const [newTitle, setNewTitle] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const loadChores = async () => {
+    try {
+      setError('')
+      const response = await fetch('/api/chores')
+      if (!response.ok) {
+        throw new Error(`Failed to load chores: ${response.status}`)
+      }
+      const data = (await response.json()) as Chore[]
+      setChores(data)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void loadChores()
+  }, [])
+
+  const handleCreateChore = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const title = newTitle.trim()
+    if (!title) {
+      return
+    }
+
+    try {
+      setError('')
+      const response = await fetch('/api/chores', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to create chore: ${response.status}`)
+      }
+
+      const created = (await response.json()) as Chore
+      setChores((current) => [...current, created])
+      setNewTitle('')
+    } catch (err) {
+      setError((err as Error).message)
+    }
+  }
+
+  const handleToggle = async (id: number) => {
+    try {
+      setError('')
+      const response = await fetch(`/api/chores/${id}/toggle`, {
+        method: 'PATCH',
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to update chore: ${response.status}`)
+      }
+
+      const updated = (await response.json()) as Chore
+      setChores((current) => current.map((chore) => (chore.id === id ? updated : chore)))
+    } catch (err) {
+      setError((err as Error).message)
+    }
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <main className="app">
+      <header className="app-header">
+        <h1>ChoreTrack</h1>
+        <p>React UI connected to Spring Boot REST endpoints.</p>
+      </header>
 
-      <div className="ticks"></div>
+      <section className="card">
+        <form onSubmit={handleCreateChore} className="chore-form">
+          <input
+            value={newTitle}
+            onChange={(event) => setNewTitle(event.target.value)}
+            placeholder="Add a chore"
+            aria-label="New chore title"
+          />
+          <button type="submit">Add</button>
+        </form>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
+        {error && <p className="error">{error}</p>}
+        {loading ? (
+          <p>Loading chores...</p>
+        ) : (
+          <ul className="chore-list">
+            {chores.map((chore) => (
+              <li key={chore.id}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={chore.completed}
+                    onChange={() => void handleToggle(chore.id)}
+                  />
+                  <span className={chore.completed ? 'done' : ''}>{chore.title}</span>
+                </label>
+              </li>
+            ))}
           </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
+        )}
       </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    </main>
   )
 }
 
