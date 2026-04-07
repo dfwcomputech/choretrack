@@ -1,0 +1,213 @@
+{
+  "nav": {
+    "brand": "ChoreTrack",
+    "features": "Funciones",
+    "howItWorks": "Cómo Funciona",
+    "rewards": "Recompensas",
+    "pricing": "Precios",
+    "faq": "Preguntas",
+    "login": "Iniciar Sesión",
+    "createAccount": "Crear Cuenta"
+  },
+  "hero": {
+    "headline": "Convierte las Tareas en",
+    "headlineAccent": "Aventuras",
+    "subHeadline": "Ayuda a tus hijos a desarrollar responsabilidad con un sistema de tareas divertido e inspirado en juegos. Asigna tareas, gana puntos y desbloquea increíbles recompensas.",
+    "ctaPrimary": "Crear Cuenta",
+    "ctaSecondary": "Explorar Funciones",
+    "trustedBy": "Con la confianza de familias de todo el mundo",
+    "stats": {
+      "families": "10,000+ Familias",
+      "choresCompleted": "500K+ Tareas Completadas",
+      "rewardsEarned": "250K+ Recompensas Ganadas"
+    }
+  },
+  "features": {
+    "title": "Todo lo que Tu Familia Necesita",
+    "subtitle": "Un sistema completo para gestionar las tareas del hogar y motivar a tus hijos",
+    "items": {
+      "assignChores": {
+        "title": "Asigna Tareas Fácilmente",
+        "description": "Crea y asigna tareas a cada hijo con fechas límite, prioridades y horarios recurrentes."
+      },
+      "earnPoints": {
+        "title": "Gana Puntos de Tareas",
+        "description": "Los niños ganan puntos por cada tarea completada, desarrollando un sentido de logro y progreso."
+      },
+      "rewardSystem": {
+        "title": "Sistema de Recompensas",
+        "description": "Configura recompensas que importan a tus hijos: tiempo de pantalla, dinero, dulces o salidas especiales."
+      },
+      "progressTracking": {
+        "title": "Seguimiento de Progreso",
+        "description": "Los paneles visuales muestran el progreso de cada hijo, las tareas completadas y los puntos ganados."
+      },
+      "streaks": {
+        "title": "Rachas y Logros",
+        "description": "Mantén a los niños motivados con rachas diarias, insignias de logros y celebraciones de hitos."
+      },
+      "familyDashboard": {
+        "title": "Panel Familiar",
+        "description": "Gestiona a todos los hijos desde un panel central. Ve quién hizo qué y quién necesita un recordatorio."
+      },
+      "notifications": {
+        "title": "Recordatorios Inteligentes",
+        "description": "Notificaciones amables recuerdan a los niños las tareas pendientes y celebran sus logros."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Cómo Funciona ChoreTrack",
+    "subtitle": "Empieza con tu familia en minutos",
+    "steps": {
+      "step1": {
+        "title": "Los Padres Crean Tareas",
+        "description": "Configura tareas con valores de puntos, fechas límite e instrucciones. Asígnalas a niños específicos o hazlas disponibles para todos."
+      },
+      "step2": {
+        "title": "Los Niños Completan las Tareas",
+        "description": "Los niños ven sus tareas asignadas en una interfaz divertida y fácil de usar. Marcan las tareas como completadas cuando terminan."
+      },
+      "step3": {
+        "title": "Ganan Puntos",
+        "description": "Los puntos se añaden automáticamente a la cuenta de cada hijo cuando las tareas se completan y aprueban."
+      },
+      "step4": {
+        "title": "Canjean Recompensas",
+        "description": "Los niños navegan por las recompensas disponibles y canjean sus puntos ganados con esfuerzo por cosas que realmente quieren."
+      }
+    }
+  },
+  "rewards": {
+    "title": "Motivación Inspirada en Juegos",
+    "subtitle": "Mantén a los niños comprometidos con un sistema de progresión diseñado para el mundo real",
+    "items": {
+      "points": {
+        "title": "Puntos de Tareas",
+        "description": "Cada tarea completada gana puntos que se acumulan con el tiempo"
+      },
+      "streaks": {
+        "title": "Rachas Diarias",
+        "description": "Los días consecutivos completando tareas desbloquean bonificaciones de racha"
+      },
+      "rewards": {
+        "title": "Recompensas Desbloqueables",
+        "description": "Recompensas personalizadas que los niños realmente quieren conseguir"
+      },
+      "milestones": {
+        "title": "Hitos",
+        "description": "Las insignias de logros y las subidas de nivel celebran los grandes logros"
+      }
+    },
+    "progressTitle": "Progreso de Nivel",
+    "level": "Nivel",
+    "pointsToNext": "puntos al siguiente nivel"
+  },
+  "benefits": {
+    "title": "Por Qué los Padres Aman ChoreTrack",
+    "subtitle": "Menos regaños, más acción — y una familia más responsable",
+    "items": {
+      "noNagging": {
+        "title": "Di Adiós a los Regaños",
+        "description": "Los niños se mantienen motivados por el sistema de recompensas, reduciendo la necesidad de recordatorios constantes."
+      },
+      "responsibility": {
+        "title": "Desarrolla Responsabilidad Real",
+        "description": "Los niños aprenden que el esfuerzo lleva a recompensas — una habilidad de vida que va más allá de las tareas."
+      },
+      "structure": {
+        "title": "Crea Estructura Familiar",
+        "description": "Las rutinas consistentes y las expectativas claras ayudan a que toda la familia funcione sin problemas."
+      },
+      "transparent": {
+        "title": "Recompensas Transparentes",
+        "description": "Los niños siempre saben hacia qué están trabajando. Sin sorpresas, sin decepciones."
+      },
+      "management": {
+        "title": "Gestión Familiar Fácil",
+        "description": "Gestiona múltiples hijos, múltiples tareas y múltiples niveles de recompensas desde un panel simple."
+      }
+    }
+  },
+  "pricing": {
+    "title": "Precios Simples y Familiares",
+    "subtitle": "Empieza gratis. Actualiza cuando tu familia esté lista.",
+    "free": {
+      "name": "Gratis",
+      "price": "$0",
+      "period": "/mes",
+      "description": "Perfecto para comenzar",
+      "features": [
+        "Hasta 2 hijos",
+        "10 plantillas de tareas",
+        "Sistema básico de recompensas",
+        "Historial de 7 días"
+      ],
+      "cta": "Comenzar Gratis"
+    },
+    "premium": {
+      "name": "Premium",
+      "price": "$4.99",
+      "period": "/mes",
+      "description": "Para familias que quieren más",
+      "badge": "Más Popular",
+      "features": [
+        "Hijos ilimitados",
+        "Tareas ilimitadas",
+        "Recompensas e hitos personalizados",
+        "Historial completo y análisis",
+        "Soporte prioritario",
+        "Bonificaciones de racha"
+      ],
+      "cta": "Iniciar Prueba Gratis"
+    }
+  },
+  "faq": {
+    "title": "Preguntas Frecuentes",
+    "subtitle": "Todo lo que necesitas saber sobre ChoreTrack",
+    "items": [
+      {
+        "question": "¿Para qué grupo de edad está diseñado ChoreTrack?",
+        "answer": "ChoreTrack está diseñado para niños de 4 a 17 años. La interfaz se adapta para ser apropiada a la edad, con visuales más simples para los más pequeños y un seguimiento más detallado para los adolescentes."
+      },
+      {
+        "question": "¿Puedo crear recompensas personalizadas?",
+        "answer": "¡Por supuesto! Los padres pueden crear cualquier recompensa que quieran: tiempo de pantalla, dinero de bolsillo, salidas especiales, dulces o cualquier otra cosa que les guste a sus hijos. Tú también estableces los valores de puntos."
+      },
+      {
+        "question": "¿Pueden varios niños usar la misma cuenta familiar?",
+        "answer": "¡Sí! ChoreTrack está diseñado para familias. El plan gratuito admite hasta 2 hijos, y el plan Premium admite hijos ilimitados bajo una cuenta familiar."
+      },
+      {
+        "question": "¿Hay una versión gratuita?",
+        "answer": "¡Sí! El plan gratuito te permite añadir hasta 2 hijos, crear 10 tareas y configurar un sistema básico de recompensas, sin necesidad de tarjeta de crédito."
+      },
+      {
+        "question": "¿Cómo acceden los niños a sus tareas?",
+        "answer": "Los niños inician sesión con su propio perfil infantil (configurado por los padres). Pueden ver sus tareas, marcarlas como completadas y explorar sus recompensas desde cualquier dispositivo."
+      },
+      {
+        "question": "¿Puedo aprobar las tareas antes de que se otorguen los puntos?",
+        "answer": "Sí. Los padres pueden activar el 'modo de aprobación', que requiere que verifiquen una tarea antes de que los puntos se añadan a la cuenta del hijo."
+      }
+    ]
+  },
+  "cta": {
+    "title": "¿Listo para Transformar la Rutina de Tu Familia?",
+    "subtitle": "Únete a miles de familias que han hecho las tareas divertidas y gratificantes. Comienza gratis hoy.",
+    "primary": "Crea Tu Cuenta Gratuita",
+    "secondary": "¿Ya tienes una cuenta?",
+    "login": "Inicia sesión aquí"
+  },
+  "footer": {
+    "brand": "ChoreTrack",
+    "tagline": "Haciendo las tareas del hogar divertidas y gratificantes.",
+    "links": {
+      "privacy": "Política de Privacidad",
+      "terms": "Términos de Servicio",
+      "contact": "Contáctanos",
+      "faq": "Preguntas"
+    },
+    "copyright": "© 2024 ChoreTrack. Todos los derechos reservados."
+  }
+}
