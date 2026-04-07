@@ -1,0 +1,213 @@
+{
+  "nav": {
+    "brand": "ChoreTrack",
+    "features": "Features",
+    "howItWorks": "How It Works",
+    "rewards": "Rewards",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "login": "Login",
+    "createAccount": "Create Account"
+  },
+  "hero": {
+    "headline": "Turn Chores Into",
+    "headlineAccent": "Adventures",
+    "subHeadline": "Help your kids build responsibility through a fun, game-inspired chore system. Assign tasks, earn points, and unlock amazing rewards.",
+    "ctaPrimary": "Create Account",
+    "ctaSecondary": "Explore Features",
+    "trustedBy": "Trusted by families worldwide",
+    "stats": {
+      "families": "10,000+ Families",
+      "choresCompleted": "500K+ Chores Completed",
+      "rewardsEarned": "250K+ Rewards Earned"
+    }
+  },
+  "features": {
+    "title": "Everything Your Family Needs",
+    "subtitle": "A complete system to manage household chores and motivate your kids",
+    "items": {
+      "assignChores": {
+        "title": "Assign Chores Easily",
+        "description": "Create and assign chores to each child with due dates, priorities, and recurring schedules."
+      },
+      "earnPoints": {
+        "title": "Earn Chore Points",
+        "description": "Kids earn points for every completed chore, building a sense of achievement and progress."
+      },
+      "rewardSystem": {
+        "title": "Custom Reward System",
+        "description": "Set up rewards that matter to your kids — screen time, allowance, special treats, or outings."
+      },
+      "progressTracking": {
+        "title": "Progress Tracking",
+        "description": "Visual dashboards show each child's progress, completed tasks, and earned points at a glance."
+      },
+      "streaks": {
+        "title": "Streaks & Milestones",
+        "description": "Keep kids motivated with daily streaks, achievement badges, and milestone celebrations."
+      },
+      "familyDashboard": {
+        "title": "Family Dashboard",
+        "description": "Manage all children from one central dashboard. See who's done what and who needs a reminder."
+      },
+      "notifications": {
+        "title": "Smart Reminders",
+        "description": "Gentle notifications remind kids of pending chores and celebrate their completions."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "How ChoreTrack Works",
+    "subtitle": "Get your family started in minutes",
+    "steps": {
+      "step1": {
+        "title": "Parents Create Chores",
+        "description": "Set up chores with point values, due dates, and instructions. Assign them to specific kids or make them available to all."
+      },
+      "step2": {
+        "title": "Kids Complete Tasks",
+        "description": "Children see their assigned chores in a fun, easy-to-use interface. They mark tasks complete when done."
+      },
+      "step3": {
+        "title": "Earn Points",
+        "description": "Points are automatically added to each child's account when chores are completed and approved."
+      },
+      "step4": {
+        "title": "Redeem Rewards",
+        "description": "Kids browse available rewards and redeem their hard-earned points for things they actually want."
+      }
+    }
+  },
+  "rewards": {
+    "title": "Game-Inspired Motivation",
+    "subtitle": "Keep kids engaged with a progression system designed for the real world",
+    "items": {
+      "points": {
+        "title": "Chore Points",
+        "description": "Every completed chore earns points that build up over time"
+      },
+      "streaks": {
+        "title": "Daily Streaks",
+        "description": "Consecutive days of completing chores unlock streak bonuses"
+      },
+      "rewards": {
+        "title": "Unlockable Rewards",
+        "description": "Custom rewards that kids actually want to work toward"
+      },
+      "milestones": {
+        "title": "Milestones",
+        "description": "Achievement badges and level-ups celebrate big accomplishments"
+      }
+    },
+    "progressTitle": "Level Progress",
+    "level": "Level",
+    "pointsToNext": "points to next level"
+  },
+  "benefits": {
+    "title": "Why Parents Love ChoreTrack",
+    "subtitle": "Less nagging, more doing — and a more responsible family",
+    "items": {
+      "noNagging": {
+        "title": "Say Goodbye to Nagging",
+        "description": "Kids stay motivated by the reward system, reducing the need for constant reminders."
+      },
+      "responsibility": {
+        "title": "Build Real Responsibility",
+        "description": "Kids learn that effort leads to rewards — a life skill that extends far beyond chores."
+      },
+      "structure": {
+        "title": "Create Family Structure",
+        "description": "Consistent routines and clear expectations help the whole family run smoothly."
+      },
+      "transparent": {
+        "title": "Transparent Rewards",
+        "description": "Kids always know what they're working toward. No surprises, no disappointments."
+      },
+      "management": {
+        "title": "Easy Family Management",
+        "description": "Manage multiple children, multiple chores, and multiple reward levels from one simple dashboard."
+      }
+    }
+  },
+  "pricing": {
+    "title": "Simple, Family-Friendly Pricing",
+    "subtitle": "Start free. Upgrade when your family is ready.",
+    "free": {
+      "name": "Free",
+      "price": "$0",
+      "period": "/month",
+      "description": "Perfect for getting started",
+      "features": [
+        "Up to 2 children",
+        "10 chore templates",
+        "Basic reward system",
+        "7-day history"
+      ],
+      "cta": "Get Started Free"
+    },
+    "premium": {
+      "name": "Premium",
+      "price": "$4.99",
+      "period": "/month",
+      "description": "For families who want more",
+      "badge": "Most Popular",
+      "features": [
+        "Unlimited children",
+        "Unlimited chores",
+        "Custom rewards & milestones",
+        "Full history & analytics",
+        "Priority support",
+        "Streak bonuses"
+      ],
+      "cta": "Start Free Trial"
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about ChoreTrack",
+    "items": [
+      {
+        "question": "What age group is ChoreTrack designed for?",
+        "answer": "ChoreTrack is designed for children ages 4–17. The interface adapts to be age-appropriate, with simpler visuals for younger kids and more detailed tracking for teens."
+      },
+      {
+        "question": "Can I create custom rewards?",
+        "answer": "Absolutely! Parents can create any reward they want — screen time, allowance, special outings, treats, or anything else your kids love. You set the point values too."
+      },
+      {
+        "question": "Can multiple kids use the same family account?",
+        "answer": "Yes! ChoreTrack is built for families. The free plan supports up to 2 children, and the Premium plan supports unlimited children under one family account."
+      },
+      {
+        "question": "Is there a free version?",
+        "answer": "Yes! The free plan lets you add up to 2 children, create 10 chores, and set up a basic reward system — no credit card required."
+      },
+      {
+        "question": "How do kids access their chores?",
+        "answer": "Kids log in with their own child-friendly profile (set up by parents). They can see their chores, mark them complete, and browse their rewards from any device."
+      },
+      {
+        "question": "Can I approve chores before points are awarded?",
+        "answer": "Yes. Parents can enable 'approval mode' which requires them to verify a chore before points are added to the child's account."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Ready to Transform Your Family's Routine?",
+    "subtitle": "Join thousands of families who've made chores fun and rewarding. Get started for free today.",
+    "primary": "Create Your Free Account",
+    "secondary": "Already have an account?",
+    "login": "Log in here"
+  },
+  "footer": {
+    "brand": "ChoreTrack",
+    "tagline": "Making family chores fun and rewarding.",
+    "links": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "contact": "Contact Us",
+      "faq": "FAQ"
+    },
+    "copyright": "© 2024 ChoreTrack. All rights reserved."
+  }
+}
