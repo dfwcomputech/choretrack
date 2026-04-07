@@ -18,12 +18,10 @@ for /f "tokens=*" %%i in ('npm.cmd -v') do set NPM_VER=%%i
 echo Node: %NODE_VER%
 echo npm: %NPM_VER%
 
-REM Install dependencies if node_modules is missing
-if not exist node_modules (
-    echo.
-    echo Installing dependencies...
-    call npm.cmd install
-)
+REM Keep dependencies synchronized with package.json/package-lock.json
+echo.
+echo Ensuring dependencies are installed and up to date...
+call npm.cmd install
 
 REM Start the dev server
 echo.
