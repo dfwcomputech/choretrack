@@ -1,16 +1,21 @@
-# Use the official OpenJDK base image
-FROM eclipse-temurin:20
+# Stage 1: Build the React UI
+FROM node:20 AS ui-build
+WORKDIR /app/ui
+COPY ui/package*.json ./
+RUN npm ci
+COPY ui/ .
+RUN npm run build
 
-# Metadata as described above
-LABEL maintainer="miguel.cumbay@live.com" \
-      version="3.0" \
-      description="ChoreTrack Application"
-
-# Create a directory in the container where the app will be placed
+# Stage 2: Build the Spring Boot backend
+FROM maven:3.9-eclipse-temurin-21 AS backend-build
 WORKDIR /app
+COPY backend/ ./backend/
+COPY --from=ui-build /app/ui/dist /app/backend/src/main/resources/static
+RUN mvn -f backend/pom.xml clean package -DskipTests -Dskip.npm=true
 
-# Copy the Spring Boot fat-jar into our container
-COPY backend/target/choretrack-ui-0.0.1-SNAPSHOT.jar /app/choretrack-ui-0.0.1-SNAPSHOT.jar
-
-# Specify the command to run on container start
-CMD ["java", "-jar", "/app/choretrack-ui-0.0.1-SNAPSHOT.jar"]
+# Stage 3: Runtime image
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+COPY --from=backend-build /app/backend/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]

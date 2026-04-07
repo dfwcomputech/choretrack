@@ -1,1 +1,4 @@
 .vscode/settings.json
+
+# Vite build output (generated into Spring Boot static resources during build)
+backend/src/main/resources/static/*
