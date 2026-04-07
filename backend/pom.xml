@@ -159,6 +159,8 @@
                 </executions>
                 <configuration>
 					<nodeVersion>v20.19.0</nodeVersion>
+                    <workingDirectory>${project.basedir}/../ui</workingDirectory>
+                    <skip>${skip.npm}</skip>
                 </configuration>
             </plugin>
 			<plugin>
