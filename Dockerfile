@@ -10,7 +10,7 @@ RUN npm run build
 FROM maven:3.9-eclipse-temurin-21 AS backend-build
 WORKDIR /app
 COPY backend/ ./backend/
-COPY --from=ui-build /app/ui/dist /app/backend/src/main/resources/static
+COPY --from=ui-build /app/backend/src/main/resources/static /app/backend/src/main/resources/static
 RUN mvn -f backend/pom.xml clean package -DskipTests -Dskip.npm=true
 
 # Stage 3: Runtime image
