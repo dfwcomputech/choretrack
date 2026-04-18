@@ -4,17 +4,19 @@ import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class HomePageSteps {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    @LocalServerPort
+    private int port;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     private ResponseEntity<String> response;
 
@@ -25,12 +27,12 @@ public class HomePageSteps {
 
     @Given("the ChoreTrack application is running")
     public void theChoreTrackApplicationIsRunning() {
-        assertThat(restTemplate).isNotNull();
+        assertThat(port).isPositive();
     }
 
     @When("the user navigates to the home page")
     public void theUserNavigatesToTheHomePage() {
-        response = restTemplate.getForEntity("/", String.class);
+        response = restTemplate.getForEntity("http://localhost:" + port + "/", String.class);
     }
 
     @Then("the home page is displayed successfully")
