@@ -6,12 +6,11 @@ export default function RegisterPage() {
   const navigate = useNavigate()
 
   const handleSuccess = (registration: RegistrationResponse) => {
-    navigate('/dashboard', {
+    navigate('/login', {
       replace: true,
       state: {
         registered: true,
         username: registration.username,
-        firstName: registration.firstName,
       },
     })
   }
