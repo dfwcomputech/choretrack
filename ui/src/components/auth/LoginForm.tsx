@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { AuthServiceError } from '../../services/authService'
 import { useAuth } from '../../context/useAuth'
@@ -18,7 +18,7 @@ export default function LoginForm({ onSuccess, initialIdentifier = '' }: LoginFo
   const [submitError, setSubmitError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const hasErrors = useMemo(() => Object.keys(fieldErrors).length > 0, [fieldErrors])
+  const hasErrors = Object.keys(fieldErrors).length > 0
 
   const validate = (): Record<string, string> => {
     const errors: Record<string, string> = {}

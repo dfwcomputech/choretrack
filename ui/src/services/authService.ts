@@ -59,7 +59,14 @@ const parseJson = async <T>(response: Response): Promise<T | null> => {
   }
 }
 
-export const getStoredAuthToken = (): string => localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ?? ''
+export const getStoredAuthToken = (): string => {
+  const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)?.trim() ?? ''
+  if (!token) {
+    localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
+    return ''
+  }
+  return token
+}
 
 export const setStoredAuthToken = (token: string) => {
   localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token)

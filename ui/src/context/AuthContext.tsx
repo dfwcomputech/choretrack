@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { AuthContext, type AuthContextValue } from './authContext'
+import { AuthContext, type AuthContextValue } from './auth-context'
 import { clearStoredAuthToken, getStoredAuthToken, loginUser, type LoginResponse, type LoginUserPayload } from '../services/authService'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
