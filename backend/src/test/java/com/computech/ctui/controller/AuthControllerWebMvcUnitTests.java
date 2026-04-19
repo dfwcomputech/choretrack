@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -115,5 +116,13 @@ class AuthControllerWebMvcUnitTests {
 						"""))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.errors").isArray());
+	}
+
+	@Test
+	void logoutReturnsSuccessMessage() throws Exception {
+		mockMvc.perform(post("/api/auth/logout")
+				.principal(new UsernamePasswordAuthenticationToken("admin", "n/a")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.message").value("Logged out successfully"));
 	}
 }

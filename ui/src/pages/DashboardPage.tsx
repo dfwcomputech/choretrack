@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/useAuth'
 
 interface DashboardState {
   registered?: boolean
@@ -7,9 +8,16 @@ interface DashboardState {
 }
 
 export default function DashboardPage() {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
   const location = useLocation()
   const state = (location.state as DashboardState | null) ?? null
   const displayName = state?.firstName?.trim() || state?.username?.trim() || 'there'
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 py-10 px-4">
@@ -38,6 +46,13 @@ export default function DashboardPage() {
             >
               Return to landing page
             </Link>
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              className="inline-flex items-center rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
+            >
+              Logout
+            </button>
           </div>
         </section>
       </div>

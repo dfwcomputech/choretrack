@@ -74,6 +74,7 @@ export const setStoredAuthToken = (token: string) => {
 
 export const clearStoredAuthToken = () => {
   localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
+  sessionStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
 }
 
 export const registerUser = async (payload: RegisterUserPayload): Promise<RegistrationResponse> => {
@@ -161,4 +162,28 @@ export const loginUser = async (payload: LoginUserPayload): Promise<LoginRespons
 
   const errorBody = await parseJson<LoginErrorBody>(response)
   throw new AuthServiceError(errorBody?.message || 'Login failed. Please try again.', response.status)
+}
+
+export const logoutUser = async (token: string): Promise<void> => {
+  if (!token.trim()) {
+    console.warn('Skipping logout API call because no auth token is available.')
+    return
+  }
+
+  try {
+    const response = await fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      console.warn(`Logout API call failed with status ${response.status}.`)
+      return
+    }
+  } catch {
+    console.warn('Logout API request failed due to a network or server error.')
+    return
+  }
 }

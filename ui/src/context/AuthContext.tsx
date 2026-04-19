@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { AuthContext, type AuthContextValue } from './auth-context'
-import { clearStoredAuthToken, getStoredAuthToken, loginUser, type LoginResponse, type LoginUserPayload } from '../services/authService'
+import {
+  clearStoredAuthToken,
+  getStoredAuthToken,
+  loginUser,
+  logoutUser,
+  type LoginResponse,
+  type LoginUserPayload,
+} from '../services/authService'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState(() => getStoredAuthToken())
@@ -12,7 +19,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return response
   }
 
-  const logout = () => {
+  const logout = async () => {
+    const tokenToClear = token
+    await logoutUser(tokenToClear)
     clearStoredAuthToken()
     setToken('')
   }
