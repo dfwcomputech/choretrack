@@ -19,24 +19,30 @@ public class DemoUserDataInitializer {
 	}
 
 	private void initialize() {
-		createDemoUserIfMissing("angie", "angie@choretrack.demo", "Angie", "Parent");
-		createDemoUserIfMissing("preston", "preston@choretrack.demo", "Preston", "Kid");
-		createDemoUserIfMissing("rylan", "rylan@choretrack.demo", "Rylan", "Kid");
-		createDemoUserIfMissing("karla", "karla@choretrack.demo", "Karla", "Kid");
+		final UserAccount parent = createDemoUserIfMissing("angie", "angie@choretrack.demo", "Angie", "Parent",
+				AccountRole.PARENT, null);
+		final String parentId = parent == null ? null : parent.id();
+		createDemoUserIfMissing("preston", "preston@choretrack.demo", "Preston", "Kid", AccountRole.CHILD, parentId);
+		createDemoUserIfMissing("rylan", "rylan@choretrack.demo", "Rylan", "Kid", AccountRole.CHILD, parentId);
+		createDemoUserIfMissing("karla", "karla@choretrack.demo", "Karla", "Kid", AccountRole.CHILD, parentId);
 	}
 
-	private void createDemoUserIfMissing(final String username, final String email, final String firstName, final String lastName) {
+	private UserAccount createDemoUserIfMissing(final String username, final String email, final String firstName,
+			final String lastName, final AccountRole role, final String parentId) {
 		if (userAccountRepository.existsByUsernameIgnoreCase(username) || userAccountRepository.existsByEmailIgnoreCase(email)) {
-			return;
+			return null;
 		}
 
-		userAccountRepository.save(new UserAccount(
+		return userAccountRepository.save(new UserAccount(
 				UUID.randomUUID().toString(),
 				username,
 				email,
 				passwordEncoder.encode("password"),
 				firstName,
 				lastName,
+				firstName,
+				role,
+				parentId,
 				Instant.now()));
 	}
 }

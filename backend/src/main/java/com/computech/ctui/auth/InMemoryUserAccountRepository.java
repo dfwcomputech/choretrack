@@ -21,6 +21,9 @@ public class InMemoryUserAccountRepository implements UserAccountRepository {
 
 	@Override
 	public boolean existsByEmailIgnoreCase(final String email) {
+		if (email == null) {
+			return false;
+		}
 		return emailIndex.containsKey(normalize(email));
 	}
 
@@ -31,10 +34,17 @@ public class InMemoryUserAccountRepository implements UserAccountRepository {
 	}
 
 	@Override
+	public Optional<UserAccount> findById(final String id) {
+		return Optional.ofNullable(usersById.get(id));
+	}
+
+	@Override
 	public UserAccount save(final UserAccount userAccount) {
 		usersById.put(userAccount.id(), userAccount);
 		usernameIndex.put(normalize(userAccount.username()), userAccount.id());
-		emailIndex.put(normalize(userAccount.email()), userAccount.id());
+		if (userAccount.email() != null) {
+			emailIndex.put(normalize(userAccount.email()), userAccount.id());
+		}
 		return userAccount;
 	}
 

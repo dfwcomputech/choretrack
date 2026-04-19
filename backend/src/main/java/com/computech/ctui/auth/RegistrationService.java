@@ -39,6 +39,9 @@ public class RegistrationService {
 				passwordEncoder.encode(request.password()),
 				request.firstName().trim(),
 				request.lastName().trim(),
+				request.firstName().trim(),
+				AccountRole.PARENT,
+				null,
 				Instant.now());
 
 		final UserAccount saved = userAccountRepository.save(userAccount);

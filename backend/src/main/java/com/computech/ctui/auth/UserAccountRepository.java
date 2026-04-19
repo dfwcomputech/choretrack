@@ -10,5 +10,7 @@ public interface UserAccountRepository {
 
 	Optional<UserAccount> findByUsernameIgnoreCase(String username);
 
+	Optional<UserAccount> findById(String id);
+
 	UserAccount save(UserAccount userAccount);
 }
