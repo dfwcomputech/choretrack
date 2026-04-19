@@ -45,7 +45,6 @@ public class JwtService {
 				.subject(username)
 				.issuedAt(now)
 				.expiresAt(now.plusSeconds(expirationSeconds))
-				.claim("username", username)
 				.build();
 		final JwsHeader jwsHeader = JwsHeader.with(MacAlgorithm.HS256).build();
 		return jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();

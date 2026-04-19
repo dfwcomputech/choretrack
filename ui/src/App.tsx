@@ -11,7 +11,7 @@ type Chore = {
 function App() {
   const [chores, setChores] = useState<Chore[]>([])
   const [token, setToken] = useState('')
-  const [username, setUsername] = useState('admin')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [newTitle, setNewTitle] = useState('')
   const [loading, setLoading] = useState(true)
@@ -187,7 +187,7 @@ function App() {
 
         {error && <p className="error">{error}</p>}
         {!token ? (
-          <p>Login with <strong>admin</strong> / <strong>password</strong> to access chores.</p>
+          <p>Login to access chores.</p>
         ) : loading ? (
           <p>Loading chores...</p>
         ) : (
