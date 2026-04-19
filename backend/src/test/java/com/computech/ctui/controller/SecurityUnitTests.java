@@ -67,4 +67,19 @@ class SecurityUnitTests {
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
+
+	@Test
+	void authControllerLogoutReturnsSuccessMessageForAuthenticatedUser() {
+		final AuthenticationManager authenticationManager = mock(AuthenticationManager.class);
+		final JwtService jwtService = new JwtService("choretrack-dev-secret-choretrack-dev-secret", 3600);
+		final RegistrationService registrationService = mock(RegistrationService.class);
+		final AuthController authController = new AuthController(authenticationManager, jwtService, registrationService);
+		final Authentication authenticatedUser = new UsernamePasswordAuthenticationToken("admin", null, List.of());
+
+		final ResponseEntity<AuthController.MessageResponse> response = authController.logout(authenticatedUser);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isNotNull();
+		assertThat(response.getBody().message()).isEqualTo("Logged out successfully");
+	}
 }

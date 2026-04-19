@@ -6,11 +6,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.computech.ctui.auth.RegistrationRequest;
 import com.computech.ctui.auth.RegistrationResponse;
@@ -22,6 +24,8 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
 	private final AuthenticationManager authenticationManager;
 	private final JwtService jwtService;
@@ -55,6 +59,14 @@ public class AuthController {
 		return registrationService.register(request);
 	}
 
+	@PostMapping("/logout")
+	public ResponseEntity<MessageResponse> logout(final Authentication authentication) {
+		if (authentication != null && authentication.isAuthenticated()) {
+			LOGGER.info("User '{}' logged out", authentication.getName());
+		}
+		return ResponseEntity.ok(new MessageResponse("Logged out successfully"));
+	}
+
 	private boolean isBlank(final String value) {
 		return value == null || value.isBlank();
 	}
@@ -63,5 +75,8 @@ public class AuthController {
 	}
 
 	public record LoginResponse(String token, String tokenType) {
+	}
+
+	public record MessageResponse(String message) {
 	}
 }

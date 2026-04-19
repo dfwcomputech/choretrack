@@ -116,4 +116,12 @@ class AuthControllerWebMvcUnitTests {
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.errors").isArray());
 	}
+
+	@Test
+	void logoutReturnsSuccessMessage() throws Exception {
+		mockMvc.perform(post("/api/auth/logout")
+				.principal(() -> "admin"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.message").value("Logged out successfully"));
+	}
 }
