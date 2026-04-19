@@ -44,6 +44,25 @@
   font-weight: 600;
 }
 
+.chore-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-form {
+  margin-bottom: 12px;
+}
+
+.logout-button {
+  margin-bottom: 12px;
+  border: 1px solid #b8c6d3;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2d3a;
+  padding: 10px 16px;
+  font-weight: 600;
+}
+
 .chore-list {
   list-style: none;
   margin: 18px 0 0;

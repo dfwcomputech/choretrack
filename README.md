@@ -20,6 +20,29 @@ cd backend
 ./mvnw spring-boot:run
 ```
 
+### Authentication
+
+The backend now uses JWT-based auth with an in-memory user.
+
+- Login endpoint: `POST /api/auth/login`
+- Protected endpoints: `/api/**` (except `/api/auth/**`)
+- Default dev credentials: `admin / password`
+
+Example login request:
+
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"password"}'
+```
+
+Use the returned token for protected API calls:
+
+```bash
+curl http://localhost:8080/api/chores \
+  -H "Authorization: Bearer <token>"
+```
+
 ## UI
 
 Located in `ui/`. Built with React, TypeScript, and Vite.

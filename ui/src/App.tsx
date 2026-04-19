@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import './App.css'
 
@@ -10,14 +10,27 @@ type Chore = {
 
 function App() {
   const [chores, setChores] = useState<Chore[]>([])
+  const [token, setToken] = useState('')
+  const [username, setUsername] = useState('admin')
+  const [password, setPassword] = useState('')
   const [newTitle, setNewTitle] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const loadChores = async () => {
+  const apiFetch = useCallback((input: string, init?: RequestInit) => {
+    return fetch(input, {
+      ...init,
+      headers: {
+        ...(init?.headers ?? {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
+  }, [token])
+
+  const loadChores = useCallback(async () => {
     try {
       setError('')
-      const response = await fetch('/api/chores')
+      const response = await apiFetch('/api/chores')
       if (!response.ok) {
         throw new Error(`Failed to load chores: ${response.status}`)
       }
@@ -28,11 +41,24 @@ function App() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [apiFetch])
 
   useEffect(() => {
-    void loadChores()
+    const existingToken = localStorage.getItem('choretrack.token')
+    if (!existingToken) {
+      setLoading(false)
+      return
+    }
+    setToken(existingToken)
   }, [])
+
+  useEffect(() => {
+    if (!token) {
+      return
+    }
+    setLoading(true)
+    void loadChores()
+  }, [token, loadChores])
 
   const handleCreateChore = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -43,7 +69,7 @@ function App() {
 
     try {
       setError('')
-      const response = await fetch('/api/chores', {
+      const response = await apiFetch('/api/chores', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +92,7 @@ function App() {
   const handleToggle = async (id: number) => {
     try {
       setError('')
-      const response = await fetch(`/api/chores/${id}/toggle`, {
+      const response = await apiFetch(`/api/chores/${id}/toggle`, {
         method: 'PATCH',
       })
 
@@ -81,26 +107,88 @@ function App() {
     }
   }
 
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    try {
+      setError('')
+      setLoading(true)
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      })
+      if (!response.ok) {
+        throw new Error(`Login failed: ${response.status}`)
+      }
+
+      const data = (await response.json()) as { token: string }
+      localStorage.setItem('choretrack.token', data.token)
+      setToken(data.token)
+      setPassword('')
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('choretrack.token')
+    setToken('')
+    setChores([])
+    setError('')
+  }
+
   return (
     <main className="app">
       <header className="app-header">
         <h1>ChoreTrack</h1>
-        <p>React UI connected to Spring Boot REST endpoints.</p>
+        <p>React UI connected to secured Spring Boot REST endpoints.</p>
       </header>
 
       <section className="card">
+        {!token ? (
+          <form onSubmit={handleLogin} className="chore-form auth-form">
+            <input
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="Username"
+              aria-label="Username"
+            />
+            <input
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Password"
+              aria-label="Password"
+              type="password"
+            />
+            <button type="submit">Login</button>
+          </form>
+        ) : (
+          <button type="button" onClick={handleLogout} className="logout-button">
+            Logout
+          </button>
+        )}
+
         <form onSubmit={handleCreateChore} className="chore-form">
           <input
             value={newTitle}
             onChange={(event) => setNewTitle(event.target.value)}
             placeholder="Add a chore"
             aria-label="New chore title"
+            disabled={!token}
           />
-          <button type="submit">Add</button>
+          <button type="submit" disabled={!token}>
+            Add
+          </button>
         </form>
 
         {error && <p className="error">{error}</p>}
-        {loading ? (
+        {!token ? (
+          <p>Login with <strong>admin</strong> / <strong>password</strong> to access chores.</p>
+        ) : loading ? (
           <p>Loading chores...</p>
         ) : (
           <ul className="chore-list">
