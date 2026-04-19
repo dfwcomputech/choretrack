@@ -134,9 +134,9 @@ export default function DashboardPage() {
         if (mappedChores.length > 0) {
           setChores(mappedChores)
           const completedPoints = mappedChores.filter((chore) => chore.completed).reduce((total, chore) => total + chore.points, 0)
-          const totalPoints = Number.isFinite(data.progress?.points) ? Number(data.progress?.points) : completedPoints
-          const nextBasePoints = totalPoints >= completedPoints ? totalPoints - completedPoints : 0
-          setBasePoints(Math.max(nextBasePoints, 0))
+          const progressPointsFromApi = Number.isFinite(data.progress?.points) ? Number(data.progress?.points) : completedPoints
+          const basePointsFromProgress = progressPointsFromApi >= completedPoints ? progressPointsFromApi - completedPoints : 0
+          setBasePoints(Math.max(basePointsFromProgress, 0))
         }
         if (mappedRewards.length > 0) setRewards(mappedRewards)
         if (data.parent?.name?.trim()) setDemoParentName(data.parent.name.trim())
