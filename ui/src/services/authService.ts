@@ -166,17 +166,24 @@ export const loginUser = async (payload: LoginUserPayload): Promise<LoginRespons
 
 export const logoutUser = async (token: string): Promise<void> => {
   if (!token.trim()) {
+    console.warn('Skipping logout API call because no auth token is available.')
     return
   }
 
   try {
-    await fetch('/api/auth/logout', {
+    const response = await fetch('/api/auth/logout', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     })
+
+    if (!response.ok) {
+      console.warn(`Logout API call failed with status ${response.status}.`)
+      return
+    }
   } catch {
+    console.warn('Logout API request failed due to a network or server error.')
     return
   }
 }
