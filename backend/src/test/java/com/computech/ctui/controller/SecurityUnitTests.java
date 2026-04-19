@@ -16,6 +16,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
+import com.computech.ctui.auth.RegistrationService;
 import com.computech.ctui.security.JwtService;
 
 @Tag("unit")
@@ -35,7 +36,8 @@ class SecurityUnitTests {
 	void authControllerReturnsTokenWhenCredentialsAreValid() {
 		final AuthenticationManager authenticationManager = mock(AuthenticationManager.class);
 		final JwtService jwtService = new JwtService("choretrack-dev-secret-choretrack-dev-secret", 3600);
-		final AuthController authController = new AuthController(authenticationManager, jwtService);
+		final RegistrationService registrationService = mock(RegistrationService.class);
+		final AuthController authController = new AuthController(authenticationManager, jwtService, registrationService);
 		final Authentication authenticatedUser = new UsernamePasswordAuthenticationToken("admin", null, List.of());
 
 		when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
@@ -54,7 +56,8 @@ class SecurityUnitTests {
 	void authControllerReturnsUnauthorizedForInvalidCredentials() {
 		final AuthenticationManager authenticationManager = mock(AuthenticationManager.class);
 		final JwtService jwtService = new JwtService("choretrack-dev-secret-choretrack-dev-secret", 3600);
-		final AuthController authController = new AuthController(authenticationManager, jwtService);
+		final RegistrationService registrationService = mock(RegistrationService.class);
+		final AuthController authController = new AuthController(authenticationManager, jwtService, registrationService);
 
 		when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
 				.thenThrow(new BadCredentialsException("bad credentials"));

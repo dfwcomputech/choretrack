@@ -14,12 +14,13 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.computech.ctui.auth.UserAccountRepository;
 import com.computech.ctui.security.JwtAuthenticationFilter;
 
 @Configuration
@@ -47,12 +48,23 @@ public class SecurityConfig {
 
 	@Bean
 	UserDetailsService userDetailsService(@Value("${security.default-user.name}") final String username,
-			@Value("${security.default-user.password-hash}") final String passwordHash) {
-		final UserDetails userDetails = User.withUsername(username)
+			@Value("${security.default-user.password-hash}") final String passwordHash,
+			final UserAccountRepository userAccountRepository) {
+		final UserDetails defaultUser = User.withUsername(username)
 				.password(passwordHash)
 				.roles("USER")
 				.build();
-		return new InMemoryUserDetailsManager(userDetails);
+		return requestedUsername -> userAccountRepository.findByUsernameIgnoreCase(requestedUsername)
+				.map(userAccount -> User.withUsername(userAccount.username())
+						.password(userAccount.passwordHash())
+						.roles("USER")
+						.build())
+				.orElseGet(() -> {
+					if (defaultUser.getUsername().equalsIgnoreCase(requestedUsername)) {
+						return defaultUser;
+					}
+					throw new UsernameNotFoundException("User not found: " + requestedUsername);
+				});
 	}
 
 	@Bean
