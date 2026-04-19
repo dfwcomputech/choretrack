@@ -49,12 +49,12 @@ export default function DashboardPage() {
     { id: 'r4', name: 'Arcade Trip', pointsCost: 650, icon: '🕹️' },
   ])
 
-  const seedPoints = 202
-  const points = seedPoints + chores.filter((chore) => chore.completed).reduce((total, chore) => total + chore.points, 0)
+  const basePoints = 202
+  const points = basePoints + chores.filter((chore) => chore.completed).reduce((total, chore) => total + chore.points, 0)
   const level = 3
   const nextLevelPoints = 300
 
-  const [newChore, setNewChore] = useState({ title: '', childId: 'emma', points: 10 })
+  const [newChore, setNewChore] = useState({ title: '', childId: kids[0]?.id ?? '', points: 10 })
   const [newReward, setNewReward] = useState({ name: '', pointsCost: 100 })
   const [newChild, setNewChild] = useState({ name: '', username: '', password: '' })
 
@@ -73,7 +73,7 @@ export default function DashboardPage() {
   }
 
   const handleCreateChore = () => {
-    if (!newChore.title.trim()) return
+    if (!newChore.title.trim() || !newChore.childId.trim() || kids.length === 0) return
     setChores((prev) => [
       {
         id: crypto.randomUUID(),
@@ -105,15 +105,17 @@ export default function DashboardPage() {
 
   const handleCreateChild = () => {
     if (!newChild.name.trim() || !newChild.username.trim()) return
+    const childId = crypto.randomUUID()
     setKids((prev) => [
       ...prev,
       {
-        id: crypto.randomUUID(),
+        id: childId,
         name: newChild.name.trim(),
         username: newChild.username.trim(),
         avatar: '🧒',
       },
     ])
+    setNewChore((prev) => (prev.childId ? prev : { ...prev, childId }))
     setNewChild({ name: '', username: '', password: '' })
     setIsAddChildOpen(false)
   }
@@ -159,7 +161,12 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <BattlePassTrack points={points} />
+          <BattlePassTrack
+            points={points}
+            currentLevel={level}
+            nextLevel={level + 1}
+            currentLevelTargetPoints={nextLevelPoints}
+          />
         </div>
       </div>
 
@@ -197,7 +204,11 @@ export default function DashboardPage() {
                   type="number"
                   min={1}
                   value={newChore.points}
-                  onChange={(event) => setNewChore((prev) => ({ ...prev, points: Number(event.target.value) || 1 }))}
+                  onChange={(event) => {
+                    const parsed = Number(event.target.value)
+                    const nextPoints = Number.isFinite(parsed) && parsed >= 1 ? parsed : 1
+                    setNewChore((prev) => ({ ...prev, points: nextPoints }))
+                  }}
                   className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
                 />
               </label>
@@ -206,7 +217,12 @@ export default function DashboardPage() {
               <button type="button" onClick={() => setIsAddChoreOpen(false)} className="rounded-lg border border-slate-300 px-3 py-2 text-slate-700">
                 Cancel
               </button>
-              <button type="button" onClick={handleCreateChore} className="rounded-lg bg-primary-600 px-4 py-2 font-semibold text-white">
+              <button
+                type="button"
+                onClick={handleCreateChore}
+                disabled={kids.length === 0}
+                className="rounded-lg bg-primary-600 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
                 Add Chore
               </button>
             </div>
@@ -234,7 +250,11 @@ export default function DashboardPage() {
                   type="number"
                   min={1}
                   value={newReward.pointsCost}
-                  onChange={(event) => setNewReward((prev) => ({ ...prev, pointsCost: Number(event.target.value) || 1 }))}
+                  onChange={(event) => {
+                    const parsed = Number(event.target.value)
+                    const nextCost = Number.isFinite(parsed) && parsed >= 1 ? parsed : 1
+                    setNewReward((prev) => ({ ...prev, pointsCost: nextCost }))
+                  }}
                   className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
                 />
               </label>

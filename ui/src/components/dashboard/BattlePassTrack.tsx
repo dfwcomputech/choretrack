@@ -1,11 +1,19 @@
 interface BattlePassTrackProps {
   points: number
+  currentLevel: number
+  nextLevel: number
+  currentLevelTargetPoints: number
 }
 
 const startPoints = 150
 const endPoints = 400
 
-export default function BattlePassTrack({ points }: BattlePassTrackProps) {
+export default function BattlePassTrack({
+  points,
+  currentLevel,
+  nextLevel,
+  currentLevelTargetPoints,
+}: BattlePassTrackProps) {
   const clamped = Math.max(startPoints, Math.min(points, endPoints))
   const progress = ((clamped - startPoints) / (endPoints - startPoints)) * 100
 
@@ -24,9 +32,11 @@ export default function BattlePassTrack({ points }: BattlePassTrackProps) {
           <span>🏆</span>
         </div>
         <div className="mt-3 grid grid-cols-3 text-center text-lg font-semibold text-slate-700">
-          <p>Level 2</p>
-          <p>{points} / 300 pts</p>
-          <p>Level 4</p>
+          <p>Level {currentLevel}</p>
+          <p>
+            {points} / {currentLevelTargetPoints} pts
+          </p>
+          <p>Level {nextLevel}</p>
         </div>
       </div>
     </section>
