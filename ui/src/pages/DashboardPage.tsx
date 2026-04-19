@@ -24,6 +24,14 @@ interface DemoDashboardResponse {
   progress?: { level?: number; points?: number; nextLevelPoints?: number }
 }
 
+const toUsernameFallback = (value: string, id: string) => {
+  const normalized = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return normalized || id.toLowerCase()
+}
+
 const defaultParentName = 'Angie'
 
 const defaultKids: KidAccount[] = [
@@ -93,7 +101,7 @@ export default function DashboardPage() {
             return {
               id: child.id,
               name: child.name,
-              username: child.username || child.name.toLowerCase(),
+              username: child.username?.trim() || toUsernameFallback(child.name, child.id),
               avatar: child.avatar || '🧒',
             }
           })
@@ -127,7 +135,8 @@ export default function DashboardPage() {
           setChores(mappedChores)
           const completedPoints = mappedChores.filter((chore) => chore.completed).reduce((total, chore) => total + chore.points, 0)
           const totalPoints = Number.isFinite(data.progress?.points) ? Number(data.progress?.points) : completedPoints
-          setBasePoints(Math.max(totalPoints - completedPoints, 0))
+          const nextBasePoints = totalPoints >= completedPoints ? totalPoints - completedPoints : totalPoints
+          setBasePoints(Math.max(nextBasePoints, 0))
         }
         if (mappedRewards.length > 0) setRewards(mappedRewards)
         if (data.parent?.name?.trim()) setDemoParentName(data.parent.name.trim())
