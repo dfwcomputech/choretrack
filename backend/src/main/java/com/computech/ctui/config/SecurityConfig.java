@@ -58,7 +58,7 @@ public class SecurityConfig {
 		return requestedUsername -> userAccountRepository.findByUsernameIgnoreCase(requestedUsername)
 				.map(userAccount -> User.withUsername(userAccount.username())
 						.password(userAccount.passwordHash())
-						.roles("USER")
+						.roles(userAccount.role() == null ? "USER" : userAccount.role().name())
 						.build())
 				.orElseGet(() -> {
 					if (defaultUser.getUsername().equalsIgnoreCase(requestedUsername)) {

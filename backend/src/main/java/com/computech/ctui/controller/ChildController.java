@@ -1,0 +1,36 @@
+package com.computech.ctui.controller;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.computech.ctui.auth.ChildAccountRequest;
+import com.computech.ctui.auth.ChildAccountResponse;
+import com.computech.ctui.auth.ChildAccountService;
+
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api/children")
+public class ChildController {
+
+	private final ChildAccountService childAccountService;
+
+	public ChildController(final ChildAccountService childAccountService) {
+		this.childAccountService = childAccountService;
+	}
+
+	@PostMapping
+	public ResponseEntity<ChildAccountResponse> createChild(@Valid @RequestBody final ChildAccountRequest request,
+			final Authentication authentication) {
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		final ChildAccountResponse response = childAccountService.createChild(request, authentication.getName());
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	}
+}

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.computech.ctui.auth.DuplicateUserException;
+import com.computech.ctui.auth.ForbiddenOperationException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -29,6 +30,12 @@ public class ApiExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleDuplicateUserException(final DuplicateUserException exception) {
 		return ResponseEntity.status(HttpStatus.CONFLICT)
 				.body(new ErrorResponse(exception.getMessage(), exception.getField()));
+	}
+
+	@ExceptionHandler(ForbiddenOperationException.class)
+	public ResponseEntity<ErrorResponse> handleForbiddenOperationException(final ForbiddenOperationException exception) {
+		return ResponseEntity.status(HttpStatus.FORBIDDEN)
+				.body(new ErrorResponse(exception.getMessage(), null));
 	}
 
 	@ExceptionHandler(Exception.class)
