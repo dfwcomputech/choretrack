@@ -6,12 +6,18 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.computech.ctui.auth.RegistrationRequest;
+import com.computech.ctui.auth.RegistrationResponse;
+import com.computech.ctui.auth.RegistrationService;
 import com.computech.ctui.security.JwtService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -19,10 +25,13 @@ public class AuthController {
 
 	private final AuthenticationManager authenticationManager;
 	private final JwtService jwtService;
+	private final RegistrationService registrationService;
 
-	public AuthController(final AuthenticationManager authenticationManager, final JwtService jwtService) {
+	public AuthController(final AuthenticationManager authenticationManager, final JwtService jwtService,
+			final RegistrationService registrationService) {
 		this.authenticationManager = authenticationManager;
 		this.jwtService = jwtService;
+		this.registrationService = registrationService;
 	}
 
 	@PostMapping("/login")
@@ -38,6 +47,12 @@ public class AuthController {
 		} catch (BadCredentialsException ex) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
+	}
+
+	@PostMapping("/register")
+	@ResponseStatus(HttpStatus.CREATED)
+	public RegistrationResponse register(@Valid @RequestBody final RegistrationRequest request) {
+		return registrationService.register(request);
 	}
 
 	private boolean isBlank(final String value) {

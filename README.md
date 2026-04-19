@@ -22,9 +22,10 @@ cd backend
 
 ### Authentication
 
-The backend now uses JWT-based auth with an in-memory user.
+The backend now uses JWT-based auth with an in-memory user repository.
 
 - Login endpoint: `POST /api/auth/login`
+- Registration endpoint: `POST /api/auth/register`
 - Protected endpoints: `/api/**` (except `/api/auth/**`)
 - Default dev credentials: `admin / password`
 
