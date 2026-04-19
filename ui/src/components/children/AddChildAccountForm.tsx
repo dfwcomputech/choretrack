@@ -33,10 +33,7 @@ export default function AddChildAccountForm({
 
   const handleInputChange = (field: keyof CreateChildAccountPayload, value: string) => {
     setFormValues((prev) => ({ ...prev, [field]: value }))
-    setValidationErrors((prev) => {
-      if (!prev[field]) return prev
-      return { ...prev, [field]: '' }
-    })
+    setValidationErrors((prev) => ({ ...prev, [field]: '' }))
   }
 
   const validate = () => {
@@ -140,6 +137,7 @@ export default function AddChildAccountForm({
                 onChange={(event) => handleInputChange('displayName', event.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
                 placeholder="Avery J"
+                autoComplete="name"
                 aria-invalid={Boolean(mergedFieldErrors.displayName)}
               />
               {mergedFieldErrors.displayName ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.displayName}</p> : null}

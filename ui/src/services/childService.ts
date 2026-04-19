@@ -48,7 +48,7 @@ const parseJson = async <T>(response: Response): Promise<T | null> => {
 
 export const createChildAccount = async (payload: CreateChildAccountPayload, token: string): Promise<ChildAccountResponse> => {
   if (!token.trim()) {
-    throw new ChildServiceError('Your session has expired. Please log in again.', 401)
+    throw new ChildServiceError('Authentication required. Please log in.', -1)
   }
 
   let response: Response

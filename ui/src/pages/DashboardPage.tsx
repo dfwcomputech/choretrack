@@ -87,6 +87,7 @@ export default function DashboardPage() {
   const [createChildErrorMessage, setCreateChildErrorMessage] = useState('')
   const [createChildFieldErrors, setCreateChildFieldErrors] = useState<Record<string, string>>({})
   const [childSuccessMessage, setChildSuccessMessage] = useState('')
+  const [addChildFormKey, setAddChildFormKey] = useState(0)
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -213,6 +214,7 @@ export default function DashboardPage() {
     setChildSuccessMessage('')
     setCreateChildErrorMessage('')
     setCreateChildFieldErrors({})
+    setAddChildFormKey((prev) => prev + 1)
     setIsAddChildOpen(true)
   }
 
@@ -229,7 +231,8 @@ export default function DashboardPage() {
     setIsCreatingChild(true)
     try {
       const child = await createChildAccount(payload, token)
-      const displayName = child.displayName?.trim() || `${child.firstName} ${child.lastName}`.trim() || child.username
+      const displayName =
+        child.displayName?.trim() || [child.firstName?.trim(), child.lastName?.trim()].filter(Boolean).join(' ') || child.username
       setKids((prev) => [
         ...prev,
         {
@@ -248,6 +251,7 @@ export default function DashboardPage() {
         setCreateChildFieldErrors(error.fieldErrors)
         return
       }
+      console.error('Failed to create child account', error)
       setCreateChildErrorMessage('Unable to create child account. Please try again.')
     } finally {
       setIsCreatingChild(false)
@@ -407,6 +411,7 @@ export default function DashboardPage() {
 
       {isAddChildOpen ? (
         <AddChildAccountForm
+          key={addChildFormKey}
           isOpen={isAddChildOpen}
           isSubmitting={isCreatingChild}
           errorMessage={createChildErrorMessage}
