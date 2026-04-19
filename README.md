@@ -28,6 +28,7 @@ The backend now uses JWT-based auth with an in-memory user repository.
 - Registration endpoint: `POST /api/auth/register`
 - Protected endpoints: `/api/**` (except `/api/auth/**`)
 - Default dev credentials: `admin / password`
+- Demo accounts auto-seeded at startup: `angie`, `preston`, `rylan`, `karla` (all use password `password`)
 
 Example login request:
 

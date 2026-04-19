@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import DashboardHeader from '../components/layout/DashboardHeader'
@@ -16,47 +16,140 @@ interface DashboardState {
   firstName?: string
 }
 
+interface DemoDashboardResponse {
+  parent?: { name?: string }
+  children?: Array<{ id?: string; name?: string; username?: string; avatar?: string }>
+  chores?: Array<{ id?: string; title?: string; childId?: string; points?: number; completed?: boolean }>
+  rewards?: Array<{ id?: string; name?: string; pointsCost?: number; icon?: string }>
+  progress?: { level?: number; points?: number; nextLevelPoints?: number }
+}
+
+const toUsernameFallback = (value: string, id: string) => {
+  const normalized = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return normalized || id.toLowerCase()
+}
+
+const defaultParentName = 'Angie'
+
+const defaultKids: KidAccount[] = [
+  { id: 'child-preston', name: 'Preston', avatar: '🧒', username: 'preston' },
+  { id: 'child-rylan', name: 'Rylan', avatar: '👦', username: 'rylan' },
+  { id: 'child-karla', name: 'Karla', avatar: '👧', username: 'karla' },
+]
+
+const defaultChores: ChoreItem[] = [
+  { id: 'chore-1', title: 'Pick up the trash', childId: 'child-preston', points: 25, completed: true },
+  { id: 'chore-2', title: 'Clean Cracker cage', childId: 'child-karla', points: 30, completed: false },
+  { id: 'chore-3', title: 'Feed Jessie', childId: 'child-rylan', points: 15, completed: true },
+  { id: 'chore-4', title: 'Feed Hunter', childId: 'child-preston', points: 15, completed: false },
+  { id: 'chore-5', title: 'Clean your room', childId: 'child-karla', points: 20, completed: true },
+  { id: 'chore-6', title: 'Wash your dishes', childId: 'child-rylan', points: 10, completed: false },
+  { id: 'chore-7', title: 'Wash your clothes', childId: 'child-preston', points: 20, completed: false },
+]
+
+const defaultRewards: RewardItem[] = [
+  { id: 'reward-1', name: 'Get Icecream', pointsCost: 40, icon: '🍨' },
+  { id: 'reward-2', name: 'Go to the movies', pointsCost: 90, icon: '🎬' },
+  { id: 'reward-3', name: 'Extra gaming time', pointsCost: 60, icon: '🎮' },
+  { id: 'reward-4', name: 'Extra tablet time', pointsCost: 50, icon: '📱' },
+  { id: 'reward-5', name: 'Buy one thing from Amazon', pointsCost: 150, icon: '📦' },
+]
+
 export default function DashboardPage() {
-  const { logout } = useAuth()
+  const { logout, token } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const state = (location.state as DashboardState | null) ?? null
-  const parentName = state?.firstName?.trim() || state?.username?.trim() || 'Danielle Parent'
+  const [demoParentName, setDemoParentName] = useState(defaultParentName)
+  const parentName = state?.firstName?.trim() || state?.username?.trim() || demoParentName
   const [activeNav, setActiveNav] = useState('chores')
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isAddChoreOpen, setIsAddChoreOpen] = useState(false)
   const [isAddRewardOpen, setIsAddRewardOpen] = useState(false)
   const [isAddChildOpen, setIsAddChildOpen] = useState(false)
 
-  const [kids, setKids] = useState<KidAccount[]>([
-    { id: 'emma', name: 'Emma', avatar: '👧', username: 'emma' },
-    { id: 'liam', name: 'Liam', avatar: '🧒', username: 'liam' },
-    { id: 'noah', name: 'Noah', avatar: '👦', username: 'noah' },
-  ])
-
-  const [chores, setChores] = useState<ChoreItem[]>([
-    { id: '1', title: 'Take out trash', childId: 'emma', points: 20, completed: true },
-    { id: '2', title: 'Water the plants', childId: 'liam', points: 10, completed: false },
-    { id: '3', title: 'Clean bedroom', childId: 'emma', points: 15, completed: true },
-    { id: '4', title: 'Feed the dog', childId: 'noah', points: 12, completed: false },
-    { id: '5', title: 'Set the table', childId: 'liam', points: 10, completed: true },
-  ])
-
-  const [rewards, setRewards] = useState<RewardItem[]>([
-    { id: 'r1', name: 'Extra Screen Time', pointsCost: 150, icon: '📱' },
-    { id: 'r2', name: 'Allowance Boost', pointsCost: 300, icon: '💰' },
-    { id: 'r3', name: 'Family Movie Night', pointsCost: 500, icon: '🎬' },
-    { id: 'r4', name: 'Arcade Trip', pointsCost: 650, icon: '🕹️' },
-  ])
-
-  const basePoints = 202
+  const [kids, setKids] = useState<KidAccount[]>(defaultKids)
+  const [chores, setChores] = useState<ChoreItem[]>(defaultChores)
+  const [rewards, setRewards] = useState<RewardItem[]>(defaultRewards)
+  const [basePoints, setBasePoints] = useState(160)
   const points = basePoints + chores.filter((chore) => chore.completed).reduce((total, chore) => total + chore.points, 0)
-  const level = 3
-  const nextLevelPoints = 300
+  const [level, setLevel] = useState(3)
+  const [nextLevelPoints, setNextLevelPoints] = useState(300)
 
   const [newChore, setNewChore] = useState({ title: '', childId: kids[0]?.id ?? '', points: 10 })
   const [newReward, setNewReward] = useState({ name: '', pointsCost: 100 })
   const [newChild, setNewChild] = useState({ name: '', username: '', password: '' })
+
+  useEffect(() => {
+    const abortController = new AbortController()
+
+    const loadDemoDashboard = async () => {
+      try {
+        const response = await fetch('/api/demo/dashboard', {
+          signal: abortController.signal,
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+        if (!response.ok) return
+
+        const data = (await response.json()) as DemoDashboardResponse
+        const mappedKids = (data.children ?? [])
+          .map((child): KidAccount | null => {
+            if (!child.id || !child.name) return null
+            return {
+              id: child.id,
+              name: child.name,
+              username: child.username?.trim() || toUsernameFallback(child.name, child.id),
+              avatar: child.avatar || '🧒',
+            }
+          })
+          .filter((child): child is KidAccount => child !== null)
+        const mappedChores = (data.chores ?? [])
+          .map((chore): ChoreItem | null => {
+            if (!chore.id || !chore.title || !chore.childId || !Number.isFinite(chore.points)) return null
+            return {
+              id: chore.id,
+              title: chore.title,
+              childId: chore.childId,
+              points: Number(chore.points),
+              completed: Boolean(chore.completed),
+            }
+          })
+          .filter((chore): chore is ChoreItem => chore !== null)
+        const mappedRewards = (data.rewards ?? [])
+          .map((reward): RewardItem | null => {
+            if (!reward.id || !reward.name || !Number.isFinite(reward.pointsCost)) return null
+            return {
+              id: reward.id,
+              name: reward.name,
+              pointsCost: Number(reward.pointsCost),
+              icon: reward.icon || '🎁',
+            }
+          })
+          .filter((reward): reward is RewardItem => reward !== null)
+
+        if (mappedKids.length > 0) setKids(mappedKids)
+        if (mappedChores.length > 0) {
+          setChores(mappedChores)
+          const completedPoints = mappedChores.filter((chore) => chore.completed).reduce((total, chore) => total + chore.points, 0)
+          const progressPointsFromApi = Number.isFinite(data.progress?.points) ? Number(data.progress?.points) : completedPoints
+          const basePointsFromProgress = progressPointsFromApi >= completedPoints ? progressPointsFromApi - completedPoints : 0
+          setBasePoints(Math.max(basePointsFromProgress, 0))
+        }
+        if (mappedRewards.length > 0) setRewards(mappedRewards)
+        if (data.parent?.name?.trim()) setDemoParentName(data.parent.name.trim())
+        if (Number.isFinite(data.progress?.level)) setLevel(Math.max(Number(data.progress?.level), 1))
+        if (Number.isFinite(data.progress?.nextLevelPoints)) setNextLevelPoints(Math.max(Number(data.progress?.nextLevelPoints), 1))
+      } catch {
+        return
+      }
+    }
+
+    void loadDemoDashboard()
+    return () => abortController.abort()
+  }, [token])
 
   const handleLogout = async () => {
     await logout()
