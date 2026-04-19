@@ -8,7 +8,9 @@ import ChoresSection from '../components/dashboard/ChoresSection'
 import RewardsSection from '../components/dashboard/RewardsSection'
 import KinSection from '../components/dashboard/KinSection'
 import BattlePassTrack from '../components/dashboard/BattlePassTrack'
+import AddChildAccountForm from '../components/children/AddChildAccountForm'
 import type { ChoreItem, KidAccount, RewardItem } from '../components/dashboard/types'
+import { ChildServiceError, createChildAccount, type CreateChildAccountPayload } from '../services/childService'
 
 interface DashboardState {
   registered?: boolean
@@ -81,7 +83,11 @@ export default function DashboardPage() {
 
   const [newChore, setNewChore] = useState({ title: '', childId: kids[0]?.id ?? '', points: 10 })
   const [newReward, setNewReward] = useState({ name: '', pointsCost: 100 })
-  const [newChild, setNewChild] = useState({ name: '', username: '', password: '' })
+  const [isCreatingChild, setIsCreatingChild] = useState(false)
+  const [createChildErrorMessage, setCreateChildErrorMessage] = useState('')
+  const [createChildFieldErrors, setCreateChildFieldErrors] = useState<Record<string, string>>({})
+  const [childSuccessMessage, setChildSuccessMessage] = useState('')
+  const [addChildFormKey, setAddChildFormKey] = useState(0)
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -151,6 +157,14 @@ export default function DashboardPage() {
     return () => abortController.abort()
   }, [token])
 
+  useEffect(() => {
+    if (!childSuccessMessage) return
+    const timeoutId = window.setTimeout(() => {
+      setChildSuccessMessage('')
+    }, 4000)
+    return () => window.clearTimeout(timeoutId)
+  }, [childSuccessMessage])
+
   const handleLogout = async () => {
     await logout()
     navigate('/login', { replace: true })
@@ -196,21 +210,52 @@ export default function DashboardPage() {
     setIsAddRewardOpen(false)
   }
 
-  const handleCreateChild = () => {
-    if (!newChild.name.trim() || !newChild.username.trim()) return
-    const childId = crypto.randomUUID()
-    setKids((prev) => [
-      ...prev,
-      {
-        id: childId,
-        name: newChild.name.trim(),
-        username: newChild.username.trim(),
-        avatar: '🧒',
-      },
-    ])
-    setNewChore((prev) => (prev.childId ? prev : { ...prev, childId }))
-    setNewChild({ name: '', username: '', password: '' })
+  const openAddChildDialog = () => {
+    setChildSuccessMessage('')
+    setCreateChildErrorMessage('')
+    setCreateChildFieldErrors({})
+    setAddChildFormKey((prev) => prev + 1)
+    setIsAddChildOpen(true)
+  }
+
+  const closeAddChildDialog = () => {
+    if (isCreatingChild) return
+    setCreateChildErrorMessage('')
+    setCreateChildFieldErrors({})
     setIsAddChildOpen(false)
+  }
+
+  const handleCreateChild = async (payload: CreateChildAccountPayload) => {
+    setCreateChildErrorMessage('')
+    setCreateChildFieldErrors({})
+    setIsCreatingChild(true)
+    try {
+      const child = await createChildAccount(payload, token)
+      const displayName =
+        child.displayName?.trim() || [child.firstName?.trim(), child.lastName?.trim()].filter(Boolean).join(' ') || child.username
+      setKids((prev) => [
+        ...prev,
+        {
+          id: child.id,
+          name: displayName,
+          username: child.username,
+          avatar: '🧒',
+        },
+      ])
+      setNewChore((prev) => (prev.childId ? prev : { ...prev, childId: child.id }))
+      setChildSuccessMessage(`${displayName} has been added to your family.`)
+      setIsAddChildOpen(false)
+    } catch (error) {
+      if (error instanceof ChildServiceError) {
+        setCreateChildErrorMessage(error.message)
+        setCreateChildFieldErrors(error.fieldErrors)
+        return
+      }
+      console.error('Failed to create child account', error)
+      setCreateChildErrorMessage('Unable to create child account. Please try again.')
+    } finally {
+      setIsCreatingChild(false)
+    }
   }
 
   const modalClassName =
@@ -250,7 +295,7 @@ export default function DashboardPage() {
               />
             </div>
             <div className="space-y-6 xl:col-span-1">
-              <KinSection parentName={parentName} kids={kids} onAddChild={() => setIsAddChildOpen(true)} />
+              <KinSection parentName={parentName} kids={kids} onAddChild={openAddChildDialog} />
             </div>
           </div>
 
@@ -365,48 +410,20 @@ export default function DashboardPage() {
       ) : null}
 
       {isAddChildOpen ? (
-        <div className={modalClassName}>
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-2xl font-bold text-slate-900">Create Child Account</h3>
-            <div className="mt-4 space-y-3">
-              <label className="block text-sm font-semibold text-slate-600">
-                Name
-                <input
-                  value={newChild.name}
-                  onChange={(event) => setNewChild((prev) => ({ ...prev, name: event.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                  placeholder="Avery"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-slate-600">
-                Username
-                <input
-                  value={newChild.username}
-                  onChange={(event) => setNewChild((prev) => ({ ...prev, username: event.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                  placeholder="avery123"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-slate-600">
-                Password
-                <input
-                  type="password"
-                  value={newChild.password}
-                  onChange={(event) => setNewChild((prev) => ({ ...prev, password: event.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                  placeholder="••••••••"
-                />
-              </label>
-            </div>
-            <div className="mt-5 flex justify-end gap-2">
-              <button type="button" onClick={() => setIsAddChildOpen(false)} className="rounded-lg border border-slate-300 px-3 py-2 text-slate-700">
-                Cancel
-              </button>
-              <button type="button" onClick={handleCreateChild} className="rounded-lg bg-primary-600 px-4 py-2 font-semibold text-white">
-                Add Child
-              </button>
-            </div>
-          </div>
+        <AddChildAccountForm
+          key={addChildFormKey}
+          isOpen={isAddChildOpen}
+          isSubmitting={isCreatingChild}
+          errorMessage={createChildErrorMessage}
+          fieldErrors={createChildFieldErrors}
+          onClose={closeAddChildDialog}
+          onSubmit={handleCreateChild}
+        />
+      ) : null}
+
+      {childSuccessMessage ? (
+        <div className="fixed bottom-4 right-4 z-40 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800 shadow-md">
+          {childSuccessMessage}
         </div>
       ) : null}
     </main>
