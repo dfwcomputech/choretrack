@@ -23,6 +23,9 @@ export interface ChoreItem {
 export interface RewardItem {
   id: string
   name: string
+  description: string
   pointsCost: number
+  category: string
+  active: boolean
   icon: string
 }
