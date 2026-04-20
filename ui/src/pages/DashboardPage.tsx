@@ -371,15 +371,15 @@ export default function DashboardPage() {
     setIsDeletingChild(true)
     try {
       await deleteChildAccount(selectedChild.id, token)
-      let nextDefaultChildId = ''
+      const deletedChildId = selectedChild.id
       setKids((prev) => {
         const remainingKids = prev.filter((kid) => kid.id !== selectedChild.id)
-        nextDefaultChildId = remainingKids[0]?.id ?? ''
+        const nextDefaultChildId = remainingKids[0]?.id ?? ''
+        setNewChore((currentChore) =>
+          currentChore.childId === deletedChildId ? { ...currentChore, childId: nextDefaultChildId } : currentChore,
+        )
         return remainingKids
       })
-      setNewChore((currentChore) =>
-        currentChore.childId === selectedChild.id ? { ...currentChore, childId: nextDefaultChildId } : currentChore,
-      )
       setChildSuccessMessage(`${selectedChild.name} has been removed from your dashboard.`)
       setIsDeleteChildOpen(false)
       setSelectedChild(null)
