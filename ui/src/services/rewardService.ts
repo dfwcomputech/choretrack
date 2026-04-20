@@ -75,7 +75,7 @@ const handleMutationError = async (
   response: Response,
   fallbackMessage: string,
   statusMessages: Partial<Record<number, string>>,
-) => {
+): Promise<never> => {
   if (response.status === 400) {
     const fieldErrors = await parseValidationErrors(response)
     throw new RewardServiceError('Please correct the highlighted fields and try again.', response.status, fieldErrors)
@@ -148,11 +148,10 @@ export const createReward = async (payload: CreateRewardPayload, token: string):
     return (await response.json()) as RewardResponse
   }
 
-  await handleMutationError(response, 'Unable to create reward. Please try again.', {
+  return handleMutationError(response, 'Unable to create reward. Please try again.', {
     401: 'Your session has expired. Please log in again.',
     403: 'Only parent users can create rewards.',
   })
-  throw new RewardServiceError('Unable to create reward. Please try again.', response.status)
 }
 
 export const updateReward = async (rewardId: string, payload: UpdateRewardPayload, token: string): Promise<RewardResponse> => {
@@ -175,12 +174,11 @@ export const updateReward = async (rewardId: string, payload: UpdateRewardPayloa
     return (await response.json()) as RewardResponse
   }
 
-  await handleMutationError(response, 'Unable to update reward. Please try again.', {
+  return handleMutationError(response, 'Unable to update reward. Please try again.', {
     401: 'Your session has expired. Please log in again.',
     403: 'You are not authorized to update this reward.',
     404: 'This reward no longer exists.',
   })
-  throw new RewardServiceError('Unable to update reward. Please try again.', response.status)
 }
 
 export const deleteReward = async (rewardId: string, token: string): Promise<void> => {
@@ -201,7 +199,7 @@ export const deleteReward = async (rewardId: string, token: string): Promise<voi
     return
   }
 
-  await handleMutationError(response, 'Unable to delete reward. Please try again.', {
+  return handleMutationError(response, 'Unable to delete reward. Please try again.', {
     401: 'Your session has expired. Please log in again.',
     403: 'You are not authorized to delete this reward.',
     404: 'This reward no longer exists.',

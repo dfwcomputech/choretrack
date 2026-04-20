@@ -149,6 +149,7 @@ export default function DashboardPage() {
   const [isDeletingReward, setIsDeletingReward] = useState(false)
   const [deleteRewardErrorMessage, setDeleteRewardErrorMessage] = useState('')
   const [rewardSuccessMessage, setRewardSuccessMessage] = useState('')
+  const [addRewardFormKey, setAddRewardFormKey] = useState(0)
   const [isCreatingChild, setIsCreatingChild] = useState(false)
   const [createChildErrorMessage, setCreateChildErrorMessage] = useState('')
   const [createChildFieldErrors, setCreateChildFieldErrors] = useState<Record<string, string>>({})
@@ -373,6 +374,7 @@ export default function DashboardPage() {
     setRewardSuccessMessage('')
     setCreateRewardErrorMessage('')
     setCreateRewardFieldErrors({})
+    setAddRewardFormKey((prev) => prev + 1)
     setIsAddRewardOpen(true)
   }
 
@@ -707,6 +709,7 @@ export default function DashboardPage() {
 
       {isAddRewardOpen ? (
         <AddRewardForm
+          key={addRewardFormKey}
           isOpen={isAddRewardOpen}
           isSubmitting={isCreatingReward}
           errorMessage={createRewardErrorMessage}
