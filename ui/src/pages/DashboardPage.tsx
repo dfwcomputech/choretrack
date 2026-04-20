@@ -16,6 +16,7 @@ import {
   ChildServiceError,
   createChildAccount,
   deleteChildAccount,
+  listChildAccounts,
   updateChildAccount,
   type CreateChildAccountPayload,
   type UpdateChildAccountPayload,
@@ -27,31 +28,7 @@ interface DashboardState {
   firstName?: string
 }
 
-interface DemoDashboardResponse {
-  parent?: { name?: string }
-  children?: Array<{
-    id?: string
-    name?: string
-    username?: string
-    avatar?: string
-    firstName?: string
-    lastName?: string
-    displayName?: string
-  }>
-  chores?: Array<{ id?: string; title?: string; childId?: string; points?: number; completed?: boolean }>
-  rewards?: Array<{ id?: string; name?: string; pointsCost?: number; icon?: string }>
-  progress?: { level?: number; points?: number; nextLevelPoints?: number }
-}
-
-const toUsernameFallback = (value: string, id: string) => {
-  const normalized = value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-  return normalized || id.toLowerCase()
-}
-
-const defaultParentName = 'Angie'
+const fallbackParentName = 'Parent'
 
 const deriveNameParts = (kid: KidAccount) => {
   const fallbackParts = kid.name.trim().split(/\s+/).filter(Boolean)
@@ -80,50 +57,25 @@ const toKidAccount = (child: {
   }
 }
 
-const defaultKids: KidAccount[] = [
-  { id: 'child-preston', name: 'Preston', avatar: '🧒', username: 'preston' },
-  { id: 'child-rylan', name: 'Rylan', avatar: '👦', username: 'rylan' },
-  { id: 'child-karla', name: 'Karla', avatar: '👧', username: 'karla' },
-]
-
-const defaultChores: ChoreItem[] = [
-  { id: 'chore-1', title: 'Pick up the trash', childId: 'child-preston', points: 25, completed: true },
-  { id: 'chore-2', title: 'Clean Cracker cage', childId: 'child-karla', points: 30, completed: false },
-  { id: 'chore-3', title: 'Feed Jessie', childId: 'child-rylan', points: 15, completed: true },
-  { id: 'chore-4', title: 'Feed Hunter', childId: 'child-preston', points: 15, completed: false },
-  { id: 'chore-5', title: 'Clean your room', childId: 'child-karla', points: 20, completed: true },
-  { id: 'chore-6', title: 'Wash your dishes', childId: 'child-rylan', points: 10, completed: false },
-  { id: 'chore-7', title: 'Wash your clothes', childId: 'child-preston', points: 20, completed: false },
-]
-
-const defaultRewards: RewardItem[] = [
-  { id: 'reward-1', name: 'Get Icecream', pointsCost: 40, icon: '🍨' },
-  { id: 'reward-2', name: 'Go to the movies', pointsCost: 90, icon: '🎬' },
-  { id: 'reward-3', name: 'Extra gaming time', pointsCost: 60, icon: '🎮' },
-  { id: 'reward-4', name: 'Extra tablet time', pointsCost: 50, icon: '📱' },
-  { id: 'reward-5', name: 'Buy one thing from Amazon', pointsCost: 150, icon: '📦' },
-]
-
 export default function DashboardPage() {
   const { logout, token } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const state = (location.state as DashboardState | null) ?? null
-  const [demoParentName, setDemoParentName] = useState(defaultParentName)
-  const parentName = state?.firstName?.trim() || state?.username?.trim() || demoParentName
+  const parentName = state?.firstName?.trim() || state?.username?.trim() || fallbackParentName
   const [activeNav, setActiveNav] = useState('chores')
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isAddChoreOpen, setIsAddChoreOpen] = useState(false)
   const [isAddRewardOpen, setIsAddRewardOpen] = useState(false)
   const [isAddChildOpen, setIsAddChildOpen] = useState(false)
 
-  const [kids, setKids] = useState<KidAccount[]>(defaultKids)
-  const [chores, setChores] = useState<ChoreItem[]>(defaultChores)
-  const [rewards, setRewards] = useState<RewardItem[]>(defaultRewards)
-  const [basePoints, setBasePoints] = useState(160)
+  const [kids, setKids] = useState<KidAccount[]>([])
+  const [chores, setChores] = useState<ChoreItem[]>([])
+  const [rewards, setRewards] = useState<RewardItem[]>([])
+  const basePoints = 0
   const points = basePoints + chores.filter((chore) => chore.completed).reduce((total, chore) => total + chore.points, 0)
-  const [level, setLevel] = useState(3)
-  const [nextLevelPoints, setNextLevelPoints] = useState(300)
+  const level = 1
+  const nextLevelPoints = 100
 
   const [newChore, setNewChore] = useState({ title: '', childId: kids[0]?.id ?? '', points: 10 })
   const [newReward, setNewReward] = useState({ name: '', pointsCost: 100 })
@@ -144,77 +96,24 @@ export default function DashboardPage() {
   useEffect(() => {
     const abortController = new AbortController()
 
-    const loadDemoDashboard = async () => {
+    const loadChildren = async () => {
+      if (!token.trim()) return
       try {
-        const response = await fetch('/api/demo/dashboard', {
-          signal: abortController.signal,
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        const children = await listChildAccounts(token)
+        if (abortController.signal.aborted) return
+        const mappedKids = children.map(toKidAccount)
+        setKids(mappedKids)
+        setNewChore((currentChore) => {
+          const hasSelectedChild = mappedKids.some((kid) => kid.id === currentChore.childId)
+          if (hasSelectedChild) return currentChore
+          return { ...currentChore, childId: mappedKids[0]?.id ?? '' }
         })
-        if (!response.ok) return
-
-        const data = (await response.json()) as DemoDashboardResponse
-        const mappedKids = (data.children ?? [])
-          .map((child): KidAccount | null => {
-            if (!child.id) return null
-            const resolvedName =
-              child.displayName?.trim() ||
-              child.name?.trim() ||
-              [child.firstName?.trim(), child.lastName?.trim()].filter(Boolean).join(' ') ||
-              child.username?.trim()
-            if (!resolvedName) return null
-            return {
-              id: child.id,
-              name: resolvedName,
-              username: child.username?.trim() || toUsernameFallback(resolvedName, child.id),
-              avatar: child.avatar || '🧒',
-              firstName: child.firstName?.trim() || '',
-              lastName: child.lastName?.trim() || '',
-              displayName: child.displayName?.trim() || resolvedName,
-            }
-          })
-          .filter((child): child is KidAccount => child !== null)
-        const mappedChores = (data.chores ?? [])
-          .map((chore): ChoreItem | null => {
-            if (!chore.id || !chore.title || !chore.childId || !Number.isFinite(chore.points)) return null
-            return {
-              id: chore.id,
-              title: chore.title,
-              childId: chore.childId,
-              points: Number(chore.points),
-              completed: Boolean(chore.completed),
-            }
-          })
-          .filter((chore): chore is ChoreItem => chore !== null)
-        const mappedRewards = (data.rewards ?? [])
-          .map((reward): RewardItem | null => {
-            if (!reward.id || !reward.name || !Number.isFinite(reward.pointsCost)) return null
-            return {
-              id: reward.id,
-              name: reward.name,
-              pointsCost: Number(reward.pointsCost),
-              icon: reward.icon || '🎁',
-            }
-          })
-          .filter((reward): reward is RewardItem => reward !== null)
-
-        if (mappedKids.length > 0) setKids(mappedKids)
-        if (mappedChores.length > 0) {
-          setChores(mappedChores)
-          const completedPoints = mappedChores.filter((chore) => chore.completed).reduce((total, chore) => total + chore.points, 0)
-          const progressPointsFromApi = Number.isFinite(data.progress?.points) ? Number(data.progress?.points) : completedPoints
-          const basePointsFromProgress = progressPointsFromApi >= completedPoints ? progressPointsFromApi - completedPoints : 0
-          setBasePoints(Math.max(basePointsFromProgress, 0))
-        }
-        if (mappedRewards.length > 0) setRewards(mappedRewards)
-        if (data.parent?.name?.trim()) setDemoParentName(data.parent.name.trim())
-        if (Number.isFinite(data.progress?.level)) setLevel(Math.max(Number(data.progress?.level), 1))
-        if (Number.isFinite(data.progress?.nextLevelPoints)) setNextLevelPoints(Math.max(Number(data.progress?.nextLevelPoints), 1))
       } catch {
         return
       }
     }
 
-    void loadDemoDashboard()
+    void loadChildren()
     return () => abortController.abort()
   }, [token])
 

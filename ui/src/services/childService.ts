@@ -26,6 +26,42 @@ export interface ChildAccountResponse {
   updatedAt?: string
 }
 
+export const listChildAccounts = async (token: string): Promise<ChildAccountResponse[]> => {
+  if (!token.trim()) {
+    throw new ChildServiceError('Authentication required. Please log in.', -1)
+  }
+
+  let response: Response
+  try {
+    response = await fetch('/api/children', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  } catch {
+    throw new ChildServiceError('Unable to load child accounts. Please check your connection and try again.', 0)
+  }
+
+  if (response.ok) {
+    return (await response.json()) as ChildAccountResponse[]
+  }
+
+  if (response.status === 401) {
+    throw new ChildServiceError('Your session has expired. Please log in again.', response.status)
+  }
+
+  if (response.status === 403) {
+    throw new ChildServiceError('Only parent users can view child accounts.', response.status)
+  }
+
+  if (response.status >= 500) {
+    throw new ChildServiceError('Unable to load child accounts. Please try again.', response.status)
+  }
+
+  const errorBody = await parseJson<ErrorBody>(response)
+  throw new ChildServiceError(errorBody?.message || 'Unable to load child accounts. Please try again.', response.status)
+}
+
 export interface DeleteChildAccountResponse {
   id?: string
   active?: boolean
