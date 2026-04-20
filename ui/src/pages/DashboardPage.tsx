@@ -28,7 +28,7 @@ interface DashboardState {
   firstName?: string
 }
 
-const defaultParentName = 'Parent'
+const fallbackParentName = 'Parent'
 
 const deriveNameParts = (kid: KidAccount) => {
   const fallbackParts = kid.name.trim().split(/\s+/).filter(Boolean)
@@ -62,7 +62,7 @@ export default function DashboardPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const state = (location.state as DashboardState | null) ?? null
-  const parentName = state?.firstName?.trim() || state?.username?.trim() || defaultParentName
+  const parentName = state?.firstName?.trim() || state?.username?.trim() || fallbackParentName
   const [activeNav, setActiveNav] = useState('chores')
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isAddChoreOpen, setIsAddChoreOpen] = useState(false)

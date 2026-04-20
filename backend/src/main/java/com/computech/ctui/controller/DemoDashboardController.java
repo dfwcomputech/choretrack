@@ -21,6 +21,11 @@ import com.computech.ctui.demo.DemoDashboardService.Progress;
 public class DemoDashboardController {
 
 	private static final String DEMO_USERNAME = "angie";
+	private static final String CHILD_ROLE_LABEL = "Child";
+	private static final String PARENT_ID_PREFIX = "parent-";
+	private static final String PARENT_ROLE_LABEL = "Parent";
+	private static final String PARENT_AVATAR = "👩";
+	private static final String CHILD_AVATAR = "🧒";
 
 	private final DemoDashboardService demoDashboardService;
 	private final ChildAccountService childAccountService;
@@ -46,8 +51,8 @@ public class DemoDashboardController {
 							child.id(),
 							child.displayName(),
 							child.username(),
-							"Child",
-							"🧒",
+							CHILD_ROLE_LABEL,
+							CHILD_AVATAR,
 							child.parentId()))
 					.toList();
 		} catch (ForbiddenOperationException ex) {
@@ -58,7 +63,7 @@ public class DemoDashboardController {
 
 	private DemoDashboard emptyDashboard(final String username, final List<Child> children) {
 		return new DemoDashboard(
-				new Parent("parent-" + username, username, "Parent", "👩"),
+				new Parent(PARENT_ID_PREFIX + username, username, PARENT_ROLE_LABEL, PARENT_AVATAR),
 				children,
 				List.of(),
 				List.of(),
