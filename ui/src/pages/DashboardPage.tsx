@@ -14,6 +14,7 @@ import DeleteChildAccountDialog from '../components/children/DeleteChildAccountD
 import AddChoreForm from '../components/chores/AddChoreForm'
 import EditChoreForm from '../components/chores/EditChoreForm'
 import DeleteChoreDialog from '../components/chores/DeleteChoreDialog'
+import ChildChoreList from '../components/chores/ChildChoreList'
 import AddRewardForm from '../components/rewards/AddRewardForm'
 import EditRewardForm from '../components/rewards/EditRewardForm'
 import DeleteRewardDialog from '../components/rewards/DeleteRewardDialog'
@@ -31,6 +32,7 @@ import {
   ChoreServiceError,
   createChore,
   deleteChore,
+  completeChore,
   listChores,
   updateChore,
   type ChoreResponse,
@@ -55,6 +57,12 @@ interface DashboardState {
 }
 
 const fallbackParentName = 'Parent'
+const fallbackChildName = 'Kid'
+
+const getAssignedChildName = (chores: ChoreItem[]) => {
+  const choreWithName = chores.find((chore) => Boolean(chore.assignedChildName?.trim()))
+  return choreWithName?.assignedChildName?.trim() ?? ''
+}
 
 const deriveNameParts = (kid: KidAccount) => {
   const fallbackParts = kid.name.trim().split(/\s+/).filter(Boolean)
@@ -126,8 +134,6 @@ export default function DashboardPage() {
   const [selectedChore, setSelectedChore] = useState<ChoreItem | null>(null)
   const [selectedReward, setSelectedReward] = useState<RewardItem | null>(null)
   const [rewards, setRewards] = useState<RewardItem[]>([])
-  const basePoints = 0
-  const points = basePoints + chores.filter((chore) => chore.completed).reduce((total, chore) => total + chore.points, 0)
   const level = 1
   const nextLevelPoints = 100
 
@@ -163,6 +169,21 @@ export default function DashboardPage() {
   const [deleteChildErrorMessage, setDeleteChildErrorMessage] = useState('')
   const [childSuccessMessage, setChildSuccessMessage] = useState('')
   const [addChildFormKey, setAddChildFormKey] = useState(0)
+  const [isChildView, setIsChildView] = useState(false)
+  const [childCurrentPoints, setChildCurrentPoints] = useState<number | null>(null)
+  const [completingChoreId, setCompletingChoreId] = useState<string | null>(null)
+  const [childCompletionErrorMessage, setChildCompletionErrorMessage] = useState('')
+  const [childCompletionSuccessMessage, setChildCompletionSuccessMessage] = useState('')
+
+  const visibleChores = chores
+  const completedChildChoreCount = visibleChores.filter((chore) => chore.status === 'COMPLETED' || chore.completed).length
+  const pendingChildChoreCount = visibleChores.length - completedChildChoreCount
+  const earnedPointsFromChores = visibleChores
+    .filter((chore) => chore.status === 'COMPLETED' || chore.completed)
+    .reduce((total, chore) => total + chore.points, 0)
+  const points = isChildView ? (childCurrentPoints ?? earnedPointsFromChores) : earnedPointsFromChores
+  const childAssignedName = getAssignedChildName(visibleChores)
+  const childName = childAssignedName || state?.firstName?.trim() || state?.username?.trim() || fallbackChildName
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -172,8 +193,15 @@ export default function DashboardPage() {
       try {
         const children = await listChildAccounts(token)
         if (abortController.signal.aborted) return
+        setIsChildView(false)
         setKids(children.map(toKidAccount))
-      } catch {
+      } catch (error) {
+        if (abortController.signal.aborted) return
+        if (error instanceof ChildServiceError && error.status === 403) {
+          setIsChildView(true)
+          setKids([])
+          return
+        }
         return
       }
     }
@@ -186,6 +214,10 @@ export default function DashboardPage() {
     const abortController = new AbortController()
 
     const loadRewards = async () => {
+      if (isChildView) {
+        setRewards([])
+        return
+      }
       if (!token.trim()) return
       try {
         const loadedRewards = await listRewards(token)
@@ -198,7 +230,7 @@ export default function DashboardPage() {
 
     void loadRewards()
     return () => abortController.abort()
-  }, [token])
+  }, [isChildView, token])
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -242,6 +274,14 @@ export default function DashboardPage() {
     return () => window.clearTimeout(timeoutId)
   }, [rewardSuccessMessage])
 
+  useEffect(() => {
+    if (!childCompletionSuccessMessage) return
+    const timeoutId = window.setTimeout(() => {
+      setChildCompletionSuccessMessage('')
+    }, 4000)
+    return () => window.clearTimeout(timeoutId)
+  }, [childCompletionSuccessMessage])
+
   const handleLogout = async () => {
     await logout()
     navigate('/login', { replace: true })
@@ -255,6 +295,38 @@ export default function DashboardPage() {
         return { ...chore, completed: nextCompleted, status: nextCompleted ? 'COMPLETED' : 'PENDING' }
       }),
     )
+  }
+
+  const handleCompleteChildChore = async (choreId: string) => {
+    if (completingChoreId) return
+    setChildCompletionErrorMessage('')
+    setChildCompletionSuccessMessage('')
+    setCompletingChoreId(choreId)
+    try {
+      const completion = await completeChore(choreId, token)
+      setChores((prev) =>
+        prev.map((chore) =>
+          chore.id === choreId
+            ? {
+                ...chore,
+                status: completion.status,
+                completed: completion.status === 'COMPLETED',
+              }
+            : chore,
+        ),
+      )
+      setChildCurrentPoints(completion.childCurrentPoints)
+      setChildCompletionSuccessMessage(`Great job! +${completion.pointsAwarded} points earned.`)
+    } catch (error) {
+      if (error instanceof ChoreServiceError) {
+        setChildCompletionErrorMessage(error.message)
+      } else {
+        console.error('Failed to complete chore', error)
+        setChildCompletionErrorMessage('Unable to complete chore. Please try again.')
+      }
+    } finally {
+      setCompletingChoreId(null)
+    }
   }
 
   const openAddChoreDialog = () => {
@@ -606,53 +678,84 @@ export default function DashboardPage() {
       <DashboardHeader
         isProfileOpen={isProfileOpen}
         onToggleProfile={() => setIsProfileOpen((prev) => !prev)}
-        parentName={parentName}
+        accountName={isChildView ? childName : parentName}
+        accountLabel={isChildView ? 'Child' : 'Parent'}
+        accountAvatar={isChildView ? '🧒' : '👩'}
         onLogout={() => void handleLogout()}
       />
 
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[18rem_1fr] lg:px-8">
-        <DashboardSidebar activeNav={activeNav} onNavChange={setActiveNav} onAddChore={openAddChoreDialog} />
+        {!isChildView ? <DashboardSidebar activeNav={activeNav} onNavChange={setActiveNav} onAddChore={openAddChoreDialog} /> : null}
 
         <div className="space-y-6">
           {state?.registered ? (
             <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-green-800">
-              Account created successfully. Welcome, {parentName}!
+              Account created successfully. Welcome, {isChildView ? childName : parentName}!
             </div>
           ) : null}
-          <OverviewSection parentName={parentName} level={level} points={points} nextLevelPoints={nextLevelPoints} />
+          <OverviewSection parentName={isChildView ? childName : parentName} level={level} points={points} nextLevelPoints={nextLevelPoints} />
 
-          <div className="grid gap-6 xl:grid-cols-3">
-            <div className="xl:col-span-1">
-              <ChoresSection
-                chores={chores}
-                kids={kids}
-                onToggleChore={handleToggleChore}
-                onEditChore={openEditChoreDialog}
-                onDeleteChore={openDeleteChoreDialog}
-                onAddChore={openAddChoreDialog}
-              />
+          {isChildView ? (
+            <>
+              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <dl className="grid gap-4 sm:grid-cols-3">
+                  <div className="rounded-xl bg-primary-50 px-4 py-3 text-center">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-primary-700">Current points</dt>
+                    <dd className="mt-1 text-lg font-semibold text-primary-800">{points}</dd>
+                  </div>
+                  <div className="rounded-xl bg-emerald-50 px-4 py-3 text-center">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Completed chores</dt>
+                    <dd className="mt-1 text-lg font-semibold text-emerald-800">{completedChildChoreCount}</dd>
+                  </div>
+                  <div className="rounded-xl bg-amber-50 px-4 py-3 text-center">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-amber-700">Pending chores</dt>
+                    <dd className="mt-1 text-lg font-semibold text-amber-800">{pendingChildChoreCount}</dd>
+                  </div>
+                </dl>
+              </section>
+
+              {childCompletionErrorMessage ? (
+                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                  {childCompletionErrorMessage}
+                </div>
+              ) : null}
+
+              <ChildChoreList chores={visibleChores} completingChoreId={completingChoreId} onComplete={handleCompleteChildChore} />
+            </>
+          ) : (
+            <div className="grid gap-6 xl:grid-cols-3">
+              <div className="xl:col-span-1">
+                <ChoresSection
+                  chores={chores}
+                  kids={kids}
+                  onToggleChore={handleToggleChore}
+                  onEditChore={openEditChoreDialog}
+                  onDeleteChore={openDeleteChoreDialog}
+                  onAddChore={openAddChoreDialog}
+                />
+              </div>
+              <div className="space-y-6 xl:col-span-1">
+                <RewardsSection
+                  rewards={rewards}
+                  level={level}
+                  points={points}
+                  nextLevelPoints={nextLevelPoints}
+                  onAddReward={openAddRewardDialog}
+                  onEditReward={openEditRewardDialog}
+                  onDeleteReward={openDeleteRewardDialog}
+                />
+              </div>
+              <div className="space-y-6 xl:col-span-1">
+                <KinSection
+                  parentName={parentName}
+                  kids={kids}
+                  onAddChild={openAddChildDialog}
+                  onEditChild={openEditChildDialog}
+                  onDeleteChild={openDeleteChildDialog}
+                />
+              </div>
             </div>
-            <div className="space-y-6 xl:col-span-1">
-              <RewardsSection
-                rewards={rewards}
-                level={level}
-                points={points}
-                nextLevelPoints={nextLevelPoints}
-                onAddReward={openAddRewardDialog}
-                onEditReward={openEditRewardDialog}
-                onDeleteReward={openDeleteRewardDialog}
-              />
-            </div>
-            <div className="space-y-6 xl:col-span-1">
-              <KinSection
-                parentName={parentName}
-                kids={kids}
-                onAddChild={openAddChildDialog}
-                onEditChild={openEditChildDialog}
-                onDeleteChild={openDeleteChildDialog}
-              />
-            </div>
-          </div>
+          )}
 
           <BattlePassTrack
             points={points}
@@ -795,8 +898,14 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
+      {childCompletionSuccessMessage ? (
+        <div role="status" className="fixed bottom-4 right-4 z-40 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 shadow-md">
+          {childCompletionSuccessMessage}
+        </div>
+      ) : null}
+
       {choreSuccessMessage ? (
-        <div className="fixed bottom-20 right-4 z-40 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800 shadow-md">
+        <div role="status" className="fixed bottom-20 right-4 z-40 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800 shadow-md">
           {choreSuccessMessage}
         </div>
       ) : null}

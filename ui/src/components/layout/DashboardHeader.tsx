@@ -3,14 +3,18 @@ import { ChevronDown, LogOut, LayoutDashboard } from 'lucide-react'
 interface DashboardHeaderProps {
   isProfileOpen: boolean
   onToggleProfile: () => void
-  parentName: string
+  accountName: string
+  accountLabel?: string
+  accountAvatar?: string
   onLogout: () => void
 }
 
 export default function DashboardHeader({
   isProfileOpen,
   onToggleProfile,
-  parentName,
+  accountName,
+  accountLabel = 'Parent',
+  accountAvatar = '👩',
   onLogout,
 }: DashboardHeaderProps) {
   return (
@@ -29,15 +33,15 @@ export default function DashboardHeader({
             onClick={onToggleProfile}
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm hover:bg-slate-50"
           >
-            Parent
+            {accountLabel}
             <ChevronDown className="h-4 w-4" />
           </button>
 
           {isProfileOpen ? (
             <div className="absolute right-0 top-12 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
               <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
-                <span className="text-2xl">👩</span>
-                <p className="font-semibold text-slate-900">{parentName}</p>
+                <span className="text-2xl">{accountAvatar}</span>
+                <p className="font-semibold text-slate-900">{accountName}</p>
               </div>
               <button
                 type="button"
