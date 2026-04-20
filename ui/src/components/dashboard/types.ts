@@ -11,8 +11,12 @@ export interface KidAccount {
 export interface ChoreItem {
   id: string
   title: string
+  description: string
   childId: string
+  assignedChildName?: string
   points: number
+  dueDate: string | null
+  status: 'PENDING' | 'COMPLETED'
   completed: boolean
 }
 

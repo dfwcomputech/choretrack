@@ -11,6 +11,9 @@ import BattlePassTrack from '../components/dashboard/BattlePassTrack'
 import AddChildAccountForm from '../components/children/AddChildAccountForm'
 import EditChildAccountForm from '../components/children/EditChildAccountForm'
 import DeleteChildAccountDialog from '../components/children/DeleteChildAccountDialog'
+import AddChoreForm from '../components/chores/AddChoreForm'
+import EditChoreForm from '../components/chores/EditChoreForm'
+import DeleteChoreDialog from '../components/chores/DeleteChoreDialog'
 import type { ChoreItem, KidAccount, RewardItem } from '../components/dashboard/types'
 import {
   ChildServiceError,
@@ -21,6 +24,16 @@ import {
   type CreateChildAccountPayload,
   type UpdateChildAccountPayload,
 } from '../services/childService'
+import {
+  ChoreServiceError,
+  createChore,
+  deleteChore,
+  listChores,
+  updateChore,
+  type ChoreResponse,
+  type CreateChorePayload,
+  type UpdateChorePayload,
+} from '../services/choreService'
 
 interface DashboardState {
   registered?: boolean
@@ -57,6 +70,18 @@ const toKidAccount = (child: {
   }
 }
 
+const toChoreItem = (chore: ChoreResponse): ChoreItem => ({
+  id: chore.id,
+  title: chore.title,
+  description: chore.description ?? '',
+  childId: chore.assignedChildId,
+  assignedChildName: chore.assignedChildName,
+  points: chore.points,
+  dueDate: chore.dueDate,
+  status: chore.status,
+  completed: chore.status === 'COMPLETED',
+})
+
 export default function DashboardPage() {
   const { logout, token } = useAuth()
   const navigate = useNavigate()
@@ -66,18 +91,29 @@ export default function DashboardPage() {
   const [activeNav, setActiveNav] = useState('chores')
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isAddChoreOpen, setIsAddChoreOpen] = useState(false)
+  const [isEditChoreOpen, setIsEditChoreOpen] = useState(false)
+  const [isDeleteChoreOpen, setIsDeleteChoreOpen] = useState(false)
   const [isAddRewardOpen, setIsAddRewardOpen] = useState(false)
   const [isAddChildOpen, setIsAddChildOpen] = useState(false)
 
   const [kids, setKids] = useState<KidAccount[]>([])
   const [chores, setChores] = useState<ChoreItem[]>([])
+  const [selectedChore, setSelectedChore] = useState<ChoreItem | null>(null)
   const [rewards, setRewards] = useState<RewardItem[]>([])
   const basePoints = 0
   const points = basePoints + chores.filter((chore) => chore.completed).reduce((total, chore) => total + chore.points, 0)
   const level = 1
   const nextLevelPoints = 100
 
-  const [newChore, setNewChore] = useState({ title: '', childId: kids[0]?.id ?? '', points: 10 })
+  const [isCreatingChore, setIsCreatingChore] = useState(false)
+  const [createChoreErrorMessage, setCreateChoreErrorMessage] = useState('')
+  const [createChoreFieldErrors, setCreateChoreFieldErrors] = useState<Record<string, string>>({})
+  const [isUpdatingChore, setIsUpdatingChore] = useState(false)
+  const [updateChoreErrorMessage, setUpdateChoreErrorMessage] = useState('')
+  const [updateChoreFieldErrors, setUpdateChoreFieldErrors] = useState<Record<string, string>>({})
+  const [isDeletingChore, setIsDeletingChore] = useState(false)
+  const [deleteChoreErrorMessage, setDeleteChoreErrorMessage] = useState('')
+  const [choreSuccessMessage, setChoreSuccessMessage] = useState('')
   const [newReward, setNewReward] = useState({ name: '', pointsCost: 100 })
   const [isCreatingChild, setIsCreatingChild] = useState(false)
   const [createChildErrorMessage, setCreateChildErrorMessage] = useState('')
@@ -101,19 +137,31 @@ export default function DashboardPage() {
       try {
         const children = await listChildAccounts(token)
         if (abortController.signal.aborted) return
-        const mappedKids = children.map(toKidAccount)
-        setKids(mappedKids)
-        setNewChore((currentChore) => {
-          const hasSelectedChild = mappedKids.some((kid) => kid.id === currentChore.childId)
-          if (hasSelectedChild) return currentChore
-          return { ...currentChore, childId: mappedKids[0]?.id ?? '' }
-        })
+        setKids(children.map(toKidAccount))
       } catch {
         return
       }
     }
 
     void loadChildren()
+    return () => abortController.abort()
+  }, [token])
+
+  useEffect(() => {
+    const abortController = new AbortController()
+
+    const loadChores = async () => {
+      if (!token.trim()) return
+      try {
+        const loadedChores = await listChores(token)
+        if (abortController.signal.aborted) return
+        setChores(loadedChores.map(toChoreItem))
+      } catch {
+        return
+      }
+    }
+
+    void loadChores()
     return () => abortController.abort()
   }, [token])
 
@@ -125,6 +173,14 @@ export default function DashboardPage() {
     return () => window.clearTimeout(timeoutId)
   }, [childSuccessMessage])
 
+  useEffect(() => {
+    if (!choreSuccessMessage) return
+    const timeoutId = window.setTimeout(() => {
+      setChoreSuccessMessage('')
+    }, 4000)
+    return () => window.clearTimeout(timeoutId)
+  }, [choreSuccessMessage])
+
   const handleLogout = async () => {
     await logout()
     navigate('/login', { replace: true })
@@ -134,25 +190,123 @@ export default function DashboardPage() {
     setChores((prev) =>
       prev.map((chore) => {
         if (chore.id !== id) return chore
-        return { ...chore, completed: !chore.completed }
+        const nextCompleted = !chore.completed
+        return { ...chore, completed: nextCompleted, status: nextCompleted ? 'COMPLETED' : 'PENDING' }
       }),
     )
   }
 
-  const handleCreateChore = () => {
-    if (!newChore.title.trim() || !newChore.childId.trim() || kids.length === 0) return
-    setChores((prev) => [
-      {
-        id: crypto.randomUUID(),
-        title: newChore.title.trim(),
-        childId: newChore.childId,
-        points: newChore.points,
-        completed: false,
-      },
-      ...prev,
-    ])
-    setNewChore({ title: '', childId: kids[0]?.id ?? '', points: 10 })
+  const openAddChoreDialog = () => {
+    setChoreSuccessMessage('')
+    setCreateChoreErrorMessage('')
+    setCreateChoreFieldErrors({})
+    setIsAddChoreOpen(true)
+  }
+
+  const closeAddChoreDialog = () => {
+    if (isCreatingChore) return
+    setCreateChoreErrorMessage('')
+    setCreateChoreFieldErrors({})
     setIsAddChoreOpen(false)
+  }
+
+  const handleCreateChore = async (payload: CreateChorePayload) => {
+    setCreateChoreErrorMessage('')
+    setCreateChoreFieldErrors({})
+    setIsCreatingChore(true)
+    try {
+      const createdChore = await createChore(payload, token)
+      setChores((prev) => [toChoreItem(createdChore), ...prev])
+      setChoreSuccessMessage('Chore created successfully.')
+      setIsAddChoreOpen(false)
+    } catch (error) {
+      if (error instanceof ChoreServiceError) {
+        setCreateChoreErrorMessage(error.message)
+        setCreateChoreFieldErrors(error.fieldErrors)
+        return
+      }
+      console.error('Failed to create chore', error)
+      setCreateChoreErrorMessage('Unable to create chore. Please try again.')
+    } finally {
+      setIsCreatingChore(false)
+    }
+  }
+
+  const openEditChoreDialog = (chore: ChoreItem) => {
+    setChoreSuccessMessage('')
+    setUpdateChoreErrorMessage('')
+    setUpdateChoreFieldErrors({})
+    setSelectedChore(chore)
+    setIsEditChoreOpen(true)
+  }
+
+  const closeEditChoreDialog = () => {
+    if (isUpdatingChore) return
+    setUpdateChoreErrorMessage('')
+    setUpdateChoreFieldErrors({})
+    setIsEditChoreOpen(false)
+    setSelectedChore(null)
+  }
+
+  const handleUpdateChore = async (payload: UpdateChorePayload) => {
+    if (!selectedChore) return
+    setUpdateChoreErrorMessage('')
+    setUpdateChoreFieldErrors({})
+    setIsUpdatingChore(true)
+    try {
+      const updatedChore = await updateChore(selectedChore.id, payload, token)
+      setChores((prev) => prev.map((chore) => (chore.id === selectedChore.id ? toChoreItem(updatedChore) : chore)))
+      setChoreSuccessMessage('Chore updated successfully.')
+      setIsEditChoreOpen(false)
+      setSelectedChore(null)
+    } catch (error) {
+      if (error instanceof ChoreServiceError) {
+        setUpdateChoreErrorMessage(error.message)
+        setUpdateChoreFieldErrors(error.fieldErrors)
+        return
+      }
+      console.error('Failed to update chore', error)
+      setUpdateChoreErrorMessage('Unable to update chore. Please try again.')
+    } finally {
+      setIsUpdatingChore(false)
+    }
+  }
+
+  const openDeleteChoreDialog = (chore: ChoreItem) => {
+    setChoreSuccessMessage('')
+    setDeleteChoreErrorMessage('')
+    setSelectedChore(chore)
+    setIsDeleteChoreOpen(true)
+  }
+
+  const closeDeleteChoreDialog = () => {
+    if (isDeletingChore) return
+    setDeleteChoreErrorMessage('')
+    setIsDeleteChoreOpen(false)
+    setSelectedChore(null)
+  }
+
+  const handleDeleteChore = async () => {
+    if (!selectedChore) return
+    setDeleteChoreErrorMessage('')
+    setIsDeletingChore(true)
+    try {
+      const deletedChoreId = selectedChore.id
+      await deleteChore(deletedChoreId, token)
+      setChores((prev) => prev.filter((chore) => chore.id !== deletedChoreId))
+      setChoreSuccessMessage('Chore deleted successfully.')
+      setIsDeleteChoreOpen(false)
+      setSelectedChore(null)
+    } catch (error) {
+      if (error instanceof ChoreServiceError) {
+        setDeleteChoreErrorMessage(error.message)
+        return
+      }
+      console.error('Failed to delete chore', error)
+      setDeleteChoreErrorMessage('Unable to delete chore. Please try again.')
+    } finally {
+      setIsDeletingChore(false)
+    }
   }
 
   const handleCreateReward = () => {
@@ -193,7 +347,6 @@ export default function DashboardPage() {
       const child = await createChildAccount(payload, token)
       const mappedKid = toKidAccount(child)
       setKids((prev) => [...prev, mappedKid])
-      setNewChore((prev) => (prev.childId ? prev : { ...prev, childId: child.id }))
       setChildSuccessMessage(`${mappedKid.name} has been added to your family.`)
       setIsAddChildOpen(false)
     } catch (error) {
@@ -270,15 +423,7 @@ export default function DashboardPage() {
     setIsDeletingChild(true)
     try {
       await deleteChildAccount(selectedChild.id, token)
-      const deletedChildId = selectedChild.id
-      setKids((prev) => {
-        const remainingKids = prev.filter((kid) => kid.id !== selectedChild.id)
-        const nextDefaultChildId = remainingKids[0]?.id ?? ''
-        setNewChore((currentChore) =>
-          currentChore.childId === deletedChildId ? { ...currentChore, childId: nextDefaultChildId } : currentChore,
-        )
-        return remainingKids
-      })
+      setKids((prev) => prev.filter((kid) => kid.id !== selectedChild.id))
       setChildSuccessMessage(`${selectedChild.name} has been removed from your dashboard.`)
       setIsDeleteChildOpen(false)
       setSelectedChild(null)
@@ -308,7 +453,7 @@ export default function DashboardPage() {
       />
 
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[18rem_1fr] lg:px-8">
-        <DashboardSidebar activeNav={activeNav} onNavChange={setActiveNav} onAddChore={() => setIsAddChoreOpen(true)} />
+        <DashboardSidebar activeNav={activeNav} onNavChange={setActiveNav} onAddChore={openAddChoreDialog} />
 
         <div className="space-y-6">
           {state?.registered ? (
@@ -320,7 +465,14 @@ export default function DashboardPage() {
 
           <div className="grid gap-6 xl:grid-cols-3">
             <div className="xl:col-span-1">
-              <ChoresSection chores={chores} kids={kids} onToggleChore={handleToggleChore} onAddChore={() => setIsAddChoreOpen(true)} />
+              <ChoresSection
+                chores={chores}
+                kids={kids}
+                onToggleChore={handleToggleChore}
+                onEditChore={openEditChoreDialog}
+                onDeleteChore={openDeleteChoreDialog}
+                onAddChore={openAddChoreDialog}
+              />
             </div>
             <div className="space-y-6 xl:col-span-1">
               <RewardsSection
@@ -352,63 +504,47 @@ export default function DashboardPage() {
       </div>
 
       {isAddChoreOpen ? (
-        <div className={modalClassName}>
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-2xl font-bold text-slate-900">Assign Chore</h3>
-            <div className="mt-4 space-y-3">
-              <label className="block text-sm font-semibold text-slate-600">
-                Chore
-                <input
-                  value={newChore.title}
-                  onChange={(event) => setNewChore((prev) => ({ ...prev, title: event.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                  placeholder="Take out trash"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-slate-600">
-                Child
-                <select
-                  value={newChore.childId}
-                  onChange={(event) => setNewChore((prev) => ({ ...prev, childId: event.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                >
-                  {kids.map((kid) => (
-                    <option key={kid.id} value={kid.id}>
-                      {kid.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block text-sm font-semibold text-slate-600">
-                Points
-                <input
-                  type="number"
-                  min={1}
-                  value={newChore.points}
-                  onChange={(event) => {
-                    const parsed = Number(event.target.value)
-                    const nextPoints = Number.isFinite(parsed) && parsed >= 1 ? parsed : 1
-                    setNewChore((prev) => ({ ...prev, points: nextPoints }))
-                  }}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                />
-              </label>
-            </div>
-            <div className="mt-5 flex justify-end gap-2">
-              <button type="button" onClick={() => setIsAddChoreOpen(false)} className="rounded-lg border border-slate-300 px-3 py-2 text-slate-700">
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleCreateChore}
-                disabled={kids.length === 0}
-                className="rounded-lg bg-primary-600 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
-              >
-                Add Chore
-              </button>
-            </div>
-          </div>
-        </div>
+        <AddChoreForm
+          isOpen={isAddChoreOpen}
+          isSubmitting={isCreatingChore}
+          kids={kids}
+          errorMessage={createChoreErrorMessage}
+          fieldErrors={createChoreFieldErrors}
+          onClose={closeAddChoreDialog}
+          onSubmit={handleCreateChore}
+        />
+      ) : null}
+
+      {isEditChoreOpen && selectedChore ? (
+        <EditChoreForm
+          key={selectedChore.id}
+          isOpen={isEditChoreOpen}
+          isSubmitting={isUpdatingChore}
+          kids={kids}
+          errorMessage={updateChoreErrorMessage}
+          fieldErrors={updateChoreFieldErrors}
+          initialValues={{
+            title: selectedChore.title,
+            description: selectedChore.description,
+            points: selectedChore.points,
+            assignedChildId: selectedChore.childId,
+            dueDate: selectedChore.dueDate ?? '',
+            status: selectedChore.status,
+          }}
+          onClose={closeEditChoreDialog}
+          onSubmit={handleUpdateChore}
+        />
+      ) : null}
+
+      {isDeleteChoreOpen && selectedChore ? (
+        <DeleteChoreDialog
+          isOpen={isDeleteChoreOpen}
+          choreTitle={selectedChore.title}
+          isDeleting={isDeletingChore}
+          errorMessage={deleteChoreErrorMessage}
+          onClose={closeDeleteChoreDialog}
+          onConfirm={handleDeleteChore}
+        />
       ) : null}
 
       {isAddRewardOpen ? (
@@ -495,6 +631,12 @@ export default function DashboardPage() {
       {childSuccessMessage ? (
         <div className="fixed bottom-4 right-4 z-40 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800 shadow-md">
           {childSuccessMessage}
+        </div>
+      ) : null}
+
+      {choreSuccessMessage ? (
+        <div className="fixed bottom-20 right-4 z-40 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800 shadow-md">
+          {choreSuccessMessage}
         </div>
       ) : null}
     </main>
