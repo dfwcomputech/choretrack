@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.computech.ctui.chore.ChoreChildNotFoundException;
+import com.computech.ctui.chore.ChoreAlreadyCompletedException;
 import com.computech.ctui.chore.ChoreNotFoundException;
 import com.computech.ctui.reward.RewardNotFoundException;
 import com.computech.ctui.auth.DuplicateUserException;
@@ -57,6 +58,13 @@ public class ApiExceptionHandler {
 	@ExceptionHandler(ChoreChildNotFoundException.class)
 	public ResponseEntity<ErrorResponse> handleChoreChildNotFoundException(final ChoreChildNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(new ErrorResponse(exception.getMessage(), null));
+	}
+
+	@ExceptionHandler(ChoreAlreadyCompletedException.class)
+	public ResponseEntity<ErrorResponse> handleChoreAlreadyCompletedException(
+			final ChoreAlreadyCompletedException exception) {
+		return ResponseEntity.status(HttpStatus.CONFLICT)
 				.body(new ErrorResponse(exception.getMessage(), null));
 	}
 

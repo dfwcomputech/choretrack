@@ -19,6 +19,8 @@ import com.computech.ctui.auth.ChildAccountRequest;
 import com.computech.ctui.auth.ChildAccountResponse;
 import com.computech.ctui.auth.ChildAccountService;
 import com.computech.ctui.auth.ChildAccountUpdateRequest;
+import com.computech.ctui.chore.ChildProgressResponse;
+import com.computech.ctui.chore.ChoreService;
 
 import jakarta.validation.Valid;
 
@@ -27,9 +29,11 @@ import jakarta.validation.Valid;
 public class ChildController {
 
 	private final ChildAccountService childAccountService;
+	private final ChoreService choreService;
 
-	public ChildController(final ChildAccountService childAccountService) {
+	public ChildController(final ChildAccountService childAccountService, final ChoreService choreService) {
 		this.childAccountService = childAccountService;
+		this.choreService = choreService;
 	}
 
 	@PostMapping
@@ -66,5 +70,14 @@ public class ChildController {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
 		return ResponseEntity.ok(childAccountService.hideChild(childId, authentication.getName()));
+	}
+
+	@GetMapping("/{childId}/progress")
+	public ResponseEntity<ChildProgressResponse> getChildProgress(@PathVariable final String childId,
+			final Authentication authentication) {
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		return ResponseEntity.ok(choreService.getChildProgress(childId, authentication.getName()));
 	}
 }

@@ -85,6 +85,8 @@ public class ChildAccountService {
 				child.parentId(),
 				child.createdAt(),
 				child.active(),
+				child.currentPoints(),
+				child.totalEarnedPoints(),
 				Instant.now(),
 				child.deletedAt()));
 
@@ -108,6 +110,8 @@ public class ChildAccountService {
 					child.parentId(),
 					child.createdAt(),
 					false,
+					child.currentPoints(),
+					child.totalEarnedPoints(),
 					Instant.now(),
 					Instant.now()));
 		}
