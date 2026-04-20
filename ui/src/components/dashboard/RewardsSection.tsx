@@ -6,9 +6,11 @@ interface RewardsSectionProps {
   points: number
   nextLevelPoints: number
   onAddReward: () => void
+  onEditReward: (reward: RewardItem) => void
+  onDeleteReward: (reward: RewardItem) => void
 }
 
-export default function RewardsSection({ rewards, level, points, nextLevelPoints, onAddReward }: RewardsSectionProps) {
+export default function RewardsSection({ rewards, level, points, nextLevelPoints, onAddReward, onEditReward, onDeleteReward }: RewardsSectionProps) {
   const progress = Math.min((points / nextLevelPoints) * 100, 100)
 
   return (
@@ -40,12 +42,39 @@ export default function RewardsSection({ rewards, level, points, nextLevelPoints
           </li>
         ) : null}
         {rewards.map((reward) => (
-          <li key={reward.id} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">{reward.icon}</span>
-              <p className="text-xl font-semibold text-slate-900">{reward.name}</p>
+          <li key={reward.id} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <span className="text-3xl">{reward.icon}</span>
+                <div>
+                  <p className="text-xl font-semibold text-slate-900">{reward.name}</p>
+                  {reward.description ? <p className="text-sm text-slate-600">{reward.description}</p> : null}
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-600">
+                    {reward.category ? <span className="rounded-full bg-slate-200 px-2 py-1">{reward.category}</span> : null}
+                    <span className={`rounded-full px-2 py-1 ${reward.active ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'}`}>
+                      {reward.active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xl font-bold text-primary-700">{reward.pointsCost} pts</p>
             </div>
-            <p className="text-xl font-bold text-primary-700">{reward.pointsCost} pts</p>
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => onEditReward(reward)}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => onDeleteReward(reward)}
+                className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50"
+              >
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>

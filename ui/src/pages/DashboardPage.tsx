@@ -14,6 +14,9 @@ import DeleteChildAccountDialog from '../components/children/DeleteChildAccountD
 import AddChoreForm from '../components/chores/AddChoreForm'
 import EditChoreForm from '../components/chores/EditChoreForm'
 import DeleteChoreDialog from '../components/chores/DeleteChoreDialog'
+import AddRewardForm from '../components/rewards/AddRewardForm'
+import EditRewardForm from '../components/rewards/EditRewardForm'
+import DeleteRewardDialog from '../components/rewards/DeleteRewardDialog'
 import type { ChoreItem, KidAccount, RewardItem } from '../components/dashboard/types'
 import {
   ChildServiceError,
@@ -34,6 +37,16 @@ import {
   type CreateChorePayload,
   type UpdateChorePayload,
 } from '../services/choreService'
+import {
+  RewardServiceError,
+  createReward,
+  deleteReward,
+  listRewards,
+  updateReward,
+  type CreateRewardPayload,
+  type RewardResponse,
+  type UpdateRewardPayload,
+} from '../services/rewardService'
 
 interface DashboardState {
   registered?: boolean
@@ -82,6 +95,16 @@ const toChoreItem = (chore: ChoreResponse): ChoreItem => ({
   completed: chore.status === 'COMPLETED',
 })
 
+const toRewardItem = (reward: RewardResponse): RewardItem => ({
+  id: reward.id,
+  name: reward.name,
+  description: reward.description ?? '',
+  pointsCost: reward.pointCost,
+  category: reward.category ?? '',
+  active: reward.active,
+  icon: '🎁',
+})
+
 export default function DashboardPage() {
   const { logout, token } = useAuth()
   const navigate = useNavigate()
@@ -94,11 +117,14 @@ export default function DashboardPage() {
   const [isEditChoreOpen, setIsEditChoreOpen] = useState(false)
   const [isDeleteChoreOpen, setIsDeleteChoreOpen] = useState(false)
   const [isAddRewardOpen, setIsAddRewardOpen] = useState(false)
+  const [isEditRewardOpen, setIsEditRewardOpen] = useState(false)
+  const [isDeleteRewardOpen, setIsDeleteRewardOpen] = useState(false)
   const [isAddChildOpen, setIsAddChildOpen] = useState(false)
 
   const [kids, setKids] = useState<KidAccount[]>([])
   const [chores, setChores] = useState<ChoreItem[]>([])
   const [selectedChore, setSelectedChore] = useState<ChoreItem | null>(null)
+  const [selectedReward, setSelectedReward] = useState<RewardItem | null>(null)
   const [rewards, setRewards] = useState<RewardItem[]>([])
   const basePoints = 0
   const points = basePoints + chores.filter((chore) => chore.completed).reduce((total, chore) => total + chore.points, 0)
@@ -114,7 +140,15 @@ export default function DashboardPage() {
   const [isDeletingChore, setIsDeletingChore] = useState(false)
   const [deleteChoreErrorMessage, setDeleteChoreErrorMessage] = useState('')
   const [choreSuccessMessage, setChoreSuccessMessage] = useState('')
-  const [newReward, setNewReward] = useState({ name: '', pointsCost: 100 })
+  const [isCreatingReward, setIsCreatingReward] = useState(false)
+  const [createRewardErrorMessage, setCreateRewardErrorMessage] = useState('')
+  const [createRewardFieldErrors, setCreateRewardFieldErrors] = useState<Record<string, string>>({})
+  const [isUpdatingReward, setIsUpdatingReward] = useState(false)
+  const [updateRewardErrorMessage, setUpdateRewardErrorMessage] = useState('')
+  const [updateRewardFieldErrors, setUpdateRewardFieldErrors] = useState<Record<string, string>>({})
+  const [isDeletingReward, setIsDeletingReward] = useState(false)
+  const [deleteRewardErrorMessage, setDeleteRewardErrorMessage] = useState('')
+  const [rewardSuccessMessage, setRewardSuccessMessage] = useState('')
   const [isCreatingChild, setIsCreatingChild] = useState(false)
   const [createChildErrorMessage, setCreateChildErrorMessage] = useState('')
   const [createChildFieldErrors, setCreateChildFieldErrors] = useState<Record<string, string>>({})
@@ -144,6 +178,24 @@ export default function DashboardPage() {
     }
 
     void loadChildren()
+    return () => abortController.abort()
+  }, [token])
+
+  useEffect(() => {
+    const abortController = new AbortController()
+
+    const loadRewards = async () => {
+      if (!token.trim()) return
+      try {
+        const loadedRewards = await listRewards(token)
+        if (abortController.signal.aborted) return
+        setRewards(loadedRewards.map(toRewardItem))
+      } catch {
+        return
+      }
+    }
+
+    void loadRewards()
     return () => abortController.abort()
   }, [token])
 
@@ -180,6 +232,14 @@ export default function DashboardPage() {
     }, 4000)
     return () => window.clearTimeout(timeoutId)
   }, [choreSuccessMessage])
+
+  useEffect(() => {
+    if (!rewardSuccessMessage) return
+    const timeoutId = window.setTimeout(() => {
+      setRewardSuccessMessage('')
+    }, 4000)
+    return () => window.clearTimeout(timeoutId)
+  }, [rewardSuccessMessage])
 
   const handleLogout = async () => {
     await logout()
@@ -309,19 +369,117 @@ export default function DashboardPage() {
     }
   }
 
-  const handleCreateReward = () => {
-    if (!newReward.name.trim()) return
-    setRewards((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        name: newReward.name.trim(),
-        pointsCost: newReward.pointsCost,
-        icon: '🎁',
-      },
-    ])
-    setNewReward({ name: '', pointsCost: 100 })
+  const openAddRewardDialog = () => {
+    setRewardSuccessMessage('')
+    setCreateRewardErrorMessage('')
+    setCreateRewardFieldErrors({})
+    setIsAddRewardOpen(true)
+  }
+
+  const closeAddRewardDialog = () => {
+    if (isCreatingReward) return
+    setCreateRewardErrorMessage('')
+    setCreateRewardFieldErrors({})
     setIsAddRewardOpen(false)
+  }
+
+  const handleCreateReward = async (payload: CreateRewardPayload) => {
+    setCreateRewardErrorMessage('')
+    setCreateRewardFieldErrors({})
+    setIsCreatingReward(true)
+    try {
+      const createdReward = await createReward(payload, token)
+      setRewards((prev) => [toRewardItem(createdReward), ...prev])
+      setRewardSuccessMessage('Reward created successfully.')
+      setIsAddRewardOpen(false)
+    } catch (error) {
+      if (error instanceof RewardServiceError) {
+        setCreateRewardErrorMessage(error.message)
+        setCreateRewardFieldErrors(error.fieldErrors)
+        return
+      }
+      console.error('Failed to create reward', error)
+      setCreateRewardErrorMessage('Unable to create reward. Please try again.')
+    } finally {
+      setIsCreatingReward(false)
+    }
+  }
+
+  const openEditRewardDialog = (reward: RewardItem) => {
+    setRewardSuccessMessage('')
+    setUpdateRewardErrorMessage('')
+    setUpdateRewardFieldErrors({})
+    setSelectedReward(reward)
+    setIsEditRewardOpen(true)
+  }
+
+  const closeEditRewardDialog = () => {
+    if (isUpdatingReward) return
+    setUpdateRewardErrorMessage('')
+    setUpdateRewardFieldErrors({})
+    setIsEditRewardOpen(false)
+    setSelectedReward(null)
+  }
+
+  const handleUpdateReward = async (payload: UpdateRewardPayload) => {
+    if (!selectedReward) return
+    setUpdateRewardErrorMessage('')
+    setUpdateRewardFieldErrors({})
+    setIsUpdatingReward(true)
+    try {
+      const updatedReward = await updateReward(selectedReward.id, payload, token)
+      setRewards((prev) => prev.map((reward) => (reward.id === selectedReward.id ? toRewardItem(updatedReward) : reward)))
+      setRewardSuccessMessage('Reward updated successfully.')
+      setIsEditRewardOpen(false)
+      setSelectedReward(null)
+    } catch (error) {
+      if (error instanceof RewardServiceError) {
+        setUpdateRewardErrorMessage(error.message)
+        setUpdateRewardFieldErrors(error.fieldErrors)
+        return
+      }
+      console.error('Failed to update reward', error)
+      setUpdateRewardErrorMessage('Unable to update reward. Please try again.')
+    } finally {
+      setIsUpdatingReward(false)
+    }
+  }
+
+  const openDeleteRewardDialog = (reward: RewardItem) => {
+    setRewardSuccessMessage('')
+    setDeleteRewardErrorMessage('')
+    setSelectedReward(reward)
+    setIsDeleteRewardOpen(true)
+  }
+
+  const closeDeleteRewardDialog = () => {
+    if (isDeletingReward) return
+    setDeleteRewardErrorMessage('')
+    setIsDeleteRewardOpen(false)
+    setSelectedReward(null)
+  }
+
+  const handleDeleteReward = async () => {
+    if (!selectedReward) return
+    setDeleteRewardErrorMessage('')
+    setIsDeletingReward(true)
+    try {
+      const deletedRewardId = selectedReward.id
+      await deleteReward(deletedRewardId, token)
+      setRewards((prev) => prev.filter((reward) => reward.id !== deletedRewardId))
+      setRewardSuccessMessage('Reward deleted successfully.')
+      setIsDeleteRewardOpen(false)
+      setSelectedReward(null)
+    } catch (error) {
+      if (error instanceof RewardServiceError) {
+        setDeleteRewardErrorMessage(error.message)
+        return
+      }
+      console.error('Failed to delete reward', error)
+      setDeleteRewardErrorMessage('Unable to delete reward. Please try again.')
+    } finally {
+      setIsDeletingReward(false)
+    }
   }
 
   const openAddChildDialog = () => {
@@ -439,8 +597,6 @@ export default function DashboardPage() {
     }
   }
 
-  const modalClassName =
-    'fixed inset-0 z-30 flex items-center justify-center bg-slate-900/60 p-4'
   const selectedChildNameParts = selectedChild ? deriveNameParts(selectedChild) : null
 
   return (
@@ -480,7 +636,9 @@ export default function DashboardPage() {
                 level={level}
                 points={points}
                 nextLevelPoints={nextLevelPoints}
-                onAddReward={() => setIsAddRewardOpen(true)}
+                onAddReward={openAddRewardDialog}
+                onEditReward={openEditRewardDialog}
+                onDeleteReward={openDeleteRewardDialog}
               />
             </div>
             <div className="space-y-6 xl:col-span-1">
@@ -548,44 +706,44 @@ export default function DashboardPage() {
       ) : null}
 
       {isAddRewardOpen ? (
-        <div className={modalClassName}>
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-2xl font-bold text-slate-900">Create Reward</h3>
-            <div className="mt-4 space-y-3">
-              <label className="block text-sm font-semibold text-slate-600">
-                Reward Name
-                <input
-                  value={newReward.name}
-                  onChange={(event) => setNewReward((prev) => ({ ...prev, name: event.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                  placeholder="Weekend Adventure"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-slate-600">
-                Point Value
-                <input
-                  type="number"
-                  min={1}
-                  value={newReward.pointsCost}
-                  onChange={(event) => {
-                    const parsed = Number(event.target.value)
-                    const nextCost = Number.isFinite(parsed) && parsed >= 1 ? parsed : 1
-                    setNewReward((prev) => ({ ...prev, pointsCost: nextCost }))
-                  }}
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                />
-              </label>
-            </div>
-            <div className="mt-5 flex justify-end gap-2">
-              <button type="button" onClick={() => setIsAddRewardOpen(false)} className="rounded-lg border border-slate-300 px-3 py-2 text-slate-700">
-                Cancel
-              </button>
-              <button type="button" onClick={handleCreateReward} className="rounded-lg bg-primary-600 px-4 py-2 font-semibold text-white">
-                Add Reward
-              </button>
-            </div>
-          </div>
-        </div>
+        <AddRewardForm
+          isOpen={isAddRewardOpen}
+          isSubmitting={isCreatingReward}
+          errorMessage={createRewardErrorMessage}
+          fieldErrors={createRewardFieldErrors}
+          onClose={closeAddRewardDialog}
+          onSubmit={handleCreateReward}
+        />
+      ) : null}
+
+      {isEditRewardOpen && selectedReward ? (
+        <EditRewardForm
+          key={selectedReward.id}
+          isOpen={isEditRewardOpen}
+          isSubmitting={isUpdatingReward}
+          errorMessage={updateRewardErrorMessage}
+          fieldErrors={updateRewardFieldErrors}
+          initialValues={{
+            name: selectedReward.name,
+            description: selectedReward.description,
+            pointCost: selectedReward.pointsCost,
+            category: selectedReward.category,
+            active: selectedReward.active,
+          }}
+          onClose={closeEditRewardDialog}
+          onSubmit={handleUpdateReward}
+        />
+      ) : null}
+
+      {isDeleteRewardOpen && selectedReward ? (
+        <DeleteRewardDialog
+          isOpen={isDeleteRewardOpen}
+          rewardName={selectedReward.name}
+          isDeleting={isDeletingReward}
+          errorMessage={deleteRewardErrorMessage}
+          onClose={closeDeleteRewardDialog}
+          onConfirm={handleDeleteReward}
+        />
       ) : null}
 
       {isAddChildOpen ? (
@@ -637,6 +795,12 @@ export default function DashboardPage() {
       {choreSuccessMessage ? (
         <div className="fixed bottom-20 right-4 z-40 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800 shadow-md">
           {choreSuccessMessage}
+        </div>
+      ) : null}
+
+      {rewardSuccessMessage ? (
+        <div className="fixed bottom-36 right-4 z-40 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800 shadow-md">
+          {rewardSuccessMessage}
         </div>
       ) : null}
     </main>
