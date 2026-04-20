@@ -3,6 +3,9 @@ export interface KidAccount {
   name: string
   avatar: string
   username: string
+  firstName?: string
+  lastName?: string
+  displayName?: string
 }
 
 export interface ChoreItem {

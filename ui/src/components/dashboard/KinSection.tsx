@@ -4,9 +4,11 @@ interface KinSectionProps {
   parentName: string
   kids: KidAccount[]
   onAddChild: () => void
+  onEditChild: (kid: KidAccount) => void
+  onDeleteChild: (kid: KidAccount) => void
 }
 
-export default function KinSection({ parentName, kids, onAddChild }: KinSectionProps) {
+export default function KinSection({ parentName, kids, onAddChild, onEditChild, onDeleteChild }: KinSectionProps) {
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
@@ -46,9 +48,22 @@ export default function KinSection({ parentName, kids, onAddChild }: KinSectionP
                   <p className="text-slate-600">@{kid.username}</p>
                 </div>
               </div>
-              <button type="button" className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-                Login Info
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onEditChild(kid)}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDeleteChild(kid)}
+                  className="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </li>
         ))}
