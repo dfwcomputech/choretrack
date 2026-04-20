@@ -9,6 +9,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.computech.ctui.chore.ChoreChildNotFoundException;
+import com.computech.ctui.chore.ChoreNotFoundException;
 import com.computech.ctui.auth.DuplicateUserException;
 import com.computech.ctui.auth.ForbiddenOperationException;
 import com.computech.ctui.auth.ChildAccountNotFoundException;
@@ -41,6 +43,18 @@ public class ApiExceptionHandler {
 
 	@ExceptionHandler(ChildAccountNotFoundException.class)
 	public ResponseEntity<ErrorResponse> handleChildAccountNotFoundException(final ChildAccountNotFoundException exception) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(new ErrorResponse(exception.getMessage(), null));
+	}
+
+	@ExceptionHandler(ChoreNotFoundException.class)
+	public ResponseEntity<ErrorResponse> handleChoreNotFoundException(final ChoreNotFoundException exception) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(new ErrorResponse(exception.getMessage(), null));
+	}
+
+	@ExceptionHandler(ChoreChildNotFoundException.class)
+	public ResponseEntity<ErrorResponse> handleChoreChildNotFoundException(final ChoreChildNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND)
 				.body(new ErrorResponse(exception.getMessage(), null));
 	}

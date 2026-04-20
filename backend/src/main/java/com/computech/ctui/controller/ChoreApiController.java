@@ -1,64 +1,70 @@
 package com.computech.ctui.controller;
 
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.computech.ctui.chore.ChoreCreateRequest;
+import com.computech.ctui.chore.ChoreDeleteResponse;
+import com.computech.ctui.chore.ChoreResponse;
+import com.computech.ctui.chore.ChoreService;
+import com.computech.ctui.chore.ChoreUpdateRequest;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/chores")
 public class ChoreApiController {
 
-	private final AtomicLong idSequence = new AtomicLong(0);
-	private final List<Chore> chores = new CopyOnWriteArrayList<>();
+	private final ChoreService choreService;
 
-	public ChoreApiController() {
-		chores.add(new Chore(idSequence.incrementAndGet(), "Take out trash", false));
-		chores.add(new Chore(idSequence.incrementAndGet(), "Wash dishes", true));
-		chores.add(new Chore(idSequence.incrementAndGet(), "Clean living room", false));
+	public ChoreApiController(final ChoreService choreService) {
+		this.choreService = choreService;
 	}
 
 	@GetMapping
-	public List<Chore> getChores() {
-		return chores;
+	public ResponseEntity<List<ChoreResponse>> getChores(final Authentication authentication) {
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		return ResponseEntity.ok(choreService.listActiveChores(authentication.getName()));
 	}
 
 	@PostMapping
-	public ResponseEntity<Chore> createChore(@RequestBody final CreateChoreRequest request) {
-		if (request == null || request.title() == null || request.title().isBlank()) {
-			return ResponseEntity.badRequest().build();
+	public ResponseEntity<ChoreResponse> createChore(@Valid @RequestBody final ChoreCreateRequest request,
+			final Authentication authentication) {
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
-
-		final Chore created = new Chore(idSequence.incrementAndGet(), request.title().trim(), false);
-		chores.add(created);
-		return ResponseEntity.status(HttpStatus.CREATED).body(created);
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(choreService.createChore(request, authentication.getName()));
 	}
 
-	@PatchMapping("/{id}/toggle")
-	public ResponseEntity<Chore> toggleChore(@PathVariable final long id) {
-		for (int i = 0; i < chores.size(); i++) {
-			final Chore existing = chores.get(i);
-			if (existing.id() == id) {
-				final Chore updated = new Chore(existing.id(), existing.title(), !existing.completed());
-				chores.set(i, updated);
-				return ResponseEntity.ok(updated);
-			}
+	@PutMapping("/{choreId}")
+	public ResponseEntity<ChoreResponse> updateChore(@PathVariable final String choreId,
+			@Valid @RequestBody final ChoreUpdateRequest request, final Authentication authentication) {
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
-		return ResponseEntity.notFound().build();
+		return ResponseEntity.ok(choreService.updateChore(choreId, request, authentication.getName()));
 	}
 
-	private record CreateChoreRequest(String title) {
-	}
-
-	public record Chore(long id, String title, boolean completed) {
+	@DeleteMapping("/{choreId}")
+	public ResponseEntity<ChoreDeleteResponse> deleteChore(@PathVariable final String choreId,
+			final Authentication authentication) {
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		return ResponseEntity.ok(choreService.deleteChore(choreId, authentication.getName()));
 	}
 }
