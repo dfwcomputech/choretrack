@@ -1,6 +1,7 @@
 package com.computech.ctui.auth;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface UserAccountRepository {
 
@@ -11,6 +12,8 @@ public interface UserAccountRepository {
 	Optional<UserAccount> findByUsernameIgnoreCase(String username);
 
 	Optional<UserAccount> findById(String id);
+
+	List<UserAccount> findByParentId(String parentId);
 
 	UserAccount save(UserAccount userAccount);
 }

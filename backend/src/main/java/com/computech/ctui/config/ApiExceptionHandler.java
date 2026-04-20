@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.computech.ctui.auth.DuplicateUserException;
 import com.computech.ctui.auth.ForbiddenOperationException;
+import com.computech.ctui.auth.ChildAccountNotFoundException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -35,6 +36,12 @@ public class ApiExceptionHandler {
 	@ExceptionHandler(ForbiddenOperationException.class)
 	public ResponseEntity<ErrorResponse> handleForbiddenOperationException(final ForbiddenOperationException exception) {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN)
+				.body(new ErrorResponse(exception.getMessage(), null));
+	}
+
+	@ExceptionHandler(ChildAccountNotFoundException.class)
+	public ResponseEntity<ErrorResponse> handleChildAccountNotFoundException(final ChildAccountNotFoundException exception) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
 				.body(new ErrorResponse(exception.getMessage(), null));
 	}
 

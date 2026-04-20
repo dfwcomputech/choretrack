@@ -1,6 +1,7 @@
 package com.computech.ctui.auth;
 
 import java.util.Locale;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -36,6 +37,14 @@ public class InMemoryUserAccountRepository implements UserAccountRepository {
 	@Override
 	public Optional<UserAccount> findById(final String id) {
 		return Optional.ofNullable(usersById.get(id));
+	}
+
+	@Override
+	public List<UserAccount> findByParentId(final String parentId) {
+		return usersById.values()
+				.stream()
+				.filter(user -> parentId.equals(user.parentId()))
+				.toList();
 	}
 
 	@Override

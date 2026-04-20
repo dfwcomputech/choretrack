@@ -12,10 +12,21 @@ public record UserAccount(
 		String displayName,
 		AccountRole role,
 		String parentId,
-		Instant createdAt) {
+		Instant createdAt,
+		boolean active,
+		Instant updatedAt,
+		Instant deletedAt) {
 
 	public UserAccount(final String id, final String username, final String email, final String passwordHash,
 			final String firstName, final String lastName, final Instant createdAt) {
-		this(id, username, email, passwordHash, firstName, lastName, null, AccountRole.PARENT, null, createdAt);
+		this(id, username, email, passwordHash, firstName, lastName, null, AccountRole.PARENT, null, createdAt, true,
+				createdAt, null);
+	}
+
+	public UserAccount(final String id, final String username, final String email, final String passwordHash,
+			final String firstName, final String lastName, final String displayName, final AccountRole role,
+			final String parentId, final Instant createdAt) {
+		this(id, username, email, passwordHash, firstName, lastName, displayName, role, parentId, createdAt, true,
+				createdAt, null);
 	}
 }
