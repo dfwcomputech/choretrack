@@ -4,10 +4,20 @@ interface ChoresSectionProps {
   chores: ChoreItem[]
   kids: KidAccount[]
   onToggleChore: (id: string) => void
+  onEditChore: (chore: ChoreItem) => void
+  onDeleteChore: (chore: ChoreItem) => void
   onAddChore: () => void
 }
 
-export default function ChoresSection({ chores, kids, onToggleChore, onAddChore }: ChoresSectionProps) {
+const formatStatus = (status: ChoreItem['status']) => (status === 'COMPLETED' ? 'Completed' : 'Pending')
+
+const formatDueDate = (dueDate: string | null) => {
+  if (!dueDate) return 'No due date'
+  const parsedDate = new Date(`${dueDate}T00:00:00`)
+  return Number.isNaN(parsedDate.getTime()) ? dueDate : parsedDate.toLocaleDateString()
+}
+
+export default function ChoresSection({ chores, kids, onToggleChore, onEditChore, onDeleteChore, onAddChore }: ChoresSectionProps) {
   const getKid = (id: string) => kids.find((kid) => kid.id === id)
 
   return (
@@ -42,18 +52,24 @@ export default function ChoresSection({ chores, kids, onToggleChore, onAddChore 
                   <span className="text-3xl">{kid?.avatar ?? '🧒'}</span>
                   <div>
                     <p className="text-xl font-semibold text-slate-900">{chore.title}</p>
-                    <p className="text-base text-slate-600">{kid?.name ?? 'Unassigned'}</p>
+                    <p className="text-base text-slate-600">{kid?.name ?? chore.assignedChildName ?? 'Unassigned'}</p>
+                    <p className="text-xs text-slate-500">Due: {formatDueDate(chore.dueDate)}</p>
+                    <p className="text-xs text-slate-500">Status: {formatStatus(chore.status)}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-xl font-semibold text-emerald-700">+{chore.points}</p>
-                  <button
-                    type="button"
-                    onClick={() => onToggleChore(chore.id)}
-                    className="text-sm font-medium text-primary-700 hover:underline"
-                  >
-                    {chore.completed ? 'Mark pending' : 'Mark complete'}
-                  </button>
+                  <div className="mt-1 flex flex-wrap justify-end gap-2 text-sm font-medium">
+                    <button type="button" onClick={() => onToggleChore(chore.id)} className="text-primary-700 hover:underline">
+                      {chore.completed ? 'Mark pending' : 'Mark complete'}
+                    </button>
+                    <button type="button" onClick={() => onEditChore(chore)} className="text-blue-700 hover:underline">
+                      Edit
+                    </button>
+                    <button type="button" onClick={() => onDeleteChore(chore)} className="text-red-700 hover:underline">
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             </li>
