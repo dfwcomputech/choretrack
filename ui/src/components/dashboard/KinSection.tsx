@@ -38,6 +38,11 @@ export default function KinSection({ parentName, kids, onAddChild, onEditChild, 
       </div>
 
       <ul className="space-y-3">
+        {kids.length === 0 ? (
+          <li className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-slate-600">
+            No children added yet.
+          </li>
+        ) : null}
         {kids.map((kid) => (
           <li key={kid.id} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
             <div className="flex items-center justify-between gap-3">

@@ -34,6 +34,11 @@ export default function RewardsSection({ rewards, level, points, nextLevelPoints
       </div>
 
       <ul className="space-y-3">
+        {rewards.length === 0 ? (
+          <li className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-slate-600">
+            No rewards created yet.
+          </li>
+        ) : null}
         {rewards.map((reward) => (
           <li key={reward.id} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
             <div className="flex items-center gap-3">

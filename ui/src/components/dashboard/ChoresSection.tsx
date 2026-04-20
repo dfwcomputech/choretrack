@@ -23,6 +23,11 @@ export default function ChoresSection({ chores, kids, onToggleChore, onAddChore 
         </button>
       </div>
       <ul className="space-y-3">
+        {chores.length === 0 ? (
+          <li className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-slate-600">
+            No chores created yet.
+          </li>
+        ) : null}
         {chores.map((chore) => {
           const kid = getKid(chore.childId)
           return (
