@@ -13,8 +13,10 @@ const formatStatus = (status: ChoreItem['status']) => (status === 'COMPLETED' ? 
 
 const formatDueDate = (dueDate: string | null) => {
   if (!dueDate) return 'No due date'
-  const parsedDate = new Date(`${dueDate}T00:00:00`)
-  return Number.isNaN(parsedDate.getTime()) ? dueDate : parsedDate.toLocaleDateString()
+  const [year, month, day] = dueDate.split('-').map(Number)
+  if (!year || !month || !day) return dueDate
+  const parsedDate = new Date(Date.UTC(year, month - 1, day))
+  return new Intl.DateTimeFormat(undefined, { timeZone: 'UTC' }).format(parsedDate)
 }
 
 export default function ChoresSection({ chores, kids, onToggleChore, onEditChore, onDeleteChore, onAddChore }: ChoresSectionProps) {

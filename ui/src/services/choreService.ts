@@ -65,7 +65,7 @@ const parseValidationErrors = async (response: Response) => {
 
 const requireToken = (token: string) => {
   if (!token.trim()) {
-    throw new ChoreServiceError('Authentication required. Please log in.', -1)
+    throw new ChoreServiceError('Authentication required. Please log in.', 0)
   }
 }
 
