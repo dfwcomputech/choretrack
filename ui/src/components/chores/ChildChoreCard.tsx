@@ -9,9 +9,10 @@ interface ChildChoreCardProps {
 const formatDueDate = (dueDate: string | null) => {
   if (!dueDate) return 'No due date'
   const [year, month, day] = dueDate.split('-').map(Number)
-  if (!year || !month || !day) return dueDate
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return dueDate
+  if (year < 1 || month < 1 || month > 12 || day < 1 || day > 31) return dueDate
   const parsedDate = new Date(Date.UTC(year, month - 1, day))
-  return new Intl.DateTimeFormat(undefined, { timeZone: 'UTC' }).format(parsedDate)
+  return new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' }).format(parsedDate)
 }
 
 export default function ChildChoreCard({ chore, isCompleting, onComplete }: ChildChoreCardProps) {

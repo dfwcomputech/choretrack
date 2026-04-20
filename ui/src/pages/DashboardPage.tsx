@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import DashboardHeader from '../components/layout/DashboardHeader'
@@ -58,6 +58,11 @@ interface DashboardState {
 
 const fallbackParentName = 'Parent'
 const fallbackChildName = 'Kid'
+
+const getAssignedChildName = (chores: ChoreItem[]) => {
+  const choreWithName = chores.find((chore) => Boolean(chore.assignedChildName?.trim()))
+  return choreWithName?.assignedChildName?.trim() ?? ''
+}
 
 const deriveNameParts = (kid: KidAccount) => {
   const fallbackParts = kid.name.trim().split(/\s+/).filter(Boolean)
@@ -170,18 +175,15 @@ export default function DashboardPage() {
   const [childCompletionErrorMessage, setChildCompletionErrorMessage] = useState('')
   const [childCompletionSuccessMessage, setChildCompletionSuccessMessage] = useState('')
 
-  const inferredChildId = useMemo(() => chores[0]?.childId ?? null, [chores])
-  const childVisibleChores = useMemo(() => {
-    if (!isChildView || !inferredChildId) return chores
-    return chores.filter((chore) => chore.childId === inferredChildId)
-  }, [chores, inferredChildId, isChildView])
-  const completedChildChoreCount = childVisibleChores.filter((chore) => chore.status === 'COMPLETED' || chore.completed).length
-  const pendingChildChoreCount = childVisibleChores.length - completedChildChoreCount
-  const earnedPointsFromChores = childVisibleChores
+  const visibleChores = chores
+  const completedChildChoreCount = visibleChores.filter((chore) => chore.status === 'COMPLETED' || chore.completed).length
+  const pendingChildChoreCount = visibleChores.length - completedChildChoreCount
+  const earnedPointsFromChores = visibleChores
     .filter((chore) => chore.status === 'COMPLETED' || chore.completed)
     .reduce((total, chore) => total + chore.points, 0)
   const points = isChildView ? (childCurrentPoints ?? earnedPointsFromChores) : earnedPointsFromChores
-  const childName = childVisibleChores[0]?.assignedChildName?.trim() || state?.firstName?.trim() || state?.username?.trim() || fallbackChildName
+  const childAssignedName = getAssignedChildName(visibleChores)
+  const childName = childAssignedName || state?.firstName?.trim() || state?.username?.trim() || fallbackChildName
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -696,11 +698,20 @@ export default function DashboardPage() {
           {isChildView ? (
             <>
               <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <p className="rounded-xl bg-primary-50 px-4 py-3 text-center text-sm font-semibold text-primary-700">Current points: {points}</p>
-                  <p className="rounded-xl bg-emerald-50 px-4 py-3 text-center text-sm font-semibold text-emerald-700">Completed chores: {completedChildChoreCount}</p>
-                  <p className="rounded-xl bg-amber-50 px-4 py-3 text-center text-sm font-semibold text-amber-700">Pending chores: {pendingChildChoreCount}</p>
-                </div>
+                <dl className="grid gap-4 sm:grid-cols-3">
+                  <div className="rounded-xl bg-primary-50 px-4 py-3 text-center">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-primary-700">Current points</dt>
+                    <dd className="mt-1 text-lg font-semibold text-primary-800">{points}</dd>
+                  </div>
+                  <div className="rounded-xl bg-emerald-50 px-4 py-3 text-center">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Completed chores</dt>
+                    <dd className="mt-1 text-lg font-semibold text-emerald-800">{completedChildChoreCount}</dd>
+                  </div>
+                  <div className="rounded-xl bg-amber-50 px-4 py-3 text-center">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-amber-700">Pending chores</dt>
+                    <dd className="mt-1 text-lg font-semibold text-amber-800">{pendingChildChoreCount}</dd>
+                  </div>
+                </dl>
               </section>
 
               {childCompletionErrorMessage ? (
@@ -709,7 +720,7 @@ export default function DashboardPage() {
                 </div>
               ) : null}
 
-              <ChildChoreList chores={childVisibleChores} completingChoreId={completingChoreId} onComplete={handleCompleteChildChore} />
+              <ChildChoreList chores={visibleChores} completingChoreId={completingChoreId} onComplete={handleCompleteChildChore} />
             </>
           ) : (
             <div className="grid gap-6 xl:grid-cols-3">
@@ -894,7 +905,7 @@ export default function DashboardPage() {
       ) : null}
 
       {choreSuccessMessage ? (
-        <div className="fixed bottom-20 right-4 z-40 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800 shadow-md">
+        <div role="status" className="fixed bottom-20 right-4 z-40 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800 shadow-md">
           {choreSuccessMessage}
         </div>
       ) : null}
