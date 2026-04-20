@@ -125,6 +125,99 @@ class ChoreServiceUnitTests {
 				.hasMessage("chore not found");
 	}
 
+	@Test
+	void completesAssignedChoreAwardsPointsAndUpdatesProgress() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		final ChoreResponse created = choreService.createChore(new ChoreCreateRequest(
+				"Clean room",
+				"Pick up clothes",
+				25,
+				child.id(),
+				LocalDate.parse("2026-04-25"),
+				ChoreStatus.PENDING), "angie");
+
+		final ChoreCompletionResponse completion = choreService.completeChore(created.id(), "preston1");
+
+		assertThat(completion.status()).isEqualTo(ChoreStatus.COMPLETED);
+		assertThat(completion.pointsAwarded()).isEqualTo(25);
+		assertThat(completion.childCurrentPoints()).isEqualTo(25);
+		assertThat(completion.completedByChildId()).isEqualTo(child.id());
+		assertThat(completion.completedAt()).isNotNull();
+
+		final ChildProgressResponse progress = choreService.getChildProgress(child.id(), "preston1");
+		assertThat(progress.currentPoints()).isEqualTo(25);
+		assertThat(progress.totalEarnedPoints()).isEqualTo(25);
+		assertThat(progress.completedChores()).isEqualTo(1);
+		assertThat(progress.pendingChores()).isEqualTo(0);
+	}
+
+	@Test
+	void rejectsDuplicateChoreCompletion() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		final ChoreResponse created = choreService.createChore(new ChoreCreateRequest(
+				"Clean room",
+				"Pick up clothes",
+				25,
+				child.id(),
+				null,
+				ChoreStatus.PENDING), "angie");
+		choreService.completeChore(created.id(), "preston1");
+
+		assertThatThrownBy(() -> choreService.completeChore(created.id(), "preston1"))
+				.isInstanceOf(ChoreAlreadyCompletedException.class)
+				.hasMessage("chore has already been completed");
+	}
+
+	@Test
+	void rejectsCompletionOfAnotherChildChore() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse childA = createParentAndChild("angie", "preston1", userRepository);
+		final ChildAccountResponse childB = createChildForParent("angie", "rylan1", userRepository);
+
+		final ChoreResponse created = choreService.createChore(new ChoreCreateRequest(
+				"Clean room",
+				null,
+				25,
+				childA.id(),
+				null,
+				ChoreStatus.PENDING), "angie");
+
+		assertThatThrownBy(() -> choreService.completeChore(created.id(), childB.username()))
+				.isInstanceOf(ForbiddenOperationException.class)
+				.hasMessage("child cannot complete this chore");
+	}
+
+	@Test
+	void parentCanViewChildProgressButOtherChildCannot() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse childA = createParentAndChild("angie", "preston1", userRepository);
+		final ChildAccountResponse childB = createChildForParent("angie", "rylan1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Clean room",
+				null,
+				25,
+				childA.id(),
+				null,
+				ChoreStatus.PENDING), "angie");
+
+		final ChildProgressResponse parentView = choreService.getChildProgress(childA.id(), "angie");
+		assertThat(parentView.childId()).isEqualTo(childA.id());
+		assertThat(parentView.pendingChores()).isEqualTo(1);
+
+		assertThatThrownBy(() -> choreService.getChildProgress(childA.id(), childB.username()))
+				.isInstanceOf(ForbiddenOperationException.class)
+				.hasMessage("child cannot access another child account");
+	}
+
 	private ChoreService createService(final InMemoryUserAccountRepository userRepository) {
 		return new ChoreService(new InMemoryChoreRepository(), userRepository);
 	}
@@ -133,11 +226,17 @@ class ChoreServiceUnitTests {
 			final InMemoryUserAccountRepository repository) {
 		final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		final RegistrationService registrationService = new RegistrationService(repository, encoder, "admin");
-		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin");
 
 		registrationService.register(
 				new RegistrationRequest(parentUsername, parentUsername + "@example.com", "SecurePassword123",
 						capitalize(parentUsername), "Parent"));
+		return createChildForParent(parentUsername, childUsername, repository);
+	}
+
+	private ChildAccountResponse createChildForParent(final String parentUsername, final String childUsername,
+			final InMemoryUserAccountRepository repository) {
+		final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin");
 		return childAccountService.createChild(
 				new ChildAccountRequest(childUsername, "SecurePassword123", "Preston", "Family", "Preston"),
 				parentUsername);

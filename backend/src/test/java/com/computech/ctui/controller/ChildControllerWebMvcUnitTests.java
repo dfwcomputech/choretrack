@@ -31,19 +31,22 @@ import com.computech.ctui.auth.ChildAccountResponse;
 import com.computech.ctui.auth.ChildAccountService;
 import com.computech.ctui.auth.DuplicateUserException;
 import com.computech.ctui.auth.ForbiddenOperationException;
+import com.computech.ctui.chore.ChildProgressResponse;
+import com.computech.ctui.chore.ChoreService;
 import com.computech.ctui.config.ApiExceptionHandler;
 
 @Tag("unit")
 class ChildControllerWebMvcUnitTests {
 
 	private final ChildAccountService childAccountService = mock(ChildAccountService.class);
+	private final ChoreService choreService = mock(ChoreService.class);
 	private final MockMvc mockMvc;
 
 	ChildControllerWebMvcUnitTests() {
 		final LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
 		validator.afterPropertiesSet();
 		this.mockMvc = MockMvcBuilders
-				.standaloneSetup(new ChildController(childAccountService))
+				.standaloneSetup(new ChildController(childAccountService, choreService))
 				.setControllerAdvice(new ApiExceptionHandler())
 				.setValidator(validator)
 				.build();
@@ -275,5 +278,33 @@ class ChildControllerWebMvcUnitTests {
 				.andExpect(status().isUnauthorized());
 
 		verifyNoInteractions(childAccountService);
+	}
+
+	@Test
+	void getChildProgressReturnsOk() throws Exception {
+		when(choreService.getChildProgress("child-id", "angie")).thenReturn(new ChildProgressResponse(
+				"child-id",
+				"Preston",
+				140,
+				190,
+				5,
+				2,
+				200,
+				Instant.parse("2026-04-20T10:00:00Z")));
+
+		mockMvc.perform(get("/api/children/child-id/progress")
+				.principal(new UsernamePasswordAuthenticationToken("angie", "n/a", List.of())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.childId").value("child-id"))
+				.andExpect(jsonPath("$.currentPoints").value(140))
+				.andExpect(jsonPath("$.completedChores").value(5));
+	}
+
+	@Test
+	void getChildProgressReturnsUnauthorizedWhenAuthenticationMissing() throws Exception {
+		mockMvc.perform(get("/api/children/child-id/progress"))
+				.andExpect(status().isUnauthorized());
+
+		verifyNoInteractions(choreService);
 	}
 }

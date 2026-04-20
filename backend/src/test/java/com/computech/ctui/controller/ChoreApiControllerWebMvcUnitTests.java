@@ -25,6 +25,8 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import com.computech.ctui.auth.ForbiddenOperationException;
 import com.computech.ctui.chore.ChoreChildNotFoundException;
+import com.computech.ctui.chore.ChoreCompletionResponse;
+import com.computech.ctui.chore.ChoreAlreadyCompletedException;
 import com.computech.ctui.chore.ChoreDeleteResponse;
 import com.computech.ctui.chore.ChoreNotFoundException;
 import com.computech.ctui.chore.ChoreResponse;
@@ -230,5 +232,42 @@ class ChoreApiControllerWebMvcUnitTests {
 				.principal(new UsernamePasswordAuthenticationToken("angie", "n/a", List.of())))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.message").value("Chore deleted successfully"));
+	}
+
+	@Test
+	void completeChoreReturnsOkForAssignedChild() throws Exception {
+		when(choreService.completeChore("chore-123", "preston1")).thenReturn(new ChoreCompletionResponse(
+				"chore-123",
+				ChoreStatus.COMPLETED,
+				"child-123",
+				25,
+				140,
+				Instant.parse("2026-04-19T10:30:00Z")));
+
+		mockMvc.perform(post("/api/chores/chore-123/complete")
+				.principal(new UsernamePasswordAuthenticationToken("preston1", "n/a", List.of())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("COMPLETED"))
+				.andExpect(jsonPath("$.pointsAwarded").value(25))
+				.andExpect(jsonPath("$.childCurrentPoints").value(140));
+	}
+
+	@Test
+	void completeChoreReturnsConflictWhenAlreadyCompleted() throws Exception {
+		when(choreService.completeChore("chore-123", "preston1"))
+				.thenThrow(new ChoreAlreadyCompletedException("chore has already been completed"));
+
+		mockMvc.perform(post("/api/chores/chore-123/complete")
+				.principal(new UsernamePasswordAuthenticationToken("preston1", "n/a", List.of())))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.message").value("chore has already been completed"));
+	}
+
+	@Test
+	void completeChoreReturnsUnauthorizedWhenAuthenticationMissing() throws Exception {
+		mockMvc.perform(post("/api/chores/chore-123/complete"))
+				.andExpect(status().isUnauthorized());
+
+		verifyNoInteractions(choreService);
 	}
 }

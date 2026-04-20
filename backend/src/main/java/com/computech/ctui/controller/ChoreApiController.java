@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.computech.ctui.chore.ChoreCreateRequest;
 import com.computech.ctui.chore.ChoreDeleteResponse;
+import com.computech.ctui.chore.ChoreCompletionResponse;
 import com.computech.ctui.chore.ChoreResponse;
 import com.computech.ctui.chore.ChoreService;
 import com.computech.ctui.chore.ChoreUpdateRequest;
@@ -66,5 +67,14 @@ public class ChoreApiController {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
 		return ResponseEntity.ok(choreService.deleteChore(choreId, authentication.getName()));
+	}
+
+	@PostMapping("/{choreId}/complete")
+	public ResponseEntity<ChoreCompletionResponse> completeChore(@PathVariable final String choreId,
+			final Authentication authentication) {
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		return ResponseEntity.ok(choreService.completeChore(choreId, authentication.getName()));
 	}
 }
