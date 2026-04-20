@@ -24,6 +24,15 @@ export interface CreateChorePayload {
 
 export type UpdateChorePayload = CreateChorePayload
 
+export interface ChoreCompletionResponse {
+  choreId: string
+  status: ChoreStatus
+  completedByChildId: string
+  pointsAwarded: number
+  childCurrentPoints: number
+  completedAt: string
+}
+
 interface ValidationErrorBody {
   errors?: Array<{ field?: string; message?: string }>
 }
@@ -205,4 +214,31 @@ export const deleteChore = async (choreId: string, token: string): Promise<void>
     403: 'You are not authorized to delete this chore.',
     404: 'This chore no longer exists.',
   })
+}
+
+export const completeChore = async (choreId: string, token: string): Promise<ChoreCompletionResponse> => {
+  requireToken(token)
+  let response: Response
+  try {
+    response = await fetch(`/api/chores/${encodeURIComponent(choreId)}/complete`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  } catch {
+    throw new ChoreServiceError('Unable to complete chore. Please check your connection and try again.', 0)
+  }
+
+  if (response.ok) {
+    return (await response.json()) as ChoreCompletionResponse
+  }
+
+  await handleMutationError(response, 'Unable to complete chore. Please try again.', {
+    401: 'Your session has expired. Please log in again.',
+    403: 'You are not authorized to complete this chore.',
+    404: 'This chore no longer exists.',
+    409: 'This chore has already been completed.',
+  })
+  throw new ChoreServiceError('Unable to complete chore. Please try again.', response.status)
 }
