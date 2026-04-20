@@ -9,8 +9,17 @@ import RewardsSection from '../components/dashboard/RewardsSection'
 import KinSection from '../components/dashboard/KinSection'
 import BattlePassTrack from '../components/dashboard/BattlePassTrack'
 import AddChildAccountForm from '../components/children/AddChildAccountForm'
+import EditChildAccountForm from '../components/children/EditChildAccountForm'
+import DeleteChildAccountDialog from '../components/children/DeleteChildAccountDialog'
 import type { ChoreItem, KidAccount, RewardItem } from '../components/dashboard/types'
-import { ChildServiceError, createChildAccount, type CreateChildAccountPayload } from '../services/childService'
+import {
+  ChildServiceError,
+  createChildAccount,
+  deleteChildAccount,
+  updateChildAccount,
+  type CreateChildAccountPayload,
+  type UpdateChildAccountPayload,
+} from '../services/childService'
 
 interface DashboardState {
   registered?: boolean
@@ -20,7 +29,15 @@ interface DashboardState {
 
 interface DemoDashboardResponse {
   parent?: { name?: string }
-  children?: Array<{ id?: string; name?: string; username?: string; avatar?: string }>
+  children?: Array<{
+    id?: string
+    name?: string
+    username?: string
+    avatar?: string
+    firstName?: string
+    lastName?: string
+    displayName?: string
+  }>
   chores?: Array<{ id?: string; title?: string; childId?: string; points?: number; completed?: boolean }>
   rewards?: Array<{ id?: string; name?: string; pointsCost?: number; icon?: string }>
   progress?: { level?: number; points?: number; nextLevelPoints?: number }
@@ -35,6 +52,33 @@ const toUsernameFallback = (value: string, id: string) => {
 }
 
 const defaultParentName = 'Angie'
+
+const deriveNameParts = (kid: KidAccount) => {
+  const fallbackParts = kid.name.trim().split(/\s+/).filter(Boolean)
+  const firstName = kid.firstName?.trim() || fallbackParts[0] || ''
+  const lastName = kid.lastName?.trim() || fallbackParts.slice(1).join(' ')
+  const displayName = kid.displayName?.trim() || kid.name.trim()
+  return { firstName, lastName, displayName }
+}
+
+const toKidAccount = (child: {
+  id: string
+  username: string
+  firstName: string
+  lastName: string
+  displayName: string
+}) => {
+  const displayName = child.displayName?.trim() || [child.firstName?.trim(), child.lastName?.trim()].filter(Boolean).join(' ') || child.username
+  return {
+    id: child.id,
+    name: displayName,
+    username: child.username,
+    avatar: '🧒',
+    firstName: child.firstName,
+    lastName: child.lastName,
+    displayName: child.displayName,
+  }
+}
 
 const defaultKids: KidAccount[] = [
   { id: 'child-preston', name: 'Preston', avatar: '🧒', username: 'preston' },
@@ -86,6 +130,14 @@ export default function DashboardPage() {
   const [isCreatingChild, setIsCreatingChild] = useState(false)
   const [createChildErrorMessage, setCreateChildErrorMessage] = useState('')
   const [createChildFieldErrors, setCreateChildFieldErrors] = useState<Record<string, string>>({})
+  const [isEditChildOpen, setIsEditChildOpen] = useState(false)
+  const [selectedChild, setSelectedChild] = useState<KidAccount | null>(null)
+  const [isUpdatingChild, setIsUpdatingChild] = useState(false)
+  const [updateChildErrorMessage, setUpdateChildErrorMessage] = useState('')
+  const [updateChildFieldErrors, setUpdateChildFieldErrors] = useState<Record<string, string>>({})
+  const [isDeleteChildOpen, setIsDeleteChildOpen] = useState(false)
+  const [isDeletingChild, setIsDeletingChild] = useState(false)
+  const [deleteChildErrorMessage, setDeleteChildErrorMessage] = useState('')
   const [childSuccessMessage, setChildSuccessMessage] = useState('')
   const [addChildFormKey, setAddChildFormKey] = useState(0)
 
@@ -103,12 +155,21 @@ export default function DashboardPage() {
         const data = (await response.json()) as DemoDashboardResponse
         const mappedKids = (data.children ?? [])
           .map((child): KidAccount | null => {
-            if (!child.id || !child.name) return null
+            if (!child.id) return null
+            const resolvedName =
+              child.displayName?.trim() ||
+              child.name?.trim() ||
+              [child.firstName?.trim(), child.lastName?.trim()].filter(Boolean).join(' ') ||
+              child.username?.trim()
+            if (!resolvedName) return null
             return {
               id: child.id,
-              name: child.name,
-              username: child.username?.trim() || toUsernameFallback(child.name, child.id),
+              name: resolvedName,
+              username: child.username?.trim() || toUsernameFallback(resolvedName, child.id),
               avatar: child.avatar || '🧒',
+              firstName: child.firstName?.trim() || '',
+              lastName: child.lastName?.trim() || '',
+              displayName: child.displayName?.trim() || resolvedName,
             }
           })
           .filter((child): child is KidAccount => child !== null)
@@ -231,19 +292,10 @@ export default function DashboardPage() {
     setIsCreatingChild(true)
     try {
       const child = await createChildAccount(payload, token)
-      const displayName =
-        child.displayName?.trim() || [child.firstName?.trim(), child.lastName?.trim()].filter(Boolean).join(' ') || child.username
-      setKids((prev) => [
-        ...prev,
-        {
-          id: child.id,
-          name: displayName,
-          username: child.username,
-          avatar: '🧒',
-        },
-      ])
+      const mappedKid = toKidAccount(child)
+      setKids((prev) => [...prev, mappedKid])
       setNewChore((prev) => (prev.childId ? prev : { ...prev, childId: child.id }))
-      setChildSuccessMessage(`${displayName} has been added to your family.`)
+      setChildSuccessMessage(`${mappedKid.name} has been added to your family.`)
       setIsAddChildOpen(false)
     } catch (error) {
       if (error instanceof ChildServiceError) {
@@ -258,8 +310,94 @@ export default function DashboardPage() {
     }
   }
 
+  const openEditChildDialog = (kid: KidAccount) => {
+    setChildSuccessMessage('')
+    setUpdateChildErrorMessage('')
+    setUpdateChildFieldErrors({})
+    setSelectedChild(kid)
+    setIsEditChildOpen(true)
+  }
+
+  const closeEditChildDialog = () => {
+    if (isUpdatingChild) return
+    setUpdateChildErrorMessage('')
+    setUpdateChildFieldErrors({})
+    setIsEditChildOpen(false)
+    setSelectedChild(null)
+  }
+
+  const handleUpdateChild = async (payload: UpdateChildAccountPayload) => {
+    if (!selectedChild) return
+    setUpdateChildErrorMessage('')
+    setUpdateChildFieldErrors({})
+    setIsUpdatingChild(true)
+    try {
+      const updatedChild = await updateChildAccount(selectedChild.id, payload, token)
+      const mappedKid = toKidAccount(updatedChild)
+      setKids((prev) => prev.map((kid) => (kid.id === selectedChild.id ? mappedKid : kid)))
+      setChildSuccessMessage(`${mappedKid.name} has been updated.`)
+      setIsEditChildOpen(false)
+      setSelectedChild(null)
+    } catch (error) {
+      if (error instanceof ChildServiceError) {
+        setUpdateChildErrorMessage(error.message)
+        setUpdateChildFieldErrors(error.fieldErrors)
+        return
+      }
+      console.error('Failed to update child account', error)
+      setUpdateChildErrorMessage('Unable to update child account. Please try again.')
+    } finally {
+      setIsUpdatingChild(false)
+    }
+  }
+
+  const openDeleteChildDialog = (kid: KidAccount) => {
+    setChildSuccessMessage('')
+    setDeleteChildErrorMessage('')
+    setSelectedChild(kid)
+    setIsDeleteChildOpen(true)
+  }
+
+  const closeDeleteChildDialog = () => {
+    if (isDeletingChild) return
+    setDeleteChildErrorMessage('')
+    setIsDeleteChildOpen(false)
+    setSelectedChild(null)
+  }
+
+  const handleDeleteChild = async () => {
+    if (!selectedChild) return
+    setDeleteChildErrorMessage('')
+    setIsDeletingChild(true)
+    try {
+      await deleteChildAccount(selectedChild.id, token)
+      let nextDefaultChildId = ''
+      setKids((prev) => {
+        const remainingKids = prev.filter((kid) => kid.id !== selectedChild.id)
+        nextDefaultChildId = remainingKids[0]?.id ?? ''
+        return remainingKids
+      })
+      setNewChore((currentChore) =>
+        currentChore.childId === selectedChild.id ? { ...currentChore, childId: nextDefaultChildId } : currentChore,
+      )
+      setChildSuccessMessage(`${selectedChild.name} has been removed from your dashboard.`)
+      setIsDeleteChildOpen(false)
+      setSelectedChild(null)
+    } catch (error) {
+      if (error instanceof ChildServiceError) {
+        setDeleteChildErrorMessage(error.message)
+        return
+      }
+      console.error('Failed to delete child account', error)
+      setDeleteChildErrorMessage('Unable to remove child account. Please try again.')
+    } finally {
+      setIsDeletingChild(false)
+    }
+  }
+
   const modalClassName =
     'fixed inset-0 z-30 flex items-center justify-center bg-slate-900/60 p-4'
+  const selectedChildNameParts = selectedChild ? deriveNameParts(selectedChild) : null
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50/40">
@@ -295,7 +433,13 @@ export default function DashboardPage() {
               />
             </div>
             <div className="space-y-6 xl:col-span-1">
-              <KinSection parentName={parentName} kids={kids} onAddChild={openAddChildDialog} />
+              <KinSection
+                parentName={parentName}
+                kids={kids}
+                onAddChild={openAddChildDialog}
+                onEditChild={openEditChildDialog}
+                onDeleteChild={openDeleteChildDialog}
+              />
             </div>
           </div>
 
@@ -418,6 +562,34 @@ export default function DashboardPage() {
           fieldErrors={createChildFieldErrors}
           onClose={closeAddChildDialog}
           onSubmit={handleCreateChild}
+        />
+      ) : null}
+
+      {isEditChildOpen && selectedChild ? (
+        <EditChildAccountForm
+          isOpen={isEditChildOpen}
+          isSubmitting={isUpdatingChild}
+          errorMessage={updateChildErrorMessage}
+          fieldErrors={updateChildFieldErrors}
+          initialValues={{
+            username: selectedChild.username,
+            firstName: selectedChildNameParts?.firstName ?? '',
+            lastName: selectedChildNameParts?.lastName ?? '',
+            displayName: selectedChildNameParts?.displayName ?? '',
+          }}
+          onClose={closeEditChildDialog}
+          onSubmit={handleUpdateChild}
+        />
+      ) : null}
+
+      {isDeleteChildOpen && selectedChild ? (
+        <DeleteChildAccountDialog
+          isOpen={isDeleteChildOpen}
+          childName={selectedChild.name}
+          isDeleting={isDeletingChild}
+          errorMessage={deleteChildErrorMessage}
+          onClose={closeDeleteChildDialog}
+          onConfirm={handleDeleteChild}
         />
       ) : null}
 
