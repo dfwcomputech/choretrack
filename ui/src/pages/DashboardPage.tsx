@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import DashboardHeader from '../components/layout/DashboardHeader'
@@ -174,6 +174,7 @@ export default function DashboardPage() {
   const [completingChoreId, setCompletingChoreId] = useState<string | null>(null)
   const [childCompletionErrorMessage, setChildCompletionErrorMessage] = useState('')
   const [childCompletionSuccessMessage, setChildCompletionSuccessMessage] = useState('')
+  const [isRedirectingForUnauthorized, setIsRedirectingForUnauthorized] = useState(false)
 
   const visibleChores = chores
   const completedChildChoreCount = visibleChores.filter((chore) => chore.status === 'COMPLETED' || chore.completed).length
@@ -184,6 +185,13 @@ export default function DashboardPage() {
   const points = isChildView ? (childCurrentPoints ?? earnedPointsFromChores) : earnedPointsFromChores
   const childAssignedName = getAssignedChildName(visibleChores)
   const childName = childAssignedName || state?.firstName?.trim() || state?.username?.trim() || fallbackChildName
+
+  const handleUnauthorized = useCallback(async () => {
+    if (isRedirectingForUnauthorized) return
+    setIsRedirectingForUnauthorized(true)
+    await logout()
+    navigate('/', { replace: true })
+  }, [isRedirectingForUnauthorized, logout, navigate])
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -197,6 +205,10 @@ export default function DashboardPage() {
         setKids(children.map(toKidAccount))
       } catch (error) {
         if (abortController.signal.aborted) return
+        if (error instanceof ChildServiceError && error.status === 401) {
+          await handleUnauthorized()
+          return
+        }
         if (error instanceof ChildServiceError && error.status === 403) {
           setIsChildView(true)
           setKids([])
@@ -208,7 +220,7 @@ export default function DashboardPage() {
 
     void loadChildren()
     return () => abortController.abort()
-  }, [token])
+  }, [handleUnauthorized, token])
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -223,14 +235,19 @@ export default function DashboardPage() {
         const loadedRewards = await listRewards(token)
         if (abortController.signal.aborted) return
         setRewards(loadedRewards.map(toRewardItem))
-      } catch {
+      } catch (error) {
+        if (abortController.signal.aborted) return
+        if (error instanceof RewardServiceError && error.status === 401) {
+          await handleUnauthorized()
+          return
+        }
         return
       }
     }
 
     void loadRewards()
     return () => abortController.abort()
-  }, [isChildView, token])
+  }, [handleUnauthorized, isChildView, token])
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -241,14 +258,19 @@ export default function DashboardPage() {
         const loadedChores = await listChores(token)
         if (abortController.signal.aborted) return
         setChores(loadedChores.map(toChoreItem))
-      } catch {
+      } catch (error) {
+        if (abortController.signal.aborted) return
+        if (error instanceof ChoreServiceError && error.status === 401) {
+          await handleUnauthorized()
+          return
+        }
         return
       }
     }
 
     void loadChores()
     return () => abortController.abort()
-  }, [token])
+  }, [handleUnauthorized, token])
 
   useEffect(() => {
     if (!childSuccessMessage) return
@@ -672,6 +694,10 @@ export default function DashboardPage() {
   }
 
   const selectedChildNameParts = selectedChild ? deriveNameParts(selectedChild) : null
+
+  if (isRedirectingForUnauthorized) {
+    return null
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50/40">
