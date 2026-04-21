@@ -2,12 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import DashboardHeader from '../components/layout/DashboardHeader'
-import DashboardSidebar from '../components/layout/DashboardSidebar'
 import OverviewSection from '../components/dashboard/OverviewSection'
-import ChoresSection from '../components/dashboard/ChoresSection'
-import RewardsSection from '../components/dashboard/RewardsSection'
-import KinSection from '../components/dashboard/KinSection'
-import BattlePassTrack from '../components/dashboard/BattlePassTrack'
 import AddChildAccountForm from '../components/children/AddChildAccountForm'
 import EditChildAccountForm from '../components/children/EditChildAccountForm'
 import DeleteChildAccountDialog from '../components/children/DeleteChildAccountDialog'
@@ -18,6 +13,7 @@ import AddRewardForm from '../components/rewards/AddRewardForm'
 import EditRewardForm from '../components/rewards/EditRewardForm'
 import DeleteRewardDialog from '../components/rewards/DeleteRewardDialog'
 import ChildDashboardPage from './ChildDashboardPage'
+import ParentDashboardPage from './ParentDashboardPage'
 import type { ChoreItem, KidAccount, RewardItem } from '../components/dashboard/types'
 import {
   ChildServiceError,
@@ -58,6 +54,35 @@ interface DashboardState {
 
 const fallbackParentName = 'Parent'
 const fallbackChildName = 'Kid'
+const defaultRewards: RewardItem[] = [
+  {
+    id: 'local-reward-icecream',
+    name: 'Get Icecream',
+    description: 'Pick your favorite ice cream treat.',
+    pointsCost: 80,
+    category: 'FUN',
+    active: true,
+    icon: '🍦',
+  },
+  {
+    id: 'local-reward-gaming-time',
+    name: 'Extra gaming time',
+    description: 'Unlock 30 extra minutes of gaming.',
+    pointsCost: 120,
+    category: 'GAMING',
+    active: true,
+    icon: '🎮',
+  },
+  {
+    id: 'local-reward-movies',
+    name: 'Go to the movies',
+    description: 'Choose a movie night reward with the family.',
+    pointsCost: 200,
+    category: 'OUTING',
+    active: true,
+    icon: '🎬',
+  },
+]
 
 const getAssignedChildName = (chores: ChoreItem[]) => {
   const choreWithName = chores.find((chore) => Boolean(chore.assignedChildName?.trim()))
@@ -119,7 +144,7 @@ export default function DashboardPage() {
   const location = useLocation()
   const state = (location.state as DashboardState | null) ?? null
   const parentName = state?.firstName?.trim() || state?.username?.trim() || fallbackParentName
-  const [activeNav, setActiveNav] = useState('chores')
+  const [activeNav, setActiveNav] = useState('dashboard')
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isAddChoreOpen, setIsAddChoreOpen] = useState(false)
   const [isEditChoreOpen, setIsEditChoreOpen] = useState(false)
@@ -134,6 +159,7 @@ export default function DashboardPage() {
   const [selectedChore, setSelectedChore] = useState<ChoreItem | null>(null)
   const [selectedReward, setSelectedReward] = useState<RewardItem | null>(null)
   const [rewards, setRewards] = useState<RewardItem[]>([])
+  const [isUsingLocalRewards, setIsUsingLocalRewards] = useState(false)
   const level = 1
   const nextLevelPoints = 100
 
@@ -228,19 +254,28 @@ export default function DashboardPage() {
     const loadRewards = async () => {
       if (isChildView) {
         setRewards([])
+        setIsUsingLocalRewards(false)
         return
       }
       if (!token.trim()) return
       try {
         const loadedRewards = await listRewards(token)
         if (abortController.signal.aborted) return
+        if (loadedRewards.length === 0) {
+          setRewards(defaultRewards)
+          setIsUsingLocalRewards(true)
+          return
+        }
         setRewards(loadedRewards.map(toRewardItem))
+        setIsUsingLocalRewards(false)
       } catch (error) {
         if (abortController.signal.aborted) return
         if (error instanceof RewardServiceError && error.status === 401) {
           await handleUnauthorized()
           return
         }
+        setRewards(defaultRewards)
+        setIsUsingLocalRewards(true)
         return
       }
     }
@@ -480,6 +515,26 @@ export default function DashboardPage() {
   }
 
   const handleCreateReward = async (payload: CreateRewardPayload) => {
+    if (isUsingLocalRewards) {
+      const localRewardId =
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? `local-reward-${crypto.randomUUID()}` : `local-reward-${Date.now()}`
+      setRewards((prev) => [
+        {
+          id: localRewardId,
+          name: payload.name,
+          description: payload.description ?? '',
+          pointsCost: payload.pointCost,
+          category: payload.category ?? '',
+          active: payload.active ?? true,
+          icon: '🎁',
+        },
+        ...prev,
+      ])
+      setRewardSuccessMessage('Reward created successfully.')
+      setIsAddRewardOpen(false)
+      return
+    }
+
     setCreateRewardErrorMessage('')
     setCreateRewardFieldErrors({})
     setIsCreatingReward(true)
@@ -519,6 +574,28 @@ export default function DashboardPage() {
 
   const handleUpdateReward = async (payload: UpdateRewardPayload) => {
     if (!selectedReward) return
+
+    if (isUsingLocalRewards || selectedReward.id.startsWith('local-reward-')) {
+      setRewards((prev) =>
+        prev.map((reward) =>
+          reward.id === selectedReward.id
+            ? {
+                ...reward,
+                name: payload.name,
+                description: payload.description ?? '',
+                pointsCost: payload.pointCost,
+                category: payload.category ?? '',
+                active: payload.active,
+              }
+            : reward,
+        ),
+      )
+      setRewardSuccessMessage('Reward updated successfully.')
+      setIsEditRewardOpen(false)
+      setSelectedReward(null)
+      return
+    }
+
     setUpdateRewardErrorMessage('')
     setUpdateRewardFieldErrors({})
     setIsUpdatingReward(true)
@@ -557,6 +634,15 @@ export default function DashboardPage() {
 
   const handleDeleteReward = async () => {
     if (!selectedReward) return
+
+    if (isUsingLocalRewards || selectedReward.id.startsWith('local-reward-')) {
+      setRewards((prev) => prev.filter((reward) => reward.id !== selectedReward.id))
+      setRewardSuccessMessage('Reward deleted successfully.')
+      setIsDeleteRewardOpen(false)
+      setSelectedReward(null)
+      return
+    }
+
     setDeleteRewardErrorMessage('')
     setIsDeletingReward(true)
     try {
@@ -710,22 +796,18 @@ export default function DashboardPage() {
         onLogout={() => void handleLogout()}
       />
 
-      <div
-        className={`mx-auto grid gap-6 px-4 py-6 sm:px-6 ${
-          isChildView ? 'w-full max-w-[1600px] xl:px-10' : 'max-w-7xl lg:grid-cols-[18rem_1fr] lg:px-8'
-        }`}
-      >
-        {!isChildView ? <DashboardSidebar activeNav={activeNav} onNavChange={setActiveNav} onAddChore={openAddChoreDialog} /> : null}
+      {state?.registered ? (
+        <div className="mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-green-800">
+            Account created successfully. Welcome, {isChildView ? childName : parentName}!
+          </div>
+        </div>
+      ) : null}
 
-        <div className="space-y-6">
-          {state?.registered ? (
-            <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-green-800">
-              Account created successfully. Welcome, {isChildView ? childName : parentName}!
-            </div>
-          ) : null}
-          <OverviewSection parentName={isChildView ? childName : parentName} level={level} points={points} nextLevelPoints={nextLevelPoints} />
-
-          {isChildView ? (
+      {isChildView ? (
+        <div className="mx-auto w-full max-w-[1600px] gap-6 px-4 py-6 sm:px-6 xl:px-10">
+          <div className="space-y-6">
+            <OverviewSection parentName={childName} level={level} points={points} nextLevelPoints={nextLevelPoints} />
             <ChildDashboardPage
               childName={childName}
               points={points}
@@ -738,51 +820,31 @@ export default function DashboardPage() {
               completingChoreId={completingChoreId}
               onCompleteChore={handleCompleteChildChore}
             />
-          ) : (
-            <div className="grid gap-6 xl:grid-cols-3">
-              <div className="xl:col-span-1">
-                <ChoresSection
-                  chores={chores}
-                  kids={kids}
-                  onToggleChore={handleToggleChore}
-                  onEditChore={openEditChoreDialog}
-                  onDeleteChore={openDeleteChoreDialog}
-                  onAddChore={openAddChoreDialog}
-                />
-              </div>
-              <div className="space-y-6 xl:col-span-1">
-                <RewardsSection
-                  rewards={rewards}
-                  level={level}
-                  points={points}
-                  nextLevelPoints={nextLevelPoints}
-                  onAddReward={openAddRewardDialog}
-                  onEditReward={openEditRewardDialog}
-                  onDeleteReward={openDeleteRewardDialog}
-                />
-              </div>
-              <div className="space-y-6 xl:col-span-1">
-                <KinSection
-                  parentName={parentName}
-                  kids={kids}
-                  onAddChild={openAddChildDialog}
-                  onEditChild={openEditChildDialog}
-                  onDeleteChild={openDeleteChildDialog}
-                />
-              </div>
-            </div>
-          )}
-
-          {!isChildView ? (
-            <BattlePassTrack
-              points={points}
-              currentLevel={level}
-              nextLevel={level + 1}
-              currentLevelTargetPoints={nextLevelPoints}
-            />
-          ) : null}
+          </div>
         </div>
-      </div>
+      ) : (
+        <ParentDashboardPage
+          parentName={parentName}
+          points={points}
+          level={level}
+          nextLevelPoints={nextLevelPoints}
+          kids={kids}
+          chores={chores}
+          rewards={rewards}
+          activeNav={activeNav}
+          onNavChange={setActiveNav}
+          onAddChore={openAddChoreDialog}
+          onToggleChore={handleToggleChore}
+          onEditChore={openEditChoreDialog}
+          onDeleteChore={openDeleteChoreDialog}
+          onAddReward={openAddRewardDialog}
+          onEditReward={openEditRewardDialog}
+          onDeleteReward={openDeleteRewardDialog}
+          onAddChild={openAddChildDialog}
+          onEditChild={openEditChildDialog}
+          onDeleteChild={openDeleteChildDialog}
+        />
+      )}
 
       {isAddChoreOpen ? (
         <AddChoreForm
