@@ -14,10 +14,10 @@ import DeleteChildAccountDialog from '../components/children/DeleteChildAccountD
 import AddChoreForm from '../components/chores/AddChoreForm'
 import EditChoreForm from '../components/chores/EditChoreForm'
 import DeleteChoreDialog from '../components/chores/DeleteChoreDialog'
-import ChildChoreList from '../components/chores/ChildChoreList'
 import AddRewardForm from '../components/rewards/AddRewardForm'
 import EditRewardForm from '../components/rewards/EditRewardForm'
 import DeleteRewardDialog from '../components/rewards/DeleteRewardDialog'
+import ChildDashboardPage from './ChildDashboardPage'
 import type { ChoreItem, KidAccount, RewardItem } from '../components/dashboard/types'
 import {
   ChildServiceError,
@@ -710,7 +710,11 @@ export default function DashboardPage() {
         onLogout={() => void handleLogout()}
       />
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[18rem_1fr] lg:px-8">
+      <div
+        className={`mx-auto grid gap-6 px-4 py-6 sm:px-6 ${
+          isChildView ? 'w-full max-w-[1600px] xl:px-10' : 'max-w-7xl lg:grid-cols-[18rem_1fr] lg:px-8'
+        }`}
+      >
         {!isChildView ? <DashboardSidebar activeNav={activeNav} onNavChange={setActiveNav} onAddChore={openAddChoreDialog} /> : null}
 
         <div className="space-y-6">
@@ -722,32 +726,18 @@ export default function DashboardPage() {
           <OverviewSection parentName={isChildView ? childName : parentName} level={level} points={points} nextLevelPoints={nextLevelPoints} />
 
           {isChildView ? (
-            <>
-              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <dl className="grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-xl bg-primary-50 px-4 py-3 text-center">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-primary-700">Current points</dt>
-                    <dd className="mt-1 text-lg font-semibold text-primary-800">{points}</dd>
-                  </div>
-                  <div className="rounded-xl bg-emerald-50 px-4 py-3 text-center">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Completed chores</dt>
-                    <dd className="mt-1 text-lg font-semibold text-emerald-800">{completedChildChoreCount}</dd>
-                  </div>
-                  <div className="rounded-xl bg-amber-50 px-4 py-3 text-center">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-amber-700">Pending chores</dt>
-                    <dd className="mt-1 text-lg font-semibold text-amber-800">{pendingChildChoreCount}</dd>
-                  </div>
-                </dl>
-              </section>
-
-              {childCompletionErrorMessage ? (
-                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-                  {childCompletionErrorMessage}
-                </div>
-              ) : null}
-
-              <ChildChoreList chores={visibleChores} completingChoreId={completingChoreId} onComplete={handleCompleteChildChore} />
-            </>
+            <ChildDashboardPage
+              childName={childName}
+              points={points}
+              level={level}
+              nextLevelPoints={nextLevelPoints}
+              completedChildChoreCount={completedChildChoreCount}
+              pendingChildChoreCount={pendingChildChoreCount}
+              childCompletionErrorMessage={childCompletionErrorMessage}
+              chores={visibleChores}
+              completingChoreId={completingChoreId}
+              onCompleteChore={handleCompleteChildChore}
+            />
           ) : (
             <div className="grid gap-6 xl:grid-cols-3">
               <div className="xl:col-span-1">
@@ -783,12 +773,14 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <BattlePassTrack
-            points={points}
-            currentLevel={level}
-            nextLevel={level + 1}
-            currentLevelTargetPoints={nextLevelPoints}
-          />
+          {!isChildView ? (
+            <BattlePassTrack
+              points={points}
+              currentLevel={level}
+              nextLevel={level + 1}
+              currentLevelTargetPoints={nextLevelPoints}
+            />
+          ) : null}
         </div>
       </div>
 
