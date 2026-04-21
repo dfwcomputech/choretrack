@@ -24,7 +24,7 @@ public class ChoreService {
 
 	public List<ChoreResponse> listActiveChores(final String authenticatedUsername) {
 		final UserAccount authenticatedUser = resolveAuthenticatedUser(authenticatedUsername,
-				"only parent or child users can view chores");
+				"Only parent or child users can view chores");
 		if (authenticatedUser.role() == AccountRole.PARENT) {
 			return choreRepository.findByParentId(authenticatedUser.id())
 					.stream()
@@ -40,7 +40,7 @@ public class ChoreService {
 					.map(chore -> toResponse(chore, authenticatedUser))
 					.toList();
 		}
-		throw new ForbiddenOperationException("only parent or child users can view chores");
+		throw new IllegalStateException("Unexpected account role for chore listing: " + authenticatedUser.role());
 	}
 
 	public synchronized ChoreResponse createChore(final ChoreCreateRequest request, final String authenticatedUsername) {
