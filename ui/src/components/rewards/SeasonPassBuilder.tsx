@@ -36,8 +36,8 @@ export default function SeasonPassBuilder({ rewards, seasonPassEntries, onChange
 
   const addLevel = () => {
     if (rewards.length === 0) return
-    const fallbackRewardId = rewards[0].id
-    onChange([...seasonPassEntries, { level: seasonPassEntries.length + 1, rewardId: fallbackRewardId }])
+    const defaultRewardId = rewards[0].id
+    onChange([...seasonPassEntries, { level: seasonPassEntries.length + 1, rewardId: defaultRewardId }])
   }
 
   return (

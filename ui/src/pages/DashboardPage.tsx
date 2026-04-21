@@ -517,7 +517,9 @@ export default function DashboardPage() {
   const handleCreateReward = async (payload: CreateRewardPayload) => {
     if (isUsingLocalRewards) {
       const localRewardId =
-        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? `local-reward-${crypto.randomUUID()}` : `local-reward-${Date.now()}`
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? `local-reward-${crypto.randomUUID()}`
+          : `local-reward-${Date.now()}-${Math.round(Math.random() * 1_000_000)}`
       setRewards((prev) => [
         {
           id: localRewardId,

@@ -122,7 +122,8 @@ export default function ParentDashboardPage({
       const currentLevel = Math.max(1, Math.floor(completedPoints / LEVEL_SIZE) + 1)
       const progressToNextLevel = ((completedPoints % LEVEL_SIZE) / LEVEL_SIZE) * 100
       const nextSeasonReward =
-        normalizedSeasonPassEntries.find((entry) => entry.level >= currentLevel && rewardById[entry.rewardId]) ?? normalizedSeasonPassEntries.at(-1)
+        normalizedSeasonPassEntries.find((entry) => entry.level >= currentLevel && rewardById[entry.rewardId]) ??
+        (normalizedSeasonPassEntries.length > 0 ? normalizedSeasonPassEntries[normalizedSeasonPassEntries.length - 1] : null)
       const nextRewardName = nextSeasonReward ? rewardById[nextSeasonReward.rewardId]?.name ?? 'Season reward' : 'No season reward assigned'
 
       return {
