@@ -44,6 +44,20 @@ export default function ChildChoreSection({ chores, completingChoreId, onComplet
     </li>
   )
 
+  const pendingContent =
+    pendingChores.length === 0 ? (
+      <li className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-600">No pending chores. Nice work!</li>
+    ) : (
+      pendingChores.map((chore) => renderChore(chore, false))
+    )
+
+  const completedContent =
+    completedChores.length === 0 ? (
+      <li className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-600">Complete chores to build your streak!</li>
+    ) : (
+      completedChores.map((chore) => renderChore(chore, true))
+    )
+
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="text-2xl font-bold text-slate-900">Chore Missions</h2>
@@ -52,16 +66,12 @@ export default function ChildChoreSection({ chores, completingChoreId, onComplet
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
         <div>
           <h3 className="text-sm font-bold uppercase tracking-wide text-primary-700">Pending ({pendingChores.length})</h3>
-          <ul className="mt-3 space-y-3">
-            {pendingChores.length === 0 ? <li className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-600">No pending chores. Nice work!</li> : pendingChores.map((chore) => renderChore(chore, false))}
-          </ul>
+          <ul className="mt-3 space-y-3">{pendingContent}</ul>
         </div>
 
         <div>
           <h3 className="text-sm font-bold uppercase tracking-wide text-emerald-700">Completed ({completedChores.length})</h3>
-          <ul className="mt-3 space-y-3">
-            {completedChores.length === 0 ? <li className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-600">Complete chores to build your streak!</li> : completedChores.map((chore) => renderChore(chore, true))}
-          </ul>
+          <ul className="mt-3 space-y-3">{completedContent}</ul>
         </div>
       </div>
     </section>

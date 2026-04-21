@@ -41,7 +41,7 @@ export default function ChildChoreCalendar({ chores }: ChildChoreCalendarProps) 
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="text-2xl font-bold text-slate-900">{monthName} Calendar</h2>
-      <p className="mt-1 text-sm text-slate-600">See what is due each day this month.</p>
+      <p className="mt-1 text-sm text-slate-600">See what's due each day this month.</p>
 
       <div className="mt-4 grid grid-cols-7 gap-2">
         {weekdayLabels.map((label) => (
@@ -60,8 +60,10 @@ export default function ChildChoreCalendar({ chores }: ChildChoreCalendarProps) 
               <ul className="mt-1 space-y-1">
                 {dayChores.slice(0, 3).map((chore) => {
                   const completed = chore.status === 'COMPLETED' || chore.completed
+                  const statusPrefix = completed ? '✅ ' : '⏳ '
                   return (
                     <li key={chore.id} className={`truncate rounded px-2 py-1 text-[11px] font-semibold ${completed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`} title={`${chore.title} (${completed ? 'Completed' : 'Pending'})`}>
+                      {statusPrefix}
                       {chore.title}
                     </li>
                   )

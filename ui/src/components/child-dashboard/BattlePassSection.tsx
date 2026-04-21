@@ -41,9 +41,20 @@ export default function BattlePassSection({ points, currentLevel, nextLevelPoint
       </div>
 
       <div className="mt-6">
-        <div className="relative h-5 overflow-hidden rounded-full bg-white/20">
+        <div
+          className="relative h-5 overflow-hidden rounded-full bg-white/20"
+          role="progressbar"
+          aria-label="Battle Pass progress"
+          aria-valuemin={0}
+          aria-valuemax={nextLevelPoints}
+          aria-valuenow={Math.min(Math.max(points, 0), nextLevelPoints)}
+        >
           <div className="h-full rounded-full bg-gradient-to-r from-amber-300 via-yellow-300 to-lime-300" style={{ width: `${progressPercent}%` }} />
-          <div className="absolute top-1/2 h-7 w-7 -translate-y-1/2 -translate-x-1/2 rounded-full border-4 border-white bg-amber-300 shadow-md" style={{ left: `${progressPercent}%` }} />
+          <div
+            className="absolute top-1/2 h-7 w-7 -translate-y-1/2 -translate-x-1/2 rounded-full border-4 border-white bg-amber-300 shadow-md"
+            style={{ left: `${progressPercent}%` }}
+            aria-hidden="true"
+          />
         </div>
         <p className="mt-2 text-sm font-medium text-primary-100">{Math.max(nextLevelPoints - points, 0)} points until the next level up!</p>
       </div>
