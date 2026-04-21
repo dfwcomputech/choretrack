@@ -100,7 +100,7 @@ export const listChores = async (token: string): Promise<ChoreResponse[]> => {
   }
 
   if (response.status === 403) {
-    throw new ChoreServiceError('Only parent users can manage chores.', response.status)
+    throw new ChoreServiceError('You are not authorized to view these chores.', response.status)
   }
 
   if (response.status >= 500) {

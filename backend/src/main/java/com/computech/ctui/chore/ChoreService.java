@@ -23,12 +23,24 @@ public class ChoreService {
 	}
 
 	public List<ChoreResponse> listActiveChores(final String authenticatedUsername) {
-		final UserAccount parent = resolveParent(authenticatedUsername, "only parent users can manage chores");
-		return choreRepository.findByParentId(parent.id())
-				.stream()
-				.filter(Chore::active)
-				.map(chore -> toResponse(chore, resolveOwnedChild(chore.assignedChildId(), parent.id())))
-				.toList();
+		final UserAccount authenticatedUser = resolveAuthenticatedUser(authenticatedUsername,
+				"only parent or child users can view chores");
+		if (authenticatedUser.role() == AccountRole.PARENT) {
+			return choreRepository.findByParentId(authenticatedUser.id())
+					.stream()
+					.filter(Chore::active)
+					.map(chore -> toResponse(chore, resolveOwnedChild(chore.assignedChildId(), authenticatedUser.id())))
+					.toList();
+		}
+		if (authenticatedUser.role() == AccountRole.CHILD) {
+			return choreRepository.findByParentId(authenticatedUser.parentId())
+					.stream()
+					.filter(Chore::active)
+					.filter(chore -> authenticatedUser.id().equals(chore.assignedChildId()))
+					.map(chore -> toResponse(chore, authenticatedUser))
+					.toList();
+		}
+		throw new ForbiddenOperationException("only parent or child users can view chores");
 	}
 
 	public synchronized ChoreResponse createChore(final ChoreCreateRequest request, final String authenticatedUsername) {

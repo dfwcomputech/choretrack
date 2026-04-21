@@ -109,6 +109,44 @@ class ChoreServiceUnitTests {
 	}
 
 	@Test
+	void childSeesOnlyOwnAssignedActiveChores() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse childA = createParentAndChild("angie", "preston1", userRepository);
+		final ChildAccountResponse childB = createChildForParent("angie", "rylan1", userRepository);
+
+		final ChoreResponse activeForChildA = choreService.createChore(new ChoreCreateRequest(
+				"Clean room",
+				null,
+				25,
+				childA.id(),
+				null,
+				ChoreStatus.PENDING), "angie");
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Take out trash",
+				null,
+				10,
+				childB.id(),
+				null,
+				ChoreStatus.PENDING), "angie");
+
+		final ChoreResponse deletedForChildA = choreService.createChore(new ChoreCreateRequest(
+				"Old chore",
+				null,
+				5,
+				childA.id(),
+				null,
+				ChoreStatus.PENDING), "angie");
+		choreService.deleteChore(deletedForChildA.id(), "angie");
+
+		final List<ChoreResponse> childVisibleChores = choreService.listActiveChores(childA.username());
+
+		assertThat(childVisibleChores).extracting(ChoreResponse::id).containsExactly(activeForChildA.id());
+		assertThat(childVisibleChores).extracting(ChoreResponse::assignedChildId).containsOnly(childA.id());
+	}
+
+	@Test
 	void returnsNotFoundForMissingChore() {
 		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
 		final ChoreService choreService = createService(userRepository);
