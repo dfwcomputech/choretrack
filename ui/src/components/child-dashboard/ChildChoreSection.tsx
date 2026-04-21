@@ -3,7 +3,9 @@ import type { ChoreItem } from '../dashboard/types'
 interface ChildChoreSectionProps {
   chores: ChoreItem[]
   completingChoreId: string | null
+  revertingChoreId: string | null
   onComplete: (choreId: string) => void
+  onRevert: (choreId: string) => void
 }
 
 const formatDueDate = (dueDate: string | null) => {
@@ -15,7 +17,7 @@ const formatDueDate = (dueDate: string | null) => {
   return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(parsedDate)
 }
 
-export default function ChildChoreSection({ chores, completingChoreId, onComplete }: ChildChoreSectionProps) {
+export default function ChildChoreSection({ chores, completingChoreId, revertingChoreId, onComplete, onRevert }: ChildChoreSectionProps) {
   const pendingChores = chores.filter((chore) => chore.status !== 'COMPLETED' && !chore.completed)
   const completedChores = chores.filter((chore) => chore.status === 'COMPLETED' || chore.completed)
 
@@ -38,7 +40,16 @@ export default function ChildChoreSection({ chores, completingChoreId, onComplet
             >
               {completingChoreId === chore.id ? 'Completing...' : 'Complete'}
             </button>
-          ) : null}
+          ) : (
+            <button
+              type="button"
+              onClick={() => onRevert(chore.id)}
+              disabled={revertingChoreId === chore.id}
+              className="mt-2 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-400"
+            >
+              {revertingChoreId === chore.id ? 'Moving...' : 'Move to Pending'}
+            </button>
+          )}
         </div>
       </div>
     </li>

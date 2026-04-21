@@ -176,6 +176,64 @@ public class ChoreService {
 				completedChore.completedAt());
 	}
 
+	public synchronized ChoreCompletionResponse revertChore(final String choreId, final String authenticatedUsername) {
+		final UserAccount child = resolveChild(authenticatedUsername, "only child users can revert chores");
+		final Chore chore = choreRepository.findById(choreId)
+				.filter(Chore::active)
+				.orElseThrow(() -> new ChoreNotFoundException("chore not found"));
+
+		if (!child.id().equals(chore.assignedChildId())) {
+			throw new ForbiddenOperationException("child cannot revert this chore");
+		}
+		if (chore.status() == ChoreStatus.PENDING) {
+			throw new ChoreAlreadyPendingException("chore is already pending");
+		}
+
+		final Instant now = Instant.now();
+		choreRepository.save(new Chore(
+				chore.id(),
+				chore.title(),
+				chore.description(),
+				chore.points(),
+				chore.assignedChildId(),
+				chore.dueDate(),
+				ChoreStatus.PENDING,
+				chore.parentId(),
+				chore.createdAt(),
+				now,
+				chore.active(),
+				chore.deletedAt(),
+				null,
+				null));
+
+		final int updatedCurrentPoints = Math.max(0, child.currentPoints() - chore.points());
+		final int updatedTotalEarnedPoints = Math.max(0, child.totalEarnedPoints() - chore.points());
+		final UserAccount updatedChild = userAccountRepository.save(new UserAccount(
+				child.id(),
+				child.username(),
+				child.email(),
+				child.passwordHash(),
+				child.firstName(),
+				child.lastName(),
+				child.displayName(),
+				child.role(),
+				child.parentId(),
+				child.createdAt(),
+				child.active(),
+				updatedCurrentPoints,
+				updatedTotalEarnedPoints,
+				now,
+				child.deletedAt()));
+
+		return new ChoreCompletionResponse(
+				chore.id(),
+				ChoreStatus.PENDING,
+				child.id(),
+				-chore.points(),
+				updatedChild.currentPoints(),
+				null);
+	}
+
 	public ChildProgressResponse getChildProgress(final String childId, final String authenticatedUsername) {
 		final UserAccount authenticatedUser = resolveAuthenticatedUser(authenticatedUsername);
 		final UserAccount child = resolveChildById(childId);

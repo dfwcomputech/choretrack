@@ -30,7 +30,7 @@ export interface ChoreCompletionResponse {
   completedByChildId: string
   pointsAwarded: number
   childCurrentPoints: number
-  completedAt: string
+  completedAt: string | null
 }
 
 interface ValidationErrorBody {
@@ -241,4 +241,31 @@ export const completeChore = async (choreId: string, token: string): Promise<Cho
     409: 'This chore has already been completed.',
   })
   throw new ChoreServiceError('Unable to complete chore. Please try again.', response.status)
+}
+
+export const revertChoreToPending = async (choreId: string, token: string): Promise<ChoreCompletionResponse> => {
+  requireToken(token)
+  let response: Response
+  try {
+    response = await fetch(`/api/chores/${encodeURIComponent(choreId)}/revert`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  } catch {
+    throw new ChoreServiceError('Unable to move chore back to pending. Please check your connection and try again.', 0)
+  }
+
+  if (response.ok) {
+    return (await response.json()) as ChoreCompletionResponse
+  }
+
+  await handleMutationError(response, 'Unable to move chore back to pending. Please try again.', {
+    401: 'Your session has expired. Please log in again.',
+    403: 'You are not authorized to revert this chore.',
+    404: 'This chore no longer exists.',
+    409: 'This chore is already pending.',
+  })
+  throw new ChoreServiceError('Unable to move chore back to pending. Please try again.', response.status)
 }

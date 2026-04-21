@@ -27,6 +27,7 @@ import com.computech.ctui.auth.ForbiddenOperationException;
 import com.computech.ctui.chore.ChoreChildNotFoundException;
 import com.computech.ctui.chore.ChoreCompletionResponse;
 import com.computech.ctui.chore.ChoreAlreadyCompletedException;
+import com.computech.ctui.chore.ChoreAlreadyPendingException;
 import com.computech.ctui.chore.ChoreDeleteResponse;
 import com.computech.ctui.chore.ChoreNotFoundException;
 import com.computech.ctui.chore.ChoreResponse;
@@ -266,6 +267,43 @@ class ChoreApiControllerWebMvcUnitTests {
 	@Test
 	void completeChoreReturnsUnauthorizedWhenAuthenticationMissing() throws Exception {
 		mockMvc.perform(post("/api/chores/chore-123/complete"))
+				.andExpect(status().isUnauthorized());
+
+		verifyNoInteractions(choreService);
+	}
+
+	@Test
+	void revertChoreReturnsOkForAssignedChild() throws Exception {
+		when(choreService.revertChore("chore-123", "preston1")).thenReturn(new ChoreCompletionResponse(
+				"chore-123",
+				ChoreStatus.PENDING,
+				"child-123",
+				-25,
+				115,
+				null));
+
+		mockMvc.perform(post("/api/chores/chore-123/revert")
+				.principal(new UsernamePasswordAuthenticationToken("preston1", "n/a", List.of())))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("PENDING"))
+				.andExpect(jsonPath("$.pointsAwarded").value(-25))
+				.andExpect(jsonPath("$.childCurrentPoints").value(115));
+	}
+
+	@Test
+	void revertChoreReturnsConflictWhenAlreadyPending() throws Exception {
+		when(choreService.revertChore("chore-123", "preston1"))
+				.thenThrow(new ChoreAlreadyPendingException("chore is already pending"));
+
+		mockMvc.perform(post("/api/chores/chore-123/revert")
+				.principal(new UsernamePasswordAuthenticationToken("preston1", "n/a", List.of())))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.message").value("chore is already pending"));
+	}
+
+	@Test
+	void revertChoreReturnsUnauthorizedWhenAuthenticationMissing() throws Exception {
+		mockMvc.perform(post("/api/chores/chore-123/revert"))
 				.andExpect(status().isUnauthorized());
 
 		verifyNoInteractions(choreService);

@@ -77,4 +77,13 @@ public class ChoreApiController {
 		}
 		return ResponseEntity.ok(choreService.completeChore(choreId, authentication.getName()));
 	}
+
+	@PostMapping("/{choreId}/revert")
+	public ResponseEntity<ChoreCompletionResponse> revertChore(@PathVariable final String choreId,
+			final Authentication authentication) {
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		return ResponseEntity.ok(choreService.revertChore(choreId, authentication.getName()));
+	}
 }
