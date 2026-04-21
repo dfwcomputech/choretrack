@@ -29,6 +29,7 @@ import {
   createChore,
   deleteChore,
   completeChore,
+  revertChoreToPending,
   listChores,
   updateChore,
   type ChoreResponse,
@@ -198,6 +199,7 @@ export default function DashboardPage() {
   const [isChildView, setIsChildView] = useState(false)
   const [childCurrentPoints, setChildCurrentPoints] = useState<number | null>(null)
   const [completingChoreId, setCompletingChoreId] = useState<string | null>(null)
+  const [revertingChoreId, setRevertingChoreId] = useState<string | null>(null)
   const [childCompletionErrorMessage, setChildCompletionErrorMessage] = useState('')
   const [childCompletionSuccessMessage, setChildCompletionSuccessMessage] = useState('')
   const [isRedirectingForUnauthorized, setIsRedirectingForUnauthorized] = useState(false)
@@ -355,7 +357,7 @@ export default function DashboardPage() {
   }
 
   const handleCompleteChildChore = async (choreId: string) => {
-    if (completingChoreId) return
+    if (completingChoreId || revertingChoreId) return
     setChildCompletionErrorMessage('')
     setChildCompletionSuccessMessage('')
     setCompletingChoreId(choreId)
@@ -383,6 +385,39 @@ export default function DashboardPage() {
       }
     } finally {
       setCompletingChoreId(null)
+    }
+  }
+
+  const handleRevertChildChore = async (choreId: string) => {
+    if (completingChoreId || revertingChoreId) return
+    setChildCompletionErrorMessage('')
+    setChildCompletionSuccessMessage('')
+    setRevertingChoreId(choreId)
+    try {
+      const reverted = await revertChoreToPending(choreId, token)
+      setChores((prev) =>
+        prev.map((chore) =>
+          chore.id === choreId
+            ? {
+                ...chore,
+                status: reverted.status,
+                completed: reverted.status === 'COMPLETED',
+              }
+            : chore,
+        ),
+      )
+      setChildCurrentPoints(reverted.childCurrentPoints)
+      const pointsRemoved = Math.abs(reverted.pointsAwarded)
+      setChildCompletionSuccessMessage(`Moved back to pending.${pointsRemoved > 0 ? ` ${pointsRemoved} points removed.` : ''}`)
+    } catch (error) {
+      if (error instanceof ChoreServiceError) {
+        setChildCompletionErrorMessage(error.message)
+      } else {
+        console.error('Failed to revert chore', error)
+        setChildCompletionErrorMessage('Unable to move chore back to pending. Please try again.')
+      }
+    } finally {
+      setRevertingChoreId(null)
     }
   }
 
@@ -820,7 +855,9 @@ export default function DashboardPage() {
               childCompletionErrorMessage={childCompletionErrorMessage}
               chores={visibleChores}
               completingChoreId={completingChoreId}
+              revertingChoreId={revertingChoreId}
               onCompleteChore={handleCompleteChildChore}
+              onRevertChore={handleRevertChildChore}
             />
           </div>
         </div>

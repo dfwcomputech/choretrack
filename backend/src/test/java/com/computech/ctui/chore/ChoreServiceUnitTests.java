@@ -233,6 +233,53 @@ class ChoreServiceUnitTests {
 	}
 
 	@Test
+	void revertsCompletedChoreBackToPendingAndRemovesPoints() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		final ChoreResponse created = choreService.createChore(new ChoreCreateRequest(
+				"Clean room",
+				"Pick up clothes",
+				25,
+				child.id(),
+				null,
+				ChoreStatus.PENDING), "angie");
+		choreService.completeChore(created.id(), "preston1");
+
+		final ChoreCompletionResponse reverted = choreService.revertChore(created.id(), "preston1");
+		assertThat(reverted.status()).isEqualTo(ChoreStatus.PENDING);
+		assertThat(reverted.pointsAwarded()).isEqualTo(-25);
+		assertThat(reverted.childCurrentPoints()).isEqualTo(0);
+		assertThat(reverted.completedAt()).isNull();
+
+		final ChildProgressResponse progress = choreService.getChildProgress(child.id(), "preston1");
+		assertThat(progress.currentPoints()).isEqualTo(0);
+		assertThat(progress.totalEarnedPoints()).isEqualTo(0);
+		assertThat(progress.completedChores()).isEqualTo(0);
+		assertThat(progress.pendingChores()).isEqualTo(1);
+	}
+
+	@Test
+	void rejectsRevertWhenChoreAlreadyPending() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		final ChoreResponse created = choreService.createChore(new ChoreCreateRequest(
+				"Clean room",
+				null,
+				25,
+				child.id(),
+				null,
+				ChoreStatus.PENDING), "angie");
+
+		assertThatThrownBy(() -> choreService.revertChore(created.id(), "preston1"))
+				.isInstanceOf(ChoreAlreadyPendingException.class)
+				.hasMessage("chore is already pending");
+	}
+
+	@Test
 	void parentCanViewChildProgressButOtherChildCannot() {
 		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
 		final ChoreService choreService = createService(userRepository);

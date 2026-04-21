@@ -60,6 +60,16 @@ const parseStoredSeasonPass = (): SeasonPassEntry[] => {
   }
 }
 
+interface StoredSeasonPassMilestone {
+  id: string
+  level: number
+  rewardId: string
+  title: string
+  description: string
+  icon: string
+  pointsRequired: number
+}
+
 export default function ParentDashboardPage({
   parentName,
   points,
@@ -139,7 +149,22 @@ export default function ParentDashboardPage({
   }, [chores, kids, normalizedSeasonPassEntries, rewardById])
 
   const handleSaveSeasonPass = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedSeasonPassEntries))
+    const storedSeasonPass: StoredSeasonPassMilestone[] = normalizedSeasonPassEntries
+      .map((entry) => {
+        const reward = rewardById[entry.rewardId]
+        if (!reward) return null
+        return {
+          id: reward.id,
+          level: entry.level,
+          rewardId: reward.id,
+          title: reward.name,
+          description: reward.description || 'Season Pass reward',
+          icon: reward.icon,
+          pointsRequired: reward.pointsCost,
+        }
+      })
+      .filter((entry): entry is StoredSeasonPassMilestone => Boolean(entry))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(storedSeasonPass))
     setSeasonPassMessage('Season Pass saved successfully.')
   }
 

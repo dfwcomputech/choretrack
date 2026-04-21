@@ -1,4 +1,5 @@
-import BattlePassSection from '../components/child-dashboard/BattlePassSection'
+import { useMemo } from 'react'
+import BattlePassSection, { type RewardMilestone } from '../components/child-dashboard/BattlePassSection'
 import ChildChoreCalendar from '../components/child-dashboard/ChildChoreCalendar'
 import ChildChoreSection from '../components/child-dashboard/ChildChoreSection'
 import type { ChoreItem } from '../components/dashboard/types'
@@ -13,15 +14,42 @@ interface ChildDashboardPageProps {
   childCompletionErrorMessage: string
   chores: ChoreItem[]
   completingChoreId: string | null
+  revertingChoreId: string | null
   onCompleteChore: (choreId: string) => void
+  onRevertChore: (choreId: string) => void
 }
 
-const childRewardMilestones = [
-  { id: 'sticker-pack', title: 'Sticker Pack', description: 'Decorate your chore board with shiny stickers.', icon: '✨', pointsRequired: 30 },
-  { id: 'movie-night', title: 'Movie Night Pick', description: 'Choose the family movie this week.', icon: '🍿', pointsRequired: 60 },
-  { id: 'dessert-choice', title: 'Dessert Choice', description: 'Pick your favorite dessert for tonight.', icon: '🍨', pointsRequired: 90 },
-  { id: 'extra-playtime', title: 'Extra Playtime', description: 'Get 30 bonus minutes for your favorite game.', icon: '🎮', pointsRequired: 120 },
-]
+const STORAGE_KEY = 'choretrack.parent.season-pass'
+
+const parseSeasonPassMilestones = (): RewardMilestone[] => {
+  const raw = localStorage.getItem(STORAGE_KEY)
+  if (!raw) return []
+
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) return []
+    return parsed
+      .map((entry) => {
+        const record = entry as Partial<RewardMilestone>
+        if (typeof record.id !== 'string' || !record.id.trim()) return null
+        if (typeof record.title !== 'string' || !record.title.trim()) return null
+        if (typeof record.description !== 'string') return null
+        if (typeof record.icon !== 'string' || !record.icon.trim()) return null
+        if (typeof record.pointsRequired !== 'number' || !Number.isFinite(record.pointsRequired)) return null
+        return {
+          id: record.id,
+          title: record.title,
+          description: record.description,
+          icon: record.icon,
+          pointsRequired: record.pointsRequired,
+        }
+      })
+      .filter((entry): entry is RewardMilestone => Boolean(entry))
+      .sort((a, b) => a.pointsRequired - b.pointsRequired)
+  } catch {
+    return []
+  }
+}
 
 export default function ChildDashboardPage({
   childName,
@@ -33,8 +61,12 @@ export default function ChildDashboardPage({
   childCompletionErrorMessage,
   chores,
   completingChoreId,
+  revertingChoreId,
   onCompleteChore,
+  onRevertChore,
 }: ChildDashboardPageProps) {
+  const childRewardMilestones = useMemo(() => parseSeasonPassMilestones(), [])
+
   return (
     <>
       <section className="rounded-3xl border border-primary-200 bg-white p-6 shadow-sm">
@@ -70,7 +102,13 @@ export default function ChildDashboardPage({
       ) : null}
 
       <div className="grid gap-6 2xl:grid-cols-[1.2fr_1fr]">
-        <ChildChoreSection chores={chores} completingChoreId={completingChoreId} onComplete={onCompleteChore} />
+        <ChildChoreSection
+          chores={chores}
+          completingChoreId={completingChoreId}
+          revertingChoreId={revertingChoreId}
+          onComplete={onCompleteChore}
+          onRevert={onRevertChore}
+        />
         <ChildChoreCalendar chores={chores} />
       </div>
     </>

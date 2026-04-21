@@ -1,4 +1,4 @@
-interface RewardMilestone {
+export interface RewardMilestone {
   id: string
   title: string
   description: string
@@ -19,6 +19,19 @@ const toPercent = (points: number, nextLevelPoints: number) => {
 }
 
 export default function BattlePassSection({ points, currentLevel, nextLevelPoints, milestones }: BattlePassSectionProps) {
+  if (milestones.length === 0) {
+    return (
+      <section className="overflow-hidden rounded-3xl border border-primary-200 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 p-6 text-white shadow-lg lg:p-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-100">Battle Pass</p>
+        <h2 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Level {currentLevel}</h2>
+        <p className="mt-2 text-primary-100">{points} points earned</p>
+        <div className="mt-6 rounded-2xl border border-dashed border-white/40 bg-white/10 px-4 py-6 text-sm text-primary-100">
+          Your parent has not created a Season Pass yet.
+        </div>
+      </section>
+    )
+  }
+
   const progressPercent = toPercent(points, nextLevelPoints)
   const sortedMilestones = [...milestones].sort((a, b) => a.pointsRequired - b.pointsRequired)
   const nextMilestone = sortedMilestones.find((milestone) => points < milestone.pointsRequired) ?? null
