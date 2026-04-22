@@ -55,6 +55,7 @@ interface DashboardState {
 
 const fallbackParentName = 'Parent'
 const fallbackChildName = 'Kid'
+const BASE64_PADDING_MULTIPLE = 4
 const defaultRewards: RewardItem[] = [
   {
     id: 'local-reward-icecream',
@@ -147,7 +148,10 @@ const getTokenSubject = (token: string): string => {
 
   try {
     const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/')
-    const paddedPayload = normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, '=')
+    const paddedPayload = normalizedPayload.padEnd(
+      Math.ceil(normalizedPayload.length / BASE64_PADDING_MULTIPLE) * BASE64_PADDING_MULTIPLE,
+      '=',
+    )
     const decodedPayload = JSON.parse(atob(paddedPayload)) as { sub?: unknown }
     return typeof decodedPayload.sub === 'string' ? decodedPayload.sub.trim() : ''
   } catch {
