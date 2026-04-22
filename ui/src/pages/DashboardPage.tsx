@@ -147,7 +147,9 @@ const toRewardItem = (reward: RewardResponse): RewardItem => ({
 const getTokenSubject = (token: string): string => {
   if (!token.trim()) return ''
 
-  const [, payload] = token.split('.')
+  const tokenParts = token.split('.')
+  if (tokenParts.length !== 3) return ''
+  const [, payload] = tokenParts
   if (!payload) return ''
 
   try {
