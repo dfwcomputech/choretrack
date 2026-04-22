@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AuthServiceError } from '../../services/authService'
 import { useAuth } from '../../context/useAuth'
 
@@ -11,6 +12,7 @@ interface LoginFormProps {
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function LoginForm({ onSuccess, initialIdentifier = '' }: LoginFormProps) {
+  const { t } = useTranslation()
   const { login } = useAuth()
   const [identifier, setIdentifier] = useState(initialIdentifier)
   const [password, setPassword] = useState('')
@@ -25,13 +27,13 @@ export default function LoginForm({ onSuccess, initialIdentifier = '' }: LoginFo
     const trimmedIdentifier = identifier.trim()
 
     if (!trimmedIdentifier) {
-      errors.identifier = 'Username or email is required.'
+      errors.identifier = t('auth.validation.usernameOrEmailRequired')
     } else if (trimmedIdentifier.includes('@') && !emailPattern.test(trimmedIdentifier)) {
-      errors.identifier = 'Enter a valid email address.'
+      errors.identifier = t('auth.validation.validEmail')
     }
 
     if (!password.trim()) {
-      errors.password = 'Password is required.'
+      errors.password = t('auth.validation.passwordRequired')
     }
 
     return errors
@@ -56,7 +58,7 @@ export default function LoginForm({ onSuccess, initialIdentifier = '' }: LoginFo
       if (error instanceof AuthServiceError) {
         setSubmitError(error.message)
       } else {
-        setSubmitError('Unable to login right now. Please try again.')
+        setSubmitError(t('auth.validation.loginFailed'))
       }
     } finally {
       setIsSubmitting(false)
@@ -68,12 +70,12 @@ export default function LoginForm({ onSuccess, initialIdentifier = '' }: LoginFo
 
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow-xl rounded-2xl p-6 sm:p-8 w-full space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">Log in to ChoreTrack</h1>
-      <p className="text-sm text-gray-600">Welcome back! Enter your account details to continue.</p>
+      <h1 className="text-2xl font-bold text-gray-900">{t('auth.loginTitle')}</h1>
+      <p className="text-sm text-gray-600">{t('auth.loginSubtitle')}</p>
 
       <div>
         <label htmlFor="identifier" className="block mb-1.5 text-sm font-medium text-gray-700">
-          Username or email
+          {t('auth.usernameOrEmail')}
         </label>
         <input
           id="identifier"
@@ -108,7 +110,7 @@ export default function LoginForm({ onSuccess, initialIdentifier = '' }: LoginFo
 
       <div>
         <label htmlFor="password" className="block mb-1.5 text-sm font-medium text-gray-700">
-          Password
+          {t('auth.password')}
         </label>
         <input
           id="password"
@@ -152,9 +154,9 @@ export default function LoginForm({ onSuccess, initialIdentifier = '' }: LoginFo
         disabled={isSubmitting}
         className="w-full py-2.5 px-4 rounded-lg text-white font-semibold bg-primary-600 hover:bg-primary-700 disabled:bg-primary-300 transition-colors"
       >
-        {isSubmitting ? 'Logging in...' : 'Login'}
+        {isSubmitting ? t('auth.loggingIn') : t('auth.loginButton')}
       </button>
-      {hasErrors ? <p className="text-xs text-gray-500">Please fix the highlighted fields.</p> : null}
+      {hasErrors ? <p className="text-xs text-gray-500">{t('auth.validation.fixHighlighted')}</p> : null}
     </form>
   )
 }

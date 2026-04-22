@@ -1,4 +1,5 @@
 import type { ChoreItem, KidAccount } from './types'
+import { useTranslation } from 'react-i18next'
 
 interface ChoresSectionProps {
   chores: ChoreItem[]
@@ -9,10 +10,10 @@ interface ChoresSectionProps {
   onAddChore: () => void
 }
 
-const formatStatus = (status: ChoreItem['status']) => (status === 'COMPLETED' ? 'Completed' : 'Pending')
+const formatStatus = (status: ChoreItem['status'], t: (key: string) => string) => (status === 'COMPLETED' ? t('common.completed') : t('common.pending'))
 
-const formatDueDate = (dueDate: string | null) => {
-  if (!dueDate) return 'No due date'
+const formatDueDate = (dueDate: string | null, t: (key: string) => string) => {
+  if (!dueDate) return t('chores.noDueDate')
   const [year, month, day] = dueDate.split('-').map(Number)
   if (!year || !month || !day) return dueDate
   const parsedDate = new Date(Date.UTC(year, month - 1, day))
@@ -20,24 +21,25 @@ const formatDueDate = (dueDate: string | null) => {
 }
 
 export default function ChoresSection({ chores, kids, onToggleChore, onEditChore, onDeleteChore, onAddChore }: ChoresSectionProps) {
+  const { t } = useTranslation()
   const getKid = (id: string) => kids.find((kid) => kid.id === id)
 
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-slate-900">Chores</h2>
+        <h2 className="text-3xl font-bold text-slate-900">{t('dashboard.nav.chores')}</h2>
         <button
           type="button"
           onClick={onAddChore}
           className="rounded-xl bg-primary-100 px-4 py-2 text-lg font-semibold text-primary-700 hover:bg-primary-200"
         >
-          + Add Chore
+          + {t('chores.addChore')}
         </button>
       </div>
       <ul className="space-y-3">
         {chores.length === 0 ? (
           <li className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-slate-600">
-            No chores created yet.
+            {t('chores.empty')}
           </li>
         ) : null}
         {chores.map((chore) => {
@@ -54,22 +56,22 @@ export default function ChoresSection({ chores, kids, onToggleChore, onEditChore
                   <span className="text-3xl">{kid?.avatar ?? '🧒'}</span>
                   <div>
                     <p className="text-xl font-semibold text-slate-900">{chore.title}</p>
-                    <p className="text-base text-slate-600">{kid?.name ?? chore.assignedChildName ?? 'Unassigned'}</p>
-                    <p className="text-xs text-slate-500">Due: {formatDueDate(chore.dueDate)}</p>
-                    <p className="text-xs text-slate-500">Status: {formatStatus(chore.status)}</p>
+                     <p className="text-base text-slate-600">{kid?.name ?? chore.assignedChildName ?? t('chores.unassigned')}</p>
+                     <p className="text-xs text-slate-500">{t('chores.due')}: {formatDueDate(chore.dueDate, t)}</p>
+                     <p className="text-xs text-slate-500">{t('chores.status')}: {formatStatus(chore.status, t)}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-xl font-semibold text-emerald-700">+{chore.points}</p>
                   <div className="mt-1 flex flex-wrap justify-end gap-2 text-sm font-medium">
                     <button type="button" onClick={() => onToggleChore(chore.id)} className="text-primary-700 hover:underline">
-                      {chore.completed ? 'Mark pending' : 'Mark complete'}
+                      {chore.completed ? t('chores.markPending') : t('chores.markComplete')}
                     </button>
                     <button type="button" onClick={() => onEditChore(chore)} className="text-blue-700 hover:underline">
-                      Edit
+                      {t('common.edit')}
                     </button>
                     <button type="button" onClick={() => onDeleteChore(chore)} className="text-red-700 hover:underline">
-                      Delete
+                      {t('common.delete')}
                     </button>
                   </div>
                 </div>

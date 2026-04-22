@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { Menu, X, CheckSquare } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import LanguageSwitcher from './layout/LanguageSwitcher'
 
 export default function Navbar() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
@@ -22,10 +23,6 @@ export default function Navbar() {
     { key: 'nav.pricing', href: '#pricing' },
     { key: 'nav.faq', href: '#faq' },
   ]
-
-  const toggleLanguage = () => {
-    i18n.changeLanguage(i18n.language === 'en' ? 'es' : 'en')
-  }
 
   return (
     <header
@@ -57,12 +54,7 @@ export default function Navbar() {
           {/* Desktop actions */}
           <div className="hidden md:flex items-center gap-3">
             {/* Language toggle */}
-            <button
-              onClick={toggleLanguage}
-              className="px-3 py-1.5 text-sm font-semibold text-gray-600 hover:text-primary-600 border border-gray-200 rounded-lg hover:border-primary-300 transition-colors"
-            >
-              {i18n.language === 'en' ? 'ES' : 'EN'}
-            </button>
+            <LanguageSwitcher className="px-3 py-1.5 text-sm font-semibold text-gray-600 hover:text-primary-600 border border-gray-200 rounded-lg hover:border-primary-300 transition-colors" />
             <Link
               to="/login"
               className="px-4 py-2 text-sm font-semibold text-gray-700 hover:text-primary-600 transition-colors"
@@ -79,12 +71,7 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center gap-2">
-            <button
-              onClick={toggleLanguage}
-              className="px-3 py-1.5 text-sm font-semibold text-gray-600 border border-gray-200 rounded-lg"
-            >
-              {i18n.language === 'en' ? 'ES' : 'EN'}
-            </button>
+            <LanguageSwitcher className="px-3 py-1.5 text-sm font-semibold text-gray-600 border border-gray-200 rounded-lg" />
             <button
               onClick={() => setIsMobileOpen(!isMobileOpen)}
               className="p-2 text-gray-600 hover:text-primary-600"

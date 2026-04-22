@@ -1,4 +1,5 @@
 import type { RewardItem } from '../dashboard/types'
+import { useTranslation } from 'react-i18next'
 
 interface RewardListProps {
   rewards: RewardItem[]
@@ -8,22 +9,23 @@ interface RewardListProps {
 }
 
 export default function RewardList({ rewards, onAddReward, onEditReward, onDeleteReward }: RewardListProps) {
+  const { t } = useTranslation()
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-2xl font-bold text-slate-900">Reward Management</h2>
+        <h2 className="text-2xl font-bold text-slate-900">{t('rewards.managementTitle')}</h2>
         <button
           type="button"
           onClick={onAddReward}
           className="rounded-xl bg-primary-100 px-4 py-2 text-sm font-semibold text-primary-700 hover:bg-primary-200"
         >
-          + Add Reward
+          + {t('rewards.addReward')}
         </button>
       </div>
 
       <ul className="space-y-3">
         {rewards.length === 0 ? (
-          <li className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-slate-600">No rewards configured yet.</li>
+          <li className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-slate-600">{t('rewards.empty')}</li>
         ) : null}
         {rewards.map((reward) => (
           <li key={reward.id} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -38,7 +40,7 @@ export default function RewardList({ rewards, onAddReward, onEditReward, onDelet
                   {reward.category ? <span className="mt-1 inline-block rounded-full bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-700">{reward.category}</span> : null}
                 </div>
               </div>
-              <p className="font-bold text-primary-700">{reward.pointsCost} pts</p>
+              <p className="font-bold text-primary-700">{reward.pointsCost} {t('common.pts')}</p>
             </div>
 
             <div className="mt-3 flex justify-end gap-2">
@@ -47,14 +49,14 @@ export default function RewardList({ rewards, onAddReward, onEditReward, onDelet
                 onClick={() => onEditReward(reward)}
                 className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
               >
-                Edit
+                {t('common.edit')}
               </button>
               <button
                 type="button"
                 onClick={() => onDeleteReward(reward)}
                 className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50"
               >
-                Delete
+                {t('common.delete')}
               </button>
             </div>
           </li>

@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import BattlePassSection, { type RewardMilestone } from '../components/child-dashboard/BattlePassSection'
 import ChildChoreCalendar from '../components/child-dashboard/ChildChoreCalendar'
 import ChildChoreSection from '../components/child-dashboard/ChildChoreSection'
@@ -64,12 +65,12 @@ const parseSeasonPassMilestones = (): RewardMilestone[] => {
 
         if (parsedRewards.length === 0 && typeof record.title === 'string' && record.title.trim()) {
           const rewardTitleSlug = record.title.trim().toLowerCase().replace(/\s+/g, '-')
-          parsedRewards.push({
-            id: typeof record.rewardId === 'string' && record.rewardId.trim() ? record.rewardId : `${record.id}-reward-${rewardTitleSlug}-${record.pointsRequired}`,
-            title: record.title,
-            description: typeof record.description === 'string' ? record.description : 'Season Pass reward',
-            icon: typeof record.icon === 'string' && record.icon.trim() ? record.icon : '🎁',
-          })
+            parsedRewards.push({
+              id: typeof record.rewardId === 'string' && record.rewardId.trim() ? record.rewardId : `${record.id}-reward-${rewardTitleSlug}-${record.pointsRequired}`,
+              title: record.title,
+              description: typeof record.description === 'string' ? record.description : '',
+              icon: typeof record.icon === 'string' && record.icon.trim() ? record.icon : '🎁',
+            })
         }
 
         if (parsedRewards.length === 0) return null
@@ -101,6 +102,7 @@ export default function ChildDashboardPage({
   onCompleteChore,
   onRevertChore,
 }: ChildDashboardPageProps) {
+  const { t } = useTranslation()
   const childRewardMilestones = useMemo(() => parseSeasonPassMilestones(), [])
 
   return (
@@ -108,21 +110,21 @@ export default function ChildDashboardPage({
       <section className="rounded-3xl border border-primary-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">Kid dashboard</p>
-            <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">Hi {childName}! 🚀</h2>
-            <p className="mt-2 text-slate-600">Complete chores, earn points, and unlock awesome rewards.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">{t('childDashboard.title')}</p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">{t('childDashboard.greeting', { name: childName })} 🚀</h2>
+            <p className="mt-2 text-slate-600">{t('childDashboard.subtitle')}</p>
           </div>
           <dl className="grid grid-cols-3 gap-3 text-center">
             <div className="rounded-xl bg-primary-50 px-4 py-3">
-              <dt className="text-[11px] font-semibold uppercase tracking-wide text-primary-700">Points</dt>
+              <dt className="text-[11px] font-semibold uppercase tracking-wide text-primary-700">{t('common.points')}</dt>
               <dd className="mt-1 text-lg font-bold text-primary-900">{points}</dd>
             </div>
             <div className="rounded-xl bg-emerald-50 px-4 py-3">
-              <dt className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Done</dt>
+              <dt className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">{t('common.done')}</dt>
               <dd className="mt-1 text-lg font-bold text-emerald-900">{completedChildChoreCount}</dd>
             </div>
             <div className="rounded-xl bg-amber-50 px-4 py-3">
-              <dt className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Pending</dt>
+              <dt className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">{t('common.pending')}</dt>
               <dd className="mt-1 text-lg font-bold text-amber-900">{pendingChildChoreCount}</dd>
             </div>
           </dl>

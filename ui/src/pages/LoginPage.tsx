@@ -1,6 +1,8 @@
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import LoginForm from '../components/auth/LoginForm'
 import { useAuth } from '../context/useAuth'
+import LanguageSwitcher from '../components/layout/LanguageSwitcher'
 
 interface LoginLocationState {
   registered?: boolean
@@ -8,6 +10,7 @@ interface LoginLocationState {
 }
 
 export default function LoginPage() {
+  const { t } = useTranslation()
   const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -22,19 +25,22 @@ export default function LoginPage() {
       <div className="max-w-3xl mx-auto">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <Link to="/" className="text-primary-700 font-semibold hover:text-primary-800">
-            ← Back to landing page
+            ← {t('auth.backToLanding')}
           </Link>
-          <p className="text-sm text-gray-600">
-            Need an account?{' '}
-            <Link to="/register" className="font-semibold text-primary-700 hover:text-primary-800">
-              Create account
-            </Link>
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-gray-600">
+              {t('auth.needAccount')}{' '}
+              <Link to="/register" className="font-semibold text-primary-700 hover:text-primary-800">
+                {t('auth.createAccount')}
+              </Link>
+            </p>
+            <LanguageSwitcher className="px-3 py-1.5 text-sm font-semibold text-gray-600 hover:text-primary-600 border border-gray-200 rounded-lg hover:border-primary-300 transition-colors" />
+          </div>
         </div>
 
         {state?.registered ? (
           <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-            Account created successfully. Please log in to continue.
+            {t('auth.accountCreatedLoginPrompt')}
           </div>
         ) : null}
 

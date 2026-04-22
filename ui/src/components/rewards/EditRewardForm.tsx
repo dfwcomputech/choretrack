@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { UpdateRewardPayload } from '../../services/rewardService'
 
 interface EditRewardFormProps {
@@ -34,6 +35,7 @@ export default function EditRewardForm({
   onClose,
   onSubmit,
 }: EditRewardFormProps) {
+  const { t } = useTranslation()
   const [formValues, setFormValues] = useState<RewardFormValues>(initialValues)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
@@ -47,10 +49,10 @@ export default function EditRewardForm({
   const validate = () => {
     const nextErrors: Record<string, string> = {}
     if (!formValues.name.trim()) {
-      nextErrors.name = 'Name is required.'
+      nextErrors.name = t('rewards.validation.nameRequired')
     }
     if (!Number.isFinite(formValues.pointCost) || formValues.pointCost <= 0) {
-      nextErrors.pointCost = 'Point cost must be positive.'
+      nextErrors.pointCost = t('rewards.validation.pointCostPositive')
     }
     setValidationErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
@@ -72,7 +74,7 @@ export default function EditRewardForm({
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/60 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h3 className="text-2xl font-bold text-slate-900">Edit Reward</h3>
+        <h3 className="text-2xl font-bold text-slate-900">{t('rewards.editReward')}</h3>
         {errorMessage ? <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{errorMessage}</div> : null}
         <form
           onSubmit={(event) => {
@@ -82,7 +84,7 @@ export default function EditRewardForm({
         >
           <div className="mt-4 space-y-3">
             <label htmlFor="edit-reward-name" className="block text-sm font-semibold text-slate-600">
-              Name
+              {t('rewards.name')}
               <input
                 id="edit-reward-name"
                 value={formValues.name}
@@ -93,7 +95,7 @@ export default function EditRewardForm({
               {mergedFieldErrors.name ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.name}</p> : null}
             </label>
             <label htmlFor="edit-reward-description" className="block text-sm font-semibold text-slate-600">
-              Description
+              {t('rewards.description')}
               <textarea
                 id="edit-reward-description"
                 value={formValues.description}
@@ -103,7 +105,7 @@ export default function EditRewardForm({
               />
             </label>
             <label htmlFor="edit-reward-point-cost" className="block text-sm font-semibold text-slate-600">
-              Point Cost
+              {t('rewards.pointCost')}
               <input
                 id="edit-reward-point-cost"
                 type="number"
@@ -119,7 +121,7 @@ export default function EditRewardForm({
               {mergedFieldErrors.pointCost ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.pointCost}</p> : null}
             </label>
             <label htmlFor="edit-reward-category" className="block text-sm font-semibold text-slate-600">
-              Category
+              {t('rewards.category')}
               <input
                 id="edit-reward-category"
                 value={formValues.category}
@@ -135,19 +137,19 @@ export default function EditRewardForm({
                 onChange={(event) => handleInputChange('active', event.target.checked)}
                 className="h-4 w-4 rounded border-slate-300"
               />
-              Active reward
+               {t('rewards.activeReward')}
             </label>
           </div>
           <div className="mt-5 flex justify-end gap-2">
             <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 px-3 py-2 text-slate-700">
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="rounded-lg bg-primary-600 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
             >
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
+              {isSubmitting ? t('common.saving') : t('common.saveChanges')}
             </button>
           </div>
         </form>
