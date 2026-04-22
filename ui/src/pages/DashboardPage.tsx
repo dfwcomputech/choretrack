@@ -241,7 +241,7 @@ export default function DashboardPage() {
     .reduce((total, chore) => total + chore.points, 0)
   const points = isChildView ? (childCurrentPoints ?? earnedPointsFromChores) : earnedPointsFromChores
   const childAssignedName = getAssignedChildName(visibleChores)
-  const childName = childAssignedName || state?.firstName?.trim() || state?.username?.trim() || t('dashboard.fallbackChildName')
+  const childName = childAssignedName || state?.firstName?.trim() || state?.username?.trim() || tokenSubject || t('dashboard.fallbackChildName')
 
   const handleUnauthorized = useCallback(async () => {
     if (isRedirectingForUnauthorized) return

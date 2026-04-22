@@ -23,8 +23,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.computech.ctui.auth.UserAccountRepository;
 import com.computech.ctui.security.JwtAuthenticationFilter;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 public class SecurityConfig {
+
+	private static final String UNAUTHORIZED_RESPONSE_BODY = "{\"message\":\"unauthorized\",\"field\":null}";
 
 	@Bean
 	SecurityFilterChain securityFilterChain(final HttpSecurity http,
@@ -41,6 +45,11 @@ public class SecurityConfig {
 						.permitAll()
 						.requestMatchers("/api/**").authenticated()
 						.anyRequest().permitAll())
+				.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint((request, response, ex) -> {
+					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					response.setContentType("application/json");
+					response.getWriter().write(UNAUTHORIZED_RESPONSE_BODY);
+				}))
 				.authenticationProvider(authenticationProvider)
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.cors(Customizer.withDefaults())
