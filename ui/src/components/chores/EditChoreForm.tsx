@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { KidAccount } from '../dashboard/types'
 import type { ChoreStatus, UpdateChorePayload } from '../../services/choreService'
 
@@ -39,6 +40,7 @@ export default function EditChoreForm({
   onClose,
   onSubmit,
 }: EditChoreFormProps) {
+  const { t } = useTranslation()
   const [formValues, setFormValues] = useState<ChoreFormValues>(initialValues)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
@@ -53,15 +55,15 @@ export default function EditChoreForm({
   const validate = () => {
     const nextErrors: Record<string, string> = {}
     if (!formValues.title.trim()) {
-      nextErrors.title = 'Title is required.'
+      nextErrors.title = t('chores.validation.titleRequired')
     }
     if (!Number.isFinite(formValues.points) || formValues.points <= 0) {
-      nextErrors.points = 'Points must be positive.'
+      nextErrors.points = t('chores.validation.pointsPositive')
     }
     if (!selectedChildId.trim()) {
-      nextErrors.assignedChildId = 'Assigned child is required.'
+      nextErrors.assignedChildId = t('chores.validation.assignedChildRequired')
     } else if (!kids.some((kid) => kid.id === selectedChildId)) {
-      nextErrors.assignedChildId = 'Please select a valid child account.'
+      nextErrors.assignedChildId = t('chores.validation.assignedChildInvalid')
     }
     setValidationErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
@@ -84,7 +86,7 @@ export default function EditChoreForm({
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/60 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h3 className="text-2xl font-bold text-slate-900">Edit Chore</h3>
+        <h3 className="text-2xl font-bold text-slate-900">{t('chores.editChore')}</h3>
         {errorMessage ? <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{errorMessage}</div> : null}
         <form
           onSubmit={(event) => {
@@ -94,7 +96,7 @@ export default function EditChoreForm({
         >
           <div className="mt-4 space-y-3">
             <label htmlFor="edit-chore-title" className="block text-sm font-semibold text-slate-600">
-              Title
+              {t('chores.title')}
               <input
                 id="edit-chore-title"
                 value={formValues.title}
@@ -105,7 +107,7 @@ export default function EditChoreForm({
               {mergedFieldErrors.title ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.title}</p> : null}
             </label>
             <label htmlFor="edit-chore-description" className="block text-sm font-semibold text-slate-600">
-              Description
+              {t('chores.description')}
               <textarea
                 id="edit-chore-description"
                 value={formValues.description}
@@ -115,7 +117,7 @@ export default function EditChoreForm({
               />
             </label>
             <label htmlFor="edit-chore-child" className="block text-sm font-semibold text-slate-600">
-              Assigned Child
+              {t('chores.assignedChild')}
               <select
                 id="edit-chore-child"
                 value={selectedChildId}
@@ -124,7 +126,7 @@ export default function EditChoreForm({
                 aria-invalid={Boolean(mergedFieldErrors.assignedChildId)}
               >
                 <option value="" disabled>
-                  Select a child
+                  {t('chores.selectChild')}
                 </option>
                 {kids.map((kid) => (
                   <option key={kid.id} value={kid.id}>
@@ -135,7 +137,7 @@ export default function EditChoreForm({
               {mergedFieldErrors.assignedChildId ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.assignedChildId}</p> : null}
             </label>
             <label htmlFor="edit-chore-points" className="block text-sm font-semibold text-slate-600">
-              Points
+              {t('common.points')}
               <input
                 id="edit-chore-points"
                 type="number"
@@ -151,7 +153,7 @@ export default function EditChoreForm({
               {mergedFieldErrors.points ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.points}</p> : null}
             </label>
             <label htmlFor="edit-chore-due-date" className="block text-sm font-semibold text-slate-600">
-              Due Date
+              {t('chores.dueDate')}
               <input
                 id="edit-chore-due-date"
                 type="date"
@@ -161,28 +163,28 @@ export default function EditChoreForm({
               />
             </label>
             <label htmlFor="edit-chore-status" className="block text-sm font-semibold text-slate-600">
-              Status
+              {t('chores.status')}
               <select
                 id="edit-chore-status"
                 value={formValues.status}
                 onChange={(event) => handleInputChange('status', event.target.value as ChoreStatus)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
               >
-                <option value="PENDING">Pending</option>
-                <option value="COMPLETED">Completed</option>
+                <option value="PENDING">{t('common.pending')}</option>
+                <option value="COMPLETED">{t('common.completed')}</option>
               </select>
             </label>
           </div>
           <div className="mt-5 flex justify-end gap-2">
             <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 px-3 py-2 text-slate-700">
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting || kids.length === 0}
               className="rounded-lg bg-primary-600 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
             >
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
+              {isSubmitting ? t('common.saving') : t('common.saveChanges')}
             </button>
           </div>
         </form>

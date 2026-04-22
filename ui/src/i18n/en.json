@@ -101,7 +101,42 @@
     },
     "progressTitle": "Level Progress",
     "level": "Level",
-    "pointsToNext": "points to next level"
+    "pointsToNext": "points to next level",
+    "managementTitle": "Reward Management",
+    "addReward": "Add Reward",
+    "editReward": "Edit Reward",
+    "deleteReward": "Delete Reward",
+    "thisReward": "this reward",
+    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "empty": "No rewards configured yet.",
+    "name": "Name",
+    "description": "Description",
+    "pointCost": "Point Cost",
+    "category": "Category",
+    "activeReward": "Active reward",
+    "placeholders": {
+      "name": "Weekend Adventure",
+      "description": "Movie night with popcorn",
+      "category": "FUN"
+    },
+    "validation": {
+      "nameRequired": "Name is required.",
+      "pointCostPositive": "Point cost must be positive."
+    },
+    "defaultRewards": {
+      "icecream": {
+        "name": "Get Icecream",
+        "description": "Pick your favorite ice cream treat."
+      },
+      "gaming": {
+        "name": "Extra gaming time",
+        "description": "Unlock 30 extra minutes of gaming."
+      },
+      "movies": {
+        "name": "Go to the movies",
+        "description": "Choose a movie night reward with the family."
+      }
+    }
   },
   "benefits": {
     "title": "Why Parents Love ChoreTrack",
@@ -198,6 +233,221 @@
     "primary": "Create Your Free Account",
     "secondary": "Already have an account?",
     "login": "Log in here"
+  },
+  "common": {
+    "logout": "Logout",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "adding": "Adding...",
+    "deleting": "Deleting...",
+    "creating": "Creating...",
+    "complete": "Complete",
+    "completed": "Completed",
+    "pending": "Pending",
+    "done": "Done",
+    "points": "Points",
+    "pts": "pts",
+    "levelWithCount": "Level {{count}}"
+  },
+  "language": {
+    "switchToSpanish": "Switch to Spanish",
+    "switchToEnglish": "Switch to English"
+  },
+  "auth": {
+    "backToLanding": "Back to landing page",
+    "needAccount": "Need an account?",
+    "createAccount": "Create account",
+    "haveAccount": "Already have an account?",
+    "logIn": "Log in",
+    "accountCreatedLoginPrompt": "Account created successfully. Please log in to continue.",
+    "loginTitle": "Log in to ChoreTrack",
+    "loginSubtitle": "Welcome back! Enter your account details to continue.",
+    "registerTitle": "Create your account",
+    "registerSubtitle": "Get started with ChoreTrack in less than a minute.",
+    "usernameOrEmail": "Username or email",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "loggingIn": "Logging in...",
+    "loginButton": "Login",
+    "creatingAccount": "Creating account...",
+    "accountCreatedRedirecting": "Account created successfully. Redirecting to your dashboard...",
+    "validation": {
+      "usernameOrEmailRequired": "Username or email is required.",
+      "validEmail": "Enter a valid email address.",
+      "passwordRequired": "Password is required.",
+      "loginFailed": "Unable to login right now. Please try again.",
+      "usernameRequired": "Username is required.",
+      "emailRequired": "Email is required.",
+      "passwordMinLength": "Password must be at least {{count}} characters.",
+      "confirmPasswordRequired": "Confirm your password.",
+      "passwordsMustMatch": "Passwords must match.",
+      "firstNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required.",
+      "registerFailed": "Unable to create your account right now. Please try again.",
+      "fixHighlighted": "Please fix the highlighted fields."
+    }
+  },
+  "dashboard": {
+    "fallbackParentName": "Parent",
+    "fallbackChildName": "Kid",
+    "parentRole": "Parent",
+    "parentRoleLowercase": "parent",
+    "childRole": "Child",
+    "parentMenu": "Parent menu",
+    "expandSidebar": "Expand sidebar",
+    "collapseSidebar": "Collapse sidebar",
+    "welcomeBack": "Welcome back, {{name}}",
+    "parentSummary": "Track each child's progress, chores, and rewards from your dashboard.",
+    "pointsToNextLevel": "{{points}} points to Level {{level}}",
+    "settingsSoon": "More parent settings are coming soon.",
+    "nav": {
+      "dashboard": "Dashboard",
+      "kin": "Kin",
+      "chores": "Chores",
+      "rewards": "Rewards",
+      "settings": "Settings"
+    },
+    "success": {
+      "accountCreatedWelcome": "Account created successfully. Welcome, {{name}}!",
+      "choreCreated": "Chore created successfully.",
+      "choreUpdated": "Chore updated successfully.",
+      "choreDeleted": "Chore deleted successfully.",
+      "rewardCreated": "Reward created successfully.",
+      "rewardUpdated": "Reward updated successfully.",
+      "rewardDeleted": "Reward deleted successfully.",
+      "childAdded": "{{name}} has been added to your family.",
+      "childUpdated": "{{name}} has been updated.",
+      "childRemoved": "{{name}} has been removed from your dashboard.",
+      "childChoreCompleted": "Great job! +{{points}} points earned.",
+      "childChoreReverted": "Moved back to pending.",
+      "childChoreRevertedWithPoints": "Moved back to pending. {{pointsRemoved}} points removed."
+    },
+    "errors": {
+      "completeChoreFailed": "Unable to complete chore. Please try again.",
+      "revertChoreFailed": "Unable to move chore back to pending. Please try again.",
+      "createChoreFailed": "Unable to create chore. Please try again.",
+      "updateChoreFailed": "Unable to update chore. Please try again.",
+      "deleteChoreFailed": "Unable to delete chore. Please try again.",
+      "createRewardFailed": "Unable to create reward. Please try again.",
+      "updateRewardFailed": "Unable to update reward. Please try again.",
+      "deleteRewardFailed": "Unable to delete reward. Please try again.",
+      "createChildFailed": "Unable to create child account. Please try again.",
+      "updateChildFailed": "Unable to update child account. Please try again.",
+      "deleteChildFailed": "Unable to remove child account. Please try again."
+    }
+  },
+  "children": {
+    "addChildAccount": "Add Child Account",
+    "empty": "No children added yet.",
+    "progressTitle": "Kin Progress",
+    "progressSubtitle": "Track each child's level, points, and upcoming Battle Pass reward.",
+    "progressEmpty": "Add a child account to start monitoring progress.",
+    "progressToNextLevel": "Progress to next level: {{percent}}%",
+    "nextReward": "Next reward",
+    "createChildAccount": "Create Child Account",
+    "editChildAccount": "Edit Child Account",
+    "removeChildAccount": "Remove Child Account",
+    "removeConfirm": "Are you sure you want to remove {{name}}'s child account? They will no longer appear in your dashboard.",
+    "thisChild": "this",
+    "displayName": "Display Name",
+    "addChild": "Add Child",
+    "removeChild": "Remove Child",
+    "removing": "Removing...",
+    "moving": "Moving...",
+    "moveToPending": "Move to Pending",
+    "choreMissions": "Chore Missions",
+    "choreMissionsSubtitle": "Finish chores to unlock your next Battle Pass reward.",
+    "noPendingChores": "No pending chores. Nice work!",
+    "noCompletedChores": "Complete chores to build your streak!",
+    "calendarTitle": "{{month}} Calendar",
+    "calendarSubtitle": "See what's due each day this month.",
+    "weekdayLabels": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "moreCount": "+{{count}} more",
+    "placeholders": {
+      "username": "avery123",
+      "password": "••••••••",
+      "firstName": "Avery",
+      "lastName": "Johnson",
+      "displayName": "Avery J"
+    },
+    "validation": {
+      "usernameRequired": "Username is required.",
+      "usernamePattern": "Username can only include letters, numbers, and underscores.",
+      "passwordRequired": "Password is required.",
+      "passwordMinLength": "Password must be at least 8 characters.",
+      "firstNameRequired": "First name is required."
+    }
+  },
+  "chores": {
+    "addChore": "Add Chore",
+    "editChore": "Edit Chore",
+    "deleteChore": "Delete Chore",
+    "thisChore": "this chore",
+    "deleteConfirm": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
+    "empty": "No chores created yet.",
+    "title": "Title",
+    "description": "Description",
+    "assignedChild": "Assigned Child",
+    "selectChild": "Select a child",
+    "dueDate": "Due Date",
+    "due": "Due",
+    "status": "Status",
+    "markPending": "Mark pending",
+    "markComplete": "Mark complete",
+    "unassigned": "Unassigned",
+    "noDueDate": "No due date",
+    "completing": "Completing...",
+    "placeholders": {
+      "title": "Take out trash",
+      "description": "Empty dishwasher and wipe counters"
+    },
+    "validation": {
+      "titleRequired": "Title is required.",
+      "pointsPositive": "Points must be positive.",
+      "assignedChildRequired": "Assigned child is required.",
+      "assignedChildInvalid": "Please select a valid child account."
+    }
+  },
+  "seasonPass": {
+    "builderTitle": "Season Pass Builder",
+    "builderSubtitle": "Milestones are automatically grouped by reward points ({{rewards}} rewards across {{milestones}} milestones).",
+    "multiOptionSummary": "{{count}} milestone(s) currently offer a “Choose 1 reward” option.",
+    "save": "Save Season Pass",
+    "saved": "Season Pass saved successfully.",
+    "addRewardsFirst": "Add rewards first to build your season pass.",
+    "chooseOneOptions": "Choose 1 ({{count}} options)",
+    "chooseOneOfRewards": "Choose 1 of {{count}} rewards",
+    "noneAssigned": "No season reward assigned",
+    "defaultRewardName": "Season reward",
+    "defaultRewardDescription": "Season Pass reward"
+  },
+  "battlePass": {
+    "title": "Battle Pass",
+    "allUnlocked": "All unlocked!",
+    "reward": "Reward",
+    "chooseRewardOptions": "Choose 1 reward ({{count}} options)",
+    "pointsEarned": "{{points}} points earned",
+    "noSeasonPass": "Your parent has not created a Season Pass yet.",
+    "pointsToLevel": "{{points}} / {{nextLevelPoints}} points to level {{nextLevel}}",
+    "nextUnlock": "Next unlock",
+    "progressAriaLabel": "Battle Pass progress",
+    "pointsUntilNextLevel": "{{points}} points until the next level up!",
+    "unlockAtPoints": "Unlock at {{points}} pts",
+    "chooseRewardOptionsAvailable": "Choose 1 reward · {{count}} options available",
+    "unlocked": "Unlocked",
+    "locked": "Locked"
+  },
+  "childDashboard": {
+    "title": "Kid dashboard",
+    "greeting": "Hi {{name}}!",
+    "subtitle": "Complete chores, earn points, and unlock awesome rewards."
   },
   "footer": {
     "brand": "ChoreTrack",

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { CreateChildAccountPayload } from '../../services/childService'
 
 interface AddChildAccountFormProps {
@@ -20,6 +21,7 @@ export default function AddChildAccountForm({
   onClose,
   onSubmit,
 }: AddChildAccountFormProps) {
+  const { t } = useTranslation()
   const [formValues, setFormValues] = useState<CreateChildAccountPayload>({
     username: '',
     password: '',
@@ -39,17 +41,17 @@ export default function AddChildAccountForm({
   const validate = () => {
     const nextErrors: Record<string, string> = {}
     if (!formValues.username.trim()) {
-      nextErrors.username = 'Username is required.'
+      nextErrors.username = t('children.validation.usernameRequired')
     } else if (!usernamePattern.test(formValues.username.trim())) {
-      nextErrors.username = 'Username can only include letters, numbers, and underscores.'
+      nextErrors.username = t('children.validation.usernamePattern')
     }
     if (!formValues.password) {
-      nextErrors.password = 'Password is required.'
+      nextErrors.password = t('children.validation.passwordRequired')
     } else if (formValues.password.length < 8) {
-      nextErrors.password = 'Password must be at least 8 characters.'
+      nextErrors.password = t('children.validation.passwordMinLength')
     }
     if (!formValues.firstName.trim()) {
-      nextErrors.firstName = 'First name is required.'
+      nextErrors.firstName = t('children.validation.firstNameRequired')
     }
     setValidationErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
@@ -72,7 +74,7 @@ export default function AddChildAccountForm({
   return (
     <div className={modalClassName}>
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h3 className="text-2xl font-bold text-slate-900">Create Child Account</h3>
+        <h3 className="text-2xl font-bold text-slate-900">{t('children.createChildAccount')}</h3>
         {errorMessage ? <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{errorMessage}</div> : null}
         <form
           onSubmit={(event) => {
@@ -82,61 +84,61 @@ export default function AddChildAccountForm({
         >
           <div className="mt-4 space-y-3">
             <label className="block text-sm font-semibold text-slate-600">
-              Username
+               {t('auth.username')}
               <input
                 value={formValues.username}
                 onChange={(event) => handleInputChange('username', event.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                placeholder="avery123"
+                placeholder={t('children.placeholders.username')}
                 autoComplete="username"
                 aria-invalid={Boolean(mergedFieldErrors.username)}
               />
               {mergedFieldErrors.username ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.username}</p> : null}
             </label>
             <label className="block text-sm font-semibold text-slate-600">
-              Password
+               {t('auth.password')}
               <input
                 type="password"
                 value={formValues.password}
                 onChange={(event) => handleInputChange('password', event.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                placeholder="••••••••"
+                placeholder={t('children.placeholders.password')}
                 autoComplete="new-password"
                 aria-invalid={Boolean(mergedFieldErrors.password)}
               />
               {mergedFieldErrors.password ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.password}</p> : null}
             </label>
             <label className="block text-sm font-semibold text-slate-600">
-              First Name
+               {t('auth.firstName')}
               <input
                 value={formValues.firstName}
                 onChange={(event) => handleInputChange('firstName', event.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                placeholder="Avery"
+                placeholder={t('children.placeholders.firstName')}
                 autoComplete="given-name"
                 aria-invalid={Boolean(mergedFieldErrors.firstName)}
               />
               {mergedFieldErrors.firstName ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.firstName}</p> : null}
             </label>
             <label className="block text-sm font-semibold text-slate-600">
-              Last Name
+               {t('auth.lastName')}
               <input
                 value={formValues.lastName}
                 onChange={(event) => handleInputChange('lastName', event.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                placeholder="Johnson"
+                placeholder={t('children.placeholders.lastName')}
                 autoComplete="family-name"
                 aria-invalid={Boolean(mergedFieldErrors.lastName)}
               />
               {mergedFieldErrors.lastName ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.lastName}</p> : null}
             </label>
             <label className="block text-sm font-semibold text-slate-600">
-              Display Name
+               {t('children.displayName')}
               <input
                 value={formValues.displayName}
                 onChange={(event) => handleInputChange('displayName', event.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                placeholder="Avery J"
+                placeholder={t('children.placeholders.displayName')}
                 autoComplete="name"
                 aria-invalid={Boolean(mergedFieldErrors.displayName)}
               />
@@ -145,14 +147,14 @@ export default function AddChildAccountForm({
           </div>
           <div className="mt-5 flex justify-end gap-2">
             <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 px-3 py-2 text-slate-700">
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="rounded-lg bg-primary-600 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
             >
-              {isSubmitting ? 'Creating...' : 'Add Child'}
+              {isSubmitting ? t('common.creating') : t('children.addChild')}
             </button>
           </div>
         </form>

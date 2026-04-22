@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import DashboardHeader from '../components/layout/DashboardHeader'
@@ -57,14 +58,12 @@ interface JwtPayload {
   sub?: string
 }
 
-const fallbackParentName = 'Parent'
-const fallbackChildName = 'Kid'
 const BASE64_PADDING_MULTIPLE = 4
-const defaultRewards: RewardItem[] = [
+const buildDefaultRewards = (t: (key: string) => string): RewardItem[] => [
   {
     id: 'local-reward-icecream',
-    name: 'Get Icecream',
-    description: 'Pick your favorite ice cream treat.',
+    name: t('rewards.defaultRewards.icecream.name'),
+    description: t('rewards.defaultRewards.icecream.description'),
     pointsCost: 80,
     category: 'FUN',
     active: true,
@@ -72,8 +71,8 @@ const defaultRewards: RewardItem[] = [
   },
   {
     id: 'local-reward-gaming-time',
-    name: 'Extra gaming time',
-    description: 'Unlock 30 extra minutes of gaming.',
+    name: t('rewards.defaultRewards.gaming.name'),
+    description: t('rewards.defaultRewards.gaming.description'),
     pointsCost: 120,
     category: 'GAMING',
     active: true,
@@ -81,8 +80,8 @@ const defaultRewards: RewardItem[] = [
   },
   {
     id: 'local-reward-movies',
-    name: 'Go to the movies',
-    description: 'Choose a movie night reward with the family.',
+    name: t('rewards.defaultRewards.movies.name'),
+    description: t('rewards.defaultRewards.movies.description'),
     pointsCost: 200,
     category: 'OUTING',
     active: true,
@@ -166,13 +165,14 @@ const getTokenSubject = (token: string): string => {
 }
 
 export default function DashboardPage() {
+  const { t } = useTranslation()
   const { logout, token } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const state = (location.state as DashboardState | null) ?? null
   // Token verification is enforced by backend APIs; this is only a UI fallback for displaying a name.
   const tokenSubject = useMemo(() => getTokenSubject(token), [token])
-  const parentName = state?.firstName?.trim() || state?.username?.trim() || tokenSubject || fallbackParentName
+  const parentName = state?.firstName?.trim() || state?.username?.trim() || tokenSubject || t('dashboard.fallbackParentName')
   const [activeNav, setActiveNav] = useState('dashboard')
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isAddChoreOpen, setIsAddChoreOpen] = useState(false)
@@ -231,6 +231,7 @@ export default function DashboardPage() {
   const [childCompletionErrorMessage, setChildCompletionErrorMessage] = useState('')
   const [childCompletionSuccessMessage, setChildCompletionSuccessMessage] = useState('')
   const [isRedirectingForUnauthorized, setIsRedirectingForUnauthorized] = useState(false)
+  const defaultRewards = useMemo(() => buildDefaultRewards((key) => t(key)), [t])
 
   const visibleChores = chores
   const completedChildChoreCount = visibleChores.filter((chore) => chore.status === 'COMPLETED' || chore.completed).length
@@ -240,7 +241,7 @@ export default function DashboardPage() {
     .reduce((total, chore) => total + chore.points, 0)
   const points = isChildView ? (childCurrentPoints ?? earnedPointsFromChores) : earnedPointsFromChores
   const childAssignedName = getAssignedChildName(visibleChores)
-  const childName = childAssignedName || state?.firstName?.trim() || state?.username?.trim() || fallbackChildName
+  const childName = childAssignedName || state?.firstName?.trim() || state?.username?.trim() || t('dashboard.fallbackChildName')
 
   const handleUnauthorized = useCallback(async () => {
     if (isRedirectingForUnauthorized) return
@@ -312,7 +313,7 @@ export default function DashboardPage() {
 
     void loadRewards()
     return () => abortController.abort()
-  }, [handleUnauthorized, isChildView, token])
+  }, [defaultRewards, handleUnauthorized, isChildView, token])
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -403,13 +404,13 @@ export default function DashboardPage() {
         ),
       )
       setChildCurrentPoints(completion.childCurrentPoints)
-      setChildCompletionSuccessMessage(`Great job! +${completion.pointsAwarded} points earned.`)
+      setChildCompletionSuccessMessage(t('dashboard.success.childChoreCompleted', { points: completion.pointsAwarded }))
     } catch (error) {
       if (error instanceof ChoreServiceError) {
         setChildCompletionErrorMessage(error.message)
       } else {
         console.error('Failed to complete chore', error)
-        setChildCompletionErrorMessage('Unable to complete chore. Please try again.')
+        setChildCompletionErrorMessage(t('dashboard.errors.completeChoreFailed'))
       }
     } finally {
       setCompletingChoreId(null)
@@ -436,13 +437,17 @@ export default function DashboardPage() {
       )
       setChildCurrentPoints(reverted.childCurrentPoints)
       const pointsRemoved = Math.abs(reverted.pointsAwarded)
-      setChildCompletionSuccessMessage(`Moved back to pending.${pointsRemoved > 0 ? ` ${pointsRemoved} points removed.` : ''}`)
+      setChildCompletionSuccessMessage(
+        pointsRemoved > 0
+          ? t('dashboard.success.childChoreRevertedWithPoints', { pointsRemoved })
+          : t('dashboard.success.childChoreReverted'),
+      )
     } catch (error) {
       if (error instanceof ChoreServiceError) {
         setChildCompletionErrorMessage(error.message)
       } else {
         console.error('Failed to revert chore', error)
-        setChildCompletionErrorMessage('Unable to move chore back to pending. Please try again.')
+        setChildCompletionErrorMessage(t('dashboard.errors.revertChoreFailed'))
       }
     } finally {
       setRevertingChoreId(null)
@@ -470,7 +475,7 @@ export default function DashboardPage() {
     try {
       const createdChore = await createChore(payload, token)
       setChores((prev) => [toChoreItem(createdChore), ...prev])
-      setChoreSuccessMessage('Chore created successfully.')
+      setChoreSuccessMessage(t('dashboard.success.choreCreated'))
       setIsAddChoreOpen(false)
     } catch (error) {
       if (error instanceof ChoreServiceError) {
@@ -479,7 +484,7 @@ export default function DashboardPage() {
         return
       }
       console.error('Failed to create chore', error)
-      setCreateChoreErrorMessage('Unable to create chore. Please try again.')
+      setCreateChoreErrorMessage(t('dashboard.errors.createChoreFailed'))
     } finally {
       setIsCreatingChore(false)
     }
@@ -509,7 +514,7 @@ export default function DashboardPage() {
     try {
       const updatedChore = await updateChore(selectedChore.id, payload, token)
       setChores((prev) => prev.map((chore) => (chore.id === selectedChore.id ? toChoreItem(updatedChore) : chore)))
-      setChoreSuccessMessage('Chore updated successfully.')
+      setChoreSuccessMessage(t('dashboard.success.choreUpdated'))
       setIsEditChoreOpen(false)
       setSelectedChore(null)
     } catch (error) {
@@ -519,7 +524,7 @@ export default function DashboardPage() {
         return
       }
       console.error('Failed to update chore', error)
-      setUpdateChoreErrorMessage('Unable to update chore. Please try again.')
+      setUpdateChoreErrorMessage(t('dashboard.errors.updateChoreFailed'))
     } finally {
       setIsUpdatingChore(false)
     }
@@ -547,7 +552,7 @@ export default function DashboardPage() {
       const deletedChoreId = selectedChore.id
       await deleteChore(deletedChoreId, token)
       setChores((prev) => prev.filter((chore) => chore.id !== deletedChoreId))
-      setChoreSuccessMessage('Chore deleted successfully.')
+      setChoreSuccessMessage(t('dashboard.success.choreDeleted'))
       setIsDeleteChoreOpen(false)
       setSelectedChore(null)
     } catch (error) {
@@ -556,7 +561,7 @@ export default function DashboardPage() {
         return
       }
       console.error('Failed to delete chore', error)
-      setDeleteChoreErrorMessage('Unable to delete chore. Please try again.')
+      setDeleteChoreErrorMessage(t('dashboard.errors.deleteChoreFailed'))
     } finally {
       setIsDeletingChore(false)
     }
@@ -595,7 +600,7 @@ export default function DashboardPage() {
         },
         ...prev,
       ])
-      setRewardSuccessMessage('Reward created successfully.')
+      setRewardSuccessMessage(t('dashboard.success.rewardCreated'))
       setIsAddRewardOpen(false)
       return
     }
@@ -606,7 +611,7 @@ export default function DashboardPage() {
     try {
       const createdReward = await createReward(payload, token)
       setRewards((prev) => [toRewardItem(createdReward), ...prev])
-      setRewardSuccessMessage('Reward created successfully.')
+      setRewardSuccessMessage(t('dashboard.success.rewardCreated'))
       setIsAddRewardOpen(false)
     } catch (error) {
       if (error instanceof RewardServiceError) {
@@ -615,7 +620,7 @@ export default function DashboardPage() {
         return
       }
       console.error('Failed to create reward', error)
-      setCreateRewardErrorMessage('Unable to create reward. Please try again.')
+      setCreateRewardErrorMessage(t('dashboard.errors.createRewardFailed'))
     } finally {
       setIsCreatingReward(false)
     }
@@ -655,7 +660,7 @@ export default function DashboardPage() {
             : reward,
         ),
       )
-      setRewardSuccessMessage('Reward updated successfully.')
+      setRewardSuccessMessage(t('dashboard.success.rewardUpdated'))
       setIsEditRewardOpen(false)
       setSelectedReward(null)
       return
@@ -667,7 +672,7 @@ export default function DashboardPage() {
     try {
       const updatedReward = await updateReward(selectedReward.id, payload, token)
       setRewards((prev) => prev.map((reward) => (reward.id === selectedReward.id ? toRewardItem(updatedReward) : reward)))
-      setRewardSuccessMessage('Reward updated successfully.')
+      setRewardSuccessMessage(t('dashboard.success.rewardUpdated'))
       setIsEditRewardOpen(false)
       setSelectedReward(null)
     } catch (error) {
@@ -677,7 +682,7 @@ export default function DashboardPage() {
         return
       }
       console.error('Failed to update reward', error)
-      setUpdateRewardErrorMessage('Unable to update reward. Please try again.')
+      setUpdateRewardErrorMessage(t('dashboard.errors.updateRewardFailed'))
     } finally {
       setIsUpdatingReward(false)
     }
@@ -702,7 +707,7 @@ export default function DashboardPage() {
 
     if (isUsingLocalRewards || selectedReward.id.startsWith('local-reward-')) {
       setRewards((prev) => prev.filter((reward) => reward.id !== selectedReward.id))
-      setRewardSuccessMessage('Reward deleted successfully.')
+      setRewardSuccessMessage(t('dashboard.success.rewardDeleted'))
       setIsDeleteRewardOpen(false)
       setSelectedReward(null)
       return
@@ -714,7 +719,7 @@ export default function DashboardPage() {
       const deletedRewardId = selectedReward.id
       await deleteReward(deletedRewardId, token)
       setRewards((prev) => prev.filter((reward) => reward.id !== deletedRewardId))
-      setRewardSuccessMessage('Reward deleted successfully.')
+      setRewardSuccessMessage(t('dashboard.success.rewardDeleted'))
       setIsDeleteRewardOpen(false)
       setSelectedReward(null)
     } catch (error) {
@@ -723,7 +728,7 @@ export default function DashboardPage() {
         return
       }
       console.error('Failed to delete reward', error)
-      setDeleteRewardErrorMessage('Unable to delete reward. Please try again.')
+      setDeleteRewardErrorMessage(t('dashboard.errors.deleteRewardFailed'))
     } finally {
       setIsDeletingReward(false)
     }
@@ -752,7 +757,7 @@ export default function DashboardPage() {
       const child = await createChildAccount(payload, token)
       const mappedKid = toKidAccount(child)
       setKids((prev) => [...prev, mappedKid])
-      setChildSuccessMessage(`${mappedKid.name} has been added to your family.`)
+      setChildSuccessMessage(t('dashboard.success.childAdded', { name: mappedKid.name }))
       setIsAddChildOpen(false)
     } catch (error) {
       if (error instanceof ChildServiceError) {
@@ -761,7 +766,7 @@ export default function DashboardPage() {
         return
       }
       console.error('Failed to create child account', error)
-      setCreateChildErrorMessage('Unable to create child account. Please try again.')
+      setCreateChildErrorMessage(t('dashboard.errors.createChildFailed'))
     } finally {
       setIsCreatingChild(false)
     }
@@ -792,7 +797,7 @@ export default function DashboardPage() {
       const updatedChild = await updateChildAccount(selectedChild.id, payload, token)
       const mappedKid = toKidAccount(updatedChild)
       setKids((prev) => prev.map((kid) => (kid.id === selectedChild.id ? mappedKid : kid)))
-      setChildSuccessMessage(`${mappedKid.name} has been updated.`)
+      setChildSuccessMessage(t('dashboard.success.childUpdated', { name: mappedKid.name }))
       setIsEditChildOpen(false)
       setSelectedChild(null)
     } catch (error) {
@@ -802,7 +807,7 @@ export default function DashboardPage() {
         return
       }
       console.error('Failed to update child account', error)
-      setUpdateChildErrorMessage('Unable to update child account. Please try again.')
+      setUpdateChildErrorMessage(t('dashboard.errors.updateChildFailed'))
     } finally {
       setIsUpdatingChild(false)
     }
@@ -829,7 +834,7 @@ export default function DashboardPage() {
     try {
       await deleteChildAccount(selectedChild.id, token)
       setKids((prev) => prev.filter((kid) => kid.id !== selectedChild.id))
-      setChildSuccessMessage(`${selectedChild.name} has been removed from your dashboard.`)
+      setChildSuccessMessage(t('dashboard.success.childRemoved', { name: selectedChild.name }))
       setIsDeleteChildOpen(false)
       setSelectedChild(null)
     } catch (error) {
@@ -838,7 +843,7 @@ export default function DashboardPage() {
         return
       }
       console.error('Failed to delete child account', error)
-      setDeleteChildErrorMessage('Unable to remove child account. Please try again.')
+      setDeleteChildErrorMessage(t('dashboard.errors.deleteChildFailed'))
     } finally {
       setIsDeletingChild(false)
     }
@@ -856,7 +861,7 @@ export default function DashboardPage() {
         isProfileOpen={isProfileOpen}
         onToggleProfile={() => setIsProfileOpen((prev) => !prev)}
         accountName={isChildView ? childName : parentName}
-        accountLabel={isChildView ? 'Child' : 'Parent'}
+        accountLabel={isChildView ? t('dashboard.childRole') : t('dashboard.parentRole')}
         accountAvatar={isChildView ? '🧒' : '👩'}
         onLogout={() => void handleLogout()}
       />
@@ -864,7 +869,7 @@ export default function DashboardPage() {
       {state?.registered ? (
         <div className="mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-green-800">
-            Account created successfully. Welcome, {isChildView ? childName : parentName}!
+            {t('dashboard.success.accountCreatedWelcome', { name: isChildView ? childName : parentName })}
           </div>
         </div>
       ) : null}

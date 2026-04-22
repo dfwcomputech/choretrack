@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { CreateRewardPayload } from '../../services/rewardService'
 
 interface AddRewardFormProps {
@@ -18,6 +19,7 @@ interface RewardFormValues {
 }
 
 export default function AddRewardForm({ isOpen, isSubmitting, errorMessage, fieldErrors, onClose, onSubmit }: AddRewardFormProps) {
+  const { t } = useTranslation()
   const [formValues, setFormValues] = useState<RewardFormValues>({
     name: '',
     description: '',
@@ -36,10 +38,10 @@ export default function AddRewardForm({ isOpen, isSubmitting, errorMessage, fiel
   const validate = () => {
     const nextErrors: Record<string, string> = {}
     if (!formValues.name.trim()) {
-      nextErrors.name = 'Name is required.'
+      nextErrors.name = t('rewards.validation.nameRequired')
     }
     if (!Number.isFinite(formValues.pointCost) || formValues.pointCost <= 0) {
-      nextErrors.pointCost = 'Point cost must be positive.'
+      nextErrors.pointCost = t('rewards.validation.pointCostPositive')
     }
     setValidationErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
@@ -60,7 +62,7 @@ export default function AddRewardForm({ isOpen, isSubmitting, errorMessage, fiel
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/60 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h3 className="text-2xl font-bold text-slate-900">Add Reward</h3>
+        <h3 className="text-2xl font-bold text-slate-900">{t('rewards.addReward')}</h3>
         {errorMessage ? <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{errorMessage}</div> : null}
         <form
           onSubmit={(event) => {
@@ -70,30 +72,30 @@ export default function AddRewardForm({ isOpen, isSubmitting, errorMessage, fiel
         >
           <div className="mt-4 space-y-3">
             <label htmlFor="add-reward-name" className="block text-sm font-semibold text-slate-600">
-              Name
+              {t('rewards.name')}
               <input
                 id="add-reward-name"
                 value={formValues.name}
                 onChange={(event) => handleInputChange('name', event.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                placeholder="Weekend Adventure"
+                placeholder={t('rewards.placeholders.name')}
                 aria-invalid={Boolean(mergedFieldErrors.name)}
               />
               {mergedFieldErrors.name ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.name}</p> : null}
             </label>
             <label htmlFor="add-reward-description" className="block text-sm font-semibold text-slate-600">
-              Description
+              {t('rewards.description')}
               <textarea
                 id="add-reward-description"
                 value={formValues.description}
                 onChange={(event) => handleInputChange('description', event.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
                 rows={3}
-                placeholder="Movie night with popcorn"
+                placeholder={t('rewards.placeholders.description')}
               />
             </label>
             <label htmlFor="add-reward-point-cost" className="block text-sm font-semibold text-slate-600">
-              Point Cost
+              {t('rewards.pointCost')}
               <input
                 id="add-reward-point-cost"
                 type="number"
@@ -109,26 +111,26 @@ export default function AddRewardForm({ isOpen, isSubmitting, errorMessage, fiel
               {mergedFieldErrors.pointCost ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.pointCost}</p> : null}
             </label>
             <label htmlFor="add-reward-category" className="block text-sm font-semibold text-slate-600">
-              Category
+              {t('rewards.category')}
               <input
                 id="add-reward-category"
                 value={formValues.category}
                 onChange={(event) => handleInputChange('category', event.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-                placeholder="FUN"
+                placeholder={t('rewards.placeholders.category')}
               />
             </label>
           </div>
           <div className="mt-5 flex justify-end gap-2">
             <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 px-3 py-2 text-slate-700">
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="rounded-lg bg-primary-600 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
             >
-              {isSubmitting ? 'Adding...' : 'Add Reward'}
+              {isSubmitting ? t('common.adding') : t('rewards.addReward')}
             </button>
           </div>
         </form>

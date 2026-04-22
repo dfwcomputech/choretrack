@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AuthServiceError, registerUser, type RegistrationResponse } from '../../services/authService'
 
 type FormValues = {
@@ -28,6 +29,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const minimumPasswordLength = 8
 
 export default function RegisterForm({ onSuccess }: RegisterFormProps) {
+  const { t } = useTranslation()
   const [values, setValues] = useState<FormValues>(initialValues)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState('')
@@ -39,28 +41,28 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
   const validate = (): Record<string, string> => {
     const errors: Record<string, string> = {}
     if (!values.username.trim()) {
-      errors.username = 'Username is required.'
+      errors.username = t('auth.validation.usernameRequired')
     }
     if (!values.email.trim()) {
-      errors.email = 'Email is required.'
+      errors.email = t('auth.validation.emailRequired')
     } else if (!emailPattern.test(values.email.trim())) {
-      errors.email = 'Enter a valid email address.'
+      errors.email = t('auth.validation.validEmail')
     }
     if (!values.password) {
-      errors.password = 'Password is required.'
+      errors.password = t('auth.validation.passwordRequired')
     } else if (values.password.length < minimumPasswordLength) {
-      errors.password = `Password must be at least ${minimumPasswordLength} characters.`
+      errors.password = t('auth.validation.passwordMinLength', { count: minimumPasswordLength })
     }
     if (!values.confirmPassword) {
-      errors.confirmPassword = 'Confirm your password.'
+      errors.confirmPassword = t('auth.validation.confirmPasswordRequired')
     } else if (values.confirmPassword !== values.password) {
-      errors.confirmPassword = 'Passwords must match.'
+      errors.confirmPassword = t('auth.validation.passwordsMustMatch')
     }
     if (!values.firstName.trim()) {
-      errors.firstName = 'First name is required.'
+      errors.firstName = t('auth.validation.firstNameRequired')
     }
     if (!values.lastName.trim()) {
-      errors.lastName = 'Last name is required.'
+      errors.lastName = t('auth.validation.lastNameRequired')
     }
     return errors
   }
@@ -97,7 +99,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         firstName: values.firstName.trim(),
         lastName: values.lastName.trim(),
       })
-      setSuccessMessage('Account created successfully. Redirecting to your dashboard...')
+      setSuccessMessage(t('auth.accountCreatedRedirecting'))
       onSuccess(response)
     } catch (error) {
       if (error instanceof AuthServiceError) {
@@ -106,7 +108,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         }
         setSubmitError(error.message)
       } else {
-        setSubmitError('Unable to create your account right now. Please try again.')
+        setSubmitError(t('auth.validation.registerFailed'))
       }
     } finally {
       setIsSubmitting(false)
@@ -115,12 +117,12 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow-xl rounded-2xl p-6 sm:p-8 w-full space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
-      <p className="text-sm text-gray-600">Get started with ChoreTrack in less than a minute.</p>
+      <h1 className="text-2xl font-bold text-gray-900">{t('auth.registerTitle')}</h1>
+      <p className="text-sm text-gray-600">{t('auth.registerSubtitle')}</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InputField
-          label="First name"
+          label={t('auth.firstName')}
           id="firstName"
           value={values.firstName}
           onChange={(value) => updateValue('firstName', value)}
@@ -128,7 +130,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
           autoComplete="given-name"
         />
         <InputField
-          label="Last name"
+          label={t('auth.lastName')}
           id="lastName"
           value={values.lastName}
           onChange={(value) => updateValue('lastName', value)}
@@ -138,7 +140,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
       </div>
 
       <InputField
-        label="Username"
+        label={t('auth.username')}
         id="username"
         value={values.username}
         onChange={(value) => updateValue('username', value)}
@@ -146,7 +148,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         autoComplete="username"
       />
       <InputField
-        label="Email"
+        label={t('auth.email')}
         id="email"
         type="email"
         value={values.email}
@@ -155,7 +157,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         autoComplete="email"
       />
       <InputField
-        label="Password"
+        label={t('auth.password')}
         id="password"
         type="password"
         value={values.password}
@@ -164,7 +166,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         autoComplete="new-password"
       />
       <InputField
-        label="Confirm password"
+        label={t('auth.confirmPassword')}
         id="confirmPassword"
         type="password"
         value={values.confirmPassword}
@@ -189,9 +191,9 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         disabled={isSubmitting}
         className="w-full py-2.5 px-4 rounded-lg text-white font-semibold bg-primary-600 hover:bg-primary-700 disabled:bg-primary-300 transition-colors"
       >
-        {isSubmitting ? 'Creating account...' : 'Create account'}
+        {isSubmitting ? t('auth.creatingAccount') : t('auth.createAccount')}
       </button>
-      {hasErrors ? <p className="text-xs text-gray-500">Please fix the highlighted fields.</p> : null}
+      {hasErrors ? <p className="text-xs text-gray-500">{t('auth.validation.fixHighlighted')}</p> : null}
     </form>
   )
 }

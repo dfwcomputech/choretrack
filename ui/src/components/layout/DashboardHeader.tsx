@@ -1,4 +1,6 @@
 import { ChevronDown, LogOut, LayoutDashboard } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import LanguageSwitcher from './LanguageSwitcher'
 
 interface DashboardHeaderProps {
   isProfileOpen: boolean
@@ -13,10 +15,12 @@ export default function DashboardHeader({
   isProfileOpen,
   onToggleProfile,
   accountName,
-  accountLabel = 'Parent',
+  accountLabel = undefined,
   accountAvatar = '👩',
   onLogout,
 }: DashboardHeaderProps) {
+  const { t } = useTranslation()
+  const resolvedAccountLabel = accountLabel ?? t('dashboard.parentRole')
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -33,9 +37,10 @@ export default function DashboardHeader({
             onClick={onToggleProfile}
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm hover:bg-slate-50"
           >
-            {accountLabel}
+            {resolvedAccountLabel}
             <ChevronDown className="h-4 w-4" />
           </button>
+          <LanguageSwitcher className="ml-2 inline-flex rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50" />
 
           {isProfileOpen ? (
             <div className="absolute right-0 top-12 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
@@ -48,7 +53,7 @@ export default function DashboardHeader({
                 className="flex w-full items-center gap-2 px-4 py-3 text-left text-slate-700 hover:bg-slate-50"
               >
                 <LayoutDashboard className="h-4 w-4" />
-                Dashboard
+                {t('dashboard.nav.dashboard')}
               </button>
               <button
                 type="button"
@@ -56,7 +61,7 @@ export default function DashboardHeader({
                 className="flex w-full items-center gap-2 px-4 py-3 text-left text-slate-700 hover:bg-slate-50"
               >
                 <LogOut className="h-4 w-4" />
-                Logout
+                {t('common.logout')}
               </button>
             </div>
           ) : null}

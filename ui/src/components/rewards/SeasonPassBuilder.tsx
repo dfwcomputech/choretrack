@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Save } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { RewardItem } from '../dashboard/types'
 
 export interface SeasonPassMilestone {
@@ -15,6 +16,7 @@ interface SeasonPassBuilderProps {
 }
 
 export default function SeasonPassBuilder({ rewards, milestones, onSave }: SeasonPassBuilderProps) {
+  const { t } = useTranslation()
   const milestoneCount = milestones.length
   const rewardCount = rewards.length
   const multiOptionCount = useMemo(() => milestones.filter((milestone) => milestone.rewards.length > 1).length, [milestones])
@@ -23,12 +25,12 @@ export default function SeasonPassBuilder({ rewards, milestones, onSave }: Seaso
     <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Season Pass Builder</h2>
+          <h2 className="text-2xl font-bold text-slate-900">{t('seasonPass.builderTitle')}</h2>
           <p className="text-sm text-slate-600">
-            Milestones are automatically grouped by reward points ({rewardCount} rewards across {milestoneCount} milestones).
+            {t('seasonPass.builderSubtitle', { rewards: rewardCount, milestones: milestoneCount })}
           </p>
           {multiOptionCount > 0 ? (
-            <p className="mt-1 text-xs font-medium text-primary-700">{multiOptionCount} milestone(s) currently offer a “Choose 1 reward” option.</p>
+            <p className="mt-1 text-xs font-medium text-primary-700">{t('seasonPass.multiOptionSummary', { count: multiOptionCount })}</p>
           ) : null}
         </div>
         <button
@@ -36,13 +38,13 @@ export default function SeasonPassBuilder({ rewards, milestones, onSave }: Seaso
           onClick={onSave}
           className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
         >
-          <Save className="h-4 w-4" /> Save Season Pass
+          <Save className="h-4 w-4" /> {t('seasonPass.save')}
         </button>
       </div>
 
       {milestones.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-slate-600">
-          Add rewards first to build your season pass.
+          {t('seasonPass.addRewardsFirst')}
         </div>
       ) : (
         <ul className="space-y-3">
@@ -50,10 +52,10 @@ export default function SeasonPassBuilder({ rewards, milestones, onSave }: Seaso
             <li key={milestone.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-semibold text-slate-800">Level {index + 1}</p>
-                  <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700">{milestone.pointsRequired} pts</span>
+                  <p className="font-semibold text-slate-800">{t('common.levelWithCount', { count: index + 1 })}</p>
+                  <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700">{milestone.pointsRequired} {t('common.pts')}</span>
                   {milestone.rewards.length > 1 ? (
-                    <span className="rounded-full bg-primary-100 px-2 py-0.5 text-xs font-semibold text-primary-700">Choose 1 ({milestone.rewards.length} options)</span>
+                    <span className="rounded-full bg-primary-100 px-2 py-0.5 text-xs font-semibold text-primary-700">{t('seasonPass.chooseOneOptions', { count: milestone.rewards.length })}</span>
                   ) : null}
                 </div>
                 <ul className="space-y-2">
@@ -62,7 +64,7 @@ export default function SeasonPassBuilder({ rewards, milestones, onSave }: Seaso
                       <p className="font-semibold text-slate-800">
                         {reward.icon} {reward.name}
                       </p>
-                      <p className="text-sm text-slate-600">{reward.description || 'Season Pass reward'}</p>
+                      <p className="text-sm text-slate-600">{reward.description || t('seasonPass.defaultRewardDescription')}</p>
                     </li>
                   ))}
                 </ul>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { UpdateChildAccountPayload } from '../../services/childService'
 
 interface EditChildAccountFormProps {
@@ -22,6 +23,7 @@ export default function EditChildAccountForm({
   onClose,
   onSubmit,
 }: EditChildAccountFormProps) {
+  const { t } = useTranslation()
   const [formValues, setFormValues] = useState<UpdateChildAccountPayload>(initialValues)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
@@ -35,12 +37,12 @@ export default function EditChildAccountForm({
   const validate = () => {
     const nextErrors: Record<string, string> = {}
     if (!formValues.username.trim()) {
-      nextErrors.username = 'Username is required.'
+      nextErrors.username = t('children.validation.usernameRequired')
     } else if (!usernamePattern.test(formValues.username.trim())) {
-      nextErrors.username = 'Username can only include letters, numbers, and underscores.'
+      nextErrors.username = t('children.validation.usernamePattern')
     }
     if (!formValues.firstName.trim()) {
-      nextErrors.firstName = 'First name is required.'
+      nextErrors.firstName = t('children.validation.firstNameRequired')
     }
     setValidationErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
@@ -61,7 +63,7 @@ export default function EditChildAccountForm({
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/60 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h3 className="text-2xl font-bold text-slate-900">Edit Child Account</h3>
+        <h3 className="text-2xl font-bold text-slate-900">{t('children.editChildAccount')}</h3>
         {errorMessage ? <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{errorMessage}</div> : null}
         <form
           onSubmit={(event) => {
@@ -71,7 +73,7 @@ export default function EditChildAccountForm({
         >
           <div className="mt-4 space-y-3">
             <label className="block text-sm font-semibold text-slate-600">
-              Username
+               {t('auth.username')}
               <input
                 value={formValues.username}
                 onChange={(event) => handleInputChange('username', event.target.value)}
@@ -82,7 +84,7 @@ export default function EditChildAccountForm({
               {mergedFieldErrors.username ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.username}</p> : null}
             </label>
             <label className="block text-sm font-semibold text-slate-600">
-              First Name
+               {t('auth.firstName')}
               <input
                 value={formValues.firstName}
                 onChange={(event) => handleInputChange('firstName', event.target.value)}
@@ -93,7 +95,7 @@ export default function EditChildAccountForm({
               {mergedFieldErrors.firstName ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.firstName}</p> : null}
             </label>
             <label className="block text-sm font-semibold text-slate-600">
-              Last Name
+               {t('auth.lastName')}
               <input
                 value={formValues.lastName}
                 onChange={(event) => handleInputChange('lastName', event.target.value)}
@@ -104,7 +106,7 @@ export default function EditChildAccountForm({
               {mergedFieldErrors.lastName ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.lastName}</p> : null}
             </label>
             <label className="block text-sm font-semibold text-slate-600">
-              Display Name
+               {t('children.displayName')}
               <input
                 value={formValues.displayName}
                 onChange={(event) => handleInputChange('displayName', event.target.value)}
@@ -117,14 +119,14 @@ export default function EditChildAccountForm({
           </div>
           <div className="mt-5 flex justify-end gap-2">
             <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 px-3 py-2 text-slate-700">
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="rounded-lg bg-primary-600 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
             >
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
+              {isSubmitting ? t('common.saving') : t('common.saveChanges')}
             </button>
           </div>
         </form>

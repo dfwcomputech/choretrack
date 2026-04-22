@@ -101,7 +101,42 @@
     },
     "progressTitle": "Progreso de Nivel",
     "level": "Nivel",
-    "pointsToNext": "puntos al siguiente nivel"
+    "pointsToNext": "puntos al siguiente nivel",
+    "managementTitle": "Gestión de Recompensas",
+    "addReward": "Agregar Recompensa",
+    "editReward": "Editar Recompensa",
+    "deleteReward": "Eliminar Recompensa",
+    "thisReward": "esta recompensa",
+    "deleteConfirm": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
+    "empty": "Aún no hay recompensas configuradas.",
+    "name": "Nombre",
+    "description": "Descripción",
+    "pointCost": "Costo en Puntos",
+    "category": "Categoría",
+    "activeReward": "Recompensa activa",
+    "placeholders": {
+      "name": "Aventura de fin de semana",
+      "description": "Noche de película con palomitas",
+      "category": "DIVERSIÓN"
+    },
+    "validation": {
+      "nameRequired": "El nombre es obligatorio.",
+      "pointCostPositive": "El costo en puntos debe ser positivo."
+    },
+    "defaultRewards": {
+      "icecream": {
+        "name": "Comer helado",
+        "description": "Elige tu helado favorito."
+      },
+      "gaming": {
+        "name": "Tiempo extra de videojuegos",
+        "description": "Desbloquea 30 minutos extra de juego."
+      },
+      "movies": {
+        "name": "Ir al cine",
+        "description": "Elige una noche de cine en familia."
+      }
+    }
   },
   "benefits": {
     "title": "Por Qué los Padres Aman ChoreTrack",
@@ -198,6 +233,221 @@
     "primary": "Crea Tu Cuenta Gratuita",
     "secondary": "¿Ya tienes una cuenta?",
     "login": "Inicia sesión aquí"
+  },
+  "common": {
+    "logout": "Cerrar sesión",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "saveChanges": "Guardar cambios",
+    "saving": "Guardando...",
+    "adding": "Agregando...",
+    "deleting": "Eliminando...",
+    "creating": "Creando...",
+    "complete": "Completar",
+    "completed": "Completado",
+    "pending": "Pendiente",
+    "done": "Hecho",
+    "points": "Puntos",
+    "pts": "pts",
+    "levelWithCount": "Nivel {{count}}"
+  },
+  "language": {
+    "switchToSpanish": "Cambiar a español",
+    "switchToEnglish": "Cambiar a inglés"
+  },
+  "auth": {
+    "backToLanding": "Volver a la página principal",
+    "needAccount": "¿Necesitas una cuenta?",
+    "createAccount": "Crear cuenta",
+    "haveAccount": "¿Ya tienes una cuenta?",
+    "logIn": "Iniciar sesión",
+    "accountCreatedLoginPrompt": "Cuenta creada correctamente. Inicia sesión para continuar.",
+    "loginTitle": "Inicia sesión en ChoreTrack",
+    "loginSubtitle": "¡Bienvenido de nuevo! Ingresa los datos de tu cuenta para continuar.",
+    "registerTitle": "Crea tu cuenta",
+    "registerSubtitle": "Comienza con ChoreTrack en menos de un minuto.",
+    "usernameOrEmail": "Usuario o correo electrónico",
+    "username": "Usuario",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "loggingIn": "Iniciando sesión...",
+    "loginButton": "Iniciar sesión",
+    "creatingAccount": "Creando cuenta...",
+    "accountCreatedRedirecting": "Cuenta creada correctamente. Redirigiendo a tu panel...",
+    "validation": {
+      "usernameOrEmailRequired": "El usuario o correo es obligatorio.",
+      "validEmail": "Ingresa un correo electrónico válido.",
+      "passwordRequired": "La contraseña es obligatoria.",
+      "loginFailed": "No se puede iniciar sesión ahora. Inténtalo de nuevo.",
+      "usernameRequired": "El usuario es obligatorio.",
+      "emailRequired": "El correo electrónico es obligatorio.",
+      "passwordMinLength": "La contraseña debe tener al menos {{count}} caracteres.",
+      "confirmPasswordRequired": "Confirma tu contraseña.",
+      "passwordsMustMatch": "Las contraseñas deben coincidir.",
+      "firstNameRequired": "El nombre es obligatorio.",
+      "lastNameRequired": "El apellido es obligatorio.",
+      "registerFailed": "No se puede crear tu cuenta ahora. Inténtalo de nuevo.",
+      "fixHighlighted": "Corrige los campos resaltados."
+    }
+  },
+  "dashboard": {
+    "fallbackParentName": "Padre",
+    "fallbackChildName": "Niño",
+    "parentRole": "Padre",
+    "parentRoleLowercase": "padre",
+    "childRole": "Niño",
+    "parentMenu": "Menú de padres",
+    "expandSidebar": "Expandir barra lateral",
+    "collapseSidebar": "Contraer barra lateral",
+    "welcomeBack": "Bienvenido de nuevo, {{name}}",
+    "parentSummary": "Sigue el progreso, las tareas y las recompensas de cada hijo desde tu panel.",
+    "pointsToNextLevel": "{{points}} puntos para el Nivel {{level}}",
+    "settingsSoon": "Pronto habrá más ajustes para padres.",
+    "nav": {
+      "dashboard": "Panel",
+      "kin": "Familia",
+      "chores": "Tareas",
+      "rewards": "Recompensas",
+      "settings": "Configuración"
+    },
+    "success": {
+      "accountCreatedWelcome": "Cuenta creada correctamente. ¡Bienvenido, {{name}}!",
+      "choreCreated": "Tarea creada correctamente.",
+      "choreUpdated": "Tarea actualizada correctamente.",
+      "choreDeleted": "Tarea eliminada correctamente.",
+      "rewardCreated": "Recompensa creada correctamente.",
+      "rewardUpdated": "Recompensa actualizada correctamente.",
+      "rewardDeleted": "Recompensa eliminada correctamente.",
+      "childAdded": "{{name}} se agregó a tu familia.",
+      "childUpdated": "{{name}} se actualizó.",
+      "childRemoved": "{{name}} se eliminó de tu panel.",
+      "childChoreCompleted": "¡Buen trabajo! +{{points}} puntos ganados.",
+      "childChoreReverted": "Se movió de nuevo a pendiente.",
+      "childChoreRevertedWithPoints": "Se movió de nuevo a pendiente. Se quitaron {{pointsRemoved}} puntos."
+    },
+    "errors": {
+      "completeChoreFailed": "No se puede completar la tarea. Inténtalo de nuevo.",
+      "revertChoreFailed": "No se puede mover la tarea a pendiente. Inténtalo de nuevo.",
+      "createChoreFailed": "No se puede crear la tarea. Inténtalo de nuevo.",
+      "updateChoreFailed": "No se puede actualizar la tarea. Inténtalo de nuevo.",
+      "deleteChoreFailed": "No se puede eliminar la tarea. Inténtalo de nuevo.",
+      "createRewardFailed": "No se puede crear la recompensa. Inténtalo de nuevo.",
+      "updateRewardFailed": "No se puede actualizar la recompensa. Inténtalo de nuevo.",
+      "deleteRewardFailed": "No se puede eliminar la recompensa. Inténtalo de nuevo.",
+      "createChildFailed": "No se puede crear la cuenta infantil. Inténtalo de nuevo.",
+      "updateChildFailed": "No se puede actualizar la cuenta infantil. Inténtalo de nuevo.",
+      "deleteChildFailed": "No se puede eliminar la cuenta infantil. Inténtalo de nuevo."
+    }
+  },
+  "children": {
+    "addChildAccount": "Agregar cuenta infantil",
+    "empty": "Aún no se han agregado hijos.",
+    "progressTitle": "Progreso de la Familia",
+    "progressSubtitle": "Sigue el nivel, puntos y próxima recompensa de Pase de Batalla de cada hijo.",
+    "progressEmpty": "Agrega una cuenta infantil para empezar a seguir el progreso.",
+    "progressToNextLevel": "Progreso al siguiente nivel: {{percent}}%",
+    "nextReward": "Siguiente recompensa",
+    "createChildAccount": "Crear cuenta infantil",
+    "editChildAccount": "Editar cuenta infantil",
+    "removeChildAccount": "Eliminar cuenta infantil",
+    "removeConfirm": "¿Seguro que quieres eliminar la cuenta infantil de {{name}}? Ya no aparecerá en tu panel.",
+    "thisChild": "este",
+    "displayName": "Nombre visible",
+    "addChild": "Agregar hijo",
+    "removeChild": "Eliminar hijo",
+    "removing": "Eliminando...",
+    "moving": "Moviendo...",
+    "moveToPending": "Mover a pendiente",
+    "choreMissions": "Misiones de tareas",
+    "choreMissionsSubtitle": "Completa tareas para desbloquear tu próxima recompensa del Pase de Batalla.",
+    "noPendingChores": "No hay tareas pendientes. ¡Buen trabajo!",
+    "noCompletedChores": "¡Completa tareas para iniciar tu racha!",
+    "calendarTitle": "Calendario de {{month}}",
+    "calendarSubtitle": "Mira qué vence cada día de este mes.",
+    "weekdayLabels": ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+    "moreCount": "+{{count}} más",
+    "placeholders": {
+      "username": "avery123",
+      "password": "••••••••",
+      "firstName": "Avery",
+      "lastName": "Johnson",
+      "displayName": "Avery J"
+    },
+    "validation": {
+      "usernameRequired": "El usuario es obligatorio.",
+      "usernamePattern": "El usuario solo puede incluir letras, números y guiones bajos.",
+      "passwordRequired": "La contraseña es obligatoria.",
+      "passwordMinLength": "La contraseña debe tener al menos 8 caracteres.",
+      "firstNameRequired": "El nombre es obligatorio."
+    }
+  },
+  "chores": {
+    "addChore": "Agregar tarea",
+    "editChore": "Editar tarea",
+    "deleteChore": "Eliminar tarea",
+    "thisChore": "esta tarea",
+    "deleteConfirm": "¿Seguro que quieres eliminar \"{{title}}\"? Esta acción no se puede deshacer.",
+    "empty": "Aún no se han creado tareas.",
+    "title": "Título",
+    "description": "Descripción",
+    "assignedChild": "Hijo asignado",
+    "selectChild": "Selecciona un hijo",
+    "dueDate": "Fecha de vencimiento",
+    "due": "Vence",
+    "status": "Estado",
+    "markPending": "Marcar pendiente",
+    "markComplete": "Marcar completada",
+    "unassigned": "Sin asignar",
+    "noDueDate": "Sin fecha de vencimiento",
+    "completing": "Completando...",
+    "placeholders": {
+      "title": "Sacar la basura",
+      "description": "Vaciar el lavavajillas y limpiar los mostradores"
+    },
+    "validation": {
+      "titleRequired": "El título es obligatorio.",
+      "pointsPositive": "Los puntos deben ser positivos.",
+      "assignedChildRequired": "El hijo asignado es obligatorio.",
+      "assignedChildInvalid": "Selecciona una cuenta infantil válida."
+    }
+  },
+  "seasonPass": {
+    "builderTitle": "Constructor de Pase de Temporada",
+    "builderSubtitle": "Los hitos se agrupan automáticamente por puntos de recompensa ({{rewards}} recompensas en {{milestones}} hitos).",
+    "multiOptionSummary": "{{count}} hito(s) ofrecen actualmente la opción de “Elegir 1 recompensa”.",
+    "save": "Guardar Pase de Temporada",
+    "saved": "Pase de Temporada guardado correctamente.",
+    "addRewardsFirst": "Agrega recompensas primero para construir tu pase de temporada.",
+    "chooseOneOptions": "Elegir 1 ({{count}} opciones)",
+    "chooseOneOfRewards": "Elige 1 de {{count}} recompensas",
+    "noneAssigned": "No hay recompensa de temporada asignada",
+    "defaultRewardName": "Recompensa de temporada",
+    "defaultRewardDescription": "Recompensa de Pase de Temporada"
+  },
+  "battlePass": {
+    "title": "Pase de Batalla",
+    "allUnlocked": "¡Todo desbloqueado!",
+    "reward": "Recompensa",
+    "chooseRewardOptions": "Elige 1 recompensa ({{count}} opciones)",
+    "pointsEarned": "{{points}} puntos ganados",
+    "noSeasonPass": "Tu padre aún no ha creado un Pase de Temporada.",
+    "pointsToLevel": "{{points}} / {{nextLevelPoints}} puntos para el nivel {{nextLevel}}",
+    "nextUnlock": "Próximo desbloqueo",
+    "progressAriaLabel": "Progreso del Pase de Batalla",
+    "pointsUntilNextLevel": "¡{{points}} puntos para subir al siguiente nivel!",
+    "unlockAtPoints": "Desbloquea en {{points}} pts",
+    "chooseRewardOptionsAvailable": "Elige 1 recompensa · {{count}} opciones disponibles",
+    "unlocked": "Desbloqueado",
+    "locked": "Bloqueado"
+  },
+  "childDashboard": {
+    "title": "Panel infantil",
+    "greeting": "¡Hola {{name}}!",
+    "subtitle": "Completa tareas, gana puntos y desbloquea recompensas increíbles."
   },
   "footer": {
     "brand": "ChoreTrack",

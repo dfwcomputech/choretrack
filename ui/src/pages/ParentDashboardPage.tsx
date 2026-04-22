@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactElement } from 'react'
+import { useTranslation } from 'react-i18next'
 import ChoresSection from '../components/dashboard/ChoresSection'
 import KinSection from '../components/dashboard/KinSection'
 import type { ChoreItem, KidAccount, RewardItem } from '../components/dashboard/types'
@@ -83,6 +84,7 @@ export default function ParentDashboardPage({
   onEditChild,
   onDeleteChild,
 }: ParentDashboardPageProps) {
+  const { t } = useTranslation()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [seasonPassMessage, setSeasonPassMessage] = useState('')
 
@@ -107,9 +109,9 @@ export default function ParentDashboardPage({
         (seasonPassMilestones.length > 0 ? seasonPassMilestones[seasonPassMilestones.length - 1] : null)
       const nextRewardName = nextMilestone
         ? nextMilestone.rewards.length > 1
-          ? `Choose 1 of ${nextMilestone.rewards.length} rewards`
-          : nextMilestone.rewards[0]?.name ?? 'Season reward'
-        : 'No season reward assigned'
+          ? t('seasonPass.chooseOneOfRewards', { count: nextMilestone.rewards.length })
+          : nextMilestone.rewards[0]?.name ?? t('seasonPass.defaultRewardName')
+        : t('seasonPass.noneAssigned')
 
       return {
         id: kid.id,
@@ -121,7 +123,7 @@ export default function ParentDashboardPage({
         nextRewardName,
       }
     })
-  }, [chores, kids, seasonPassMilestones])
+  }, [chores, kids, seasonPassMilestones, t])
 
   const handleSaveSeasonPass = () => {
     const storedSeasonPass: StoredSeasonPassMilestone[] = seasonPassMilestones.map((milestone, index) => ({
@@ -131,19 +133,19 @@ export default function ParentDashboardPage({
       rewards: milestone.rewards.map((reward) => ({
         id: reward.id,
         title: reward.name,
-        description: reward.description || 'Season Pass reward',
+        description: reward.description || t('seasonPass.defaultRewardDescription'),
         icon: reward.icon,
       })),
     }))
     localStorage.setItem(STORAGE_KEY, JSON.stringify(storedSeasonPass))
-    setSeasonPassMessage('Season Pass saved successfully.')
+    setSeasonPassMessage(t('seasonPass.saved'))
   }
 
   const dashboardContent = (
     <div className="space-y-6">
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900">Welcome back, {parentName}</h1>
-        <p className="mt-3 text-base text-slate-600">Track each child's progress, chores, and rewards from your dashboard.</p>
+        <h1 className="text-4xl font-bold tracking-tight text-slate-900">{t('dashboard.welcomeBack', { name: parentName })}</h1>
+        <p className="mt-3 text-base text-slate-600">{t('dashboard.parentSummary')}</p>
       </section>
       <KinProgressSection childrenProgress={childProgress} />
       <div className="grid gap-6 xl:grid-cols-2">
@@ -179,8 +181,8 @@ export default function ParentDashboardPage({
     ),
     settings: (
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-slate-900">Settings</h2>
-        <p className="mt-2 text-sm text-slate-600">More parent settings are coming soon.</p>
+        <h2 className="text-2xl font-bold text-slate-900">{t('dashboard.nav.settings')}</h2>
+        <p className="mt-2 text-sm text-slate-600">{t('dashboard.settingsSoon')}</p>
       </section>
     ),
   }
