@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import DashboardHeader from '../components/layout/DashboardHeader'
@@ -53,8 +53,13 @@ interface DashboardState {
   firstName?: string
 }
 
+interface JwtPayload {
+  sub?: string
+}
+
 const fallbackParentName = 'Parent'
 const fallbackChildName = 'Kid'
+const BASE64_PADDING_MULTIPLE = 4
 const defaultRewards: RewardItem[] = [
   {
     id: 'local-reward-icecream',
@@ -139,12 +144,35 @@ const toRewardItem = (reward: RewardResponse): RewardItem => ({
   icon: '🎁',
 })
 
+const getTokenSubject = (token: string): string => {
+  if (!token.trim()) return ''
+
+  const tokenParts = token.split('.')
+  if (tokenParts.length !== 3) return ''
+  const [, payload] = tokenParts
+  if (!payload) return ''
+
+  try {
+    const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const paddedPayload = normalizedPayload.padEnd(
+      Math.ceil(normalizedPayload.length / BASE64_PADDING_MULTIPLE) * BASE64_PADDING_MULTIPLE,
+      '=',
+    )
+    const decodedPayload = JSON.parse(atob(paddedPayload)) as JwtPayload
+    return decodedPayload.sub?.trim() ?? ''
+  } catch {
+    return ''
+  }
+}
+
 export default function DashboardPage() {
   const { logout, token } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const state = (location.state as DashboardState | null) ?? null
-  const parentName = state?.firstName?.trim() || state?.username?.trim() || fallbackParentName
+  // Token verification is enforced by backend APIs; this is only a UI fallback for displaying a name.
+  const tokenSubject = useMemo(() => getTokenSubject(token), [token])
+  const parentName = state?.firstName?.trim() || state?.username?.trim() || tokenSubject || fallbackParentName
   const [activeNav, setActiveNav] = useState('dashboard')
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isAddChoreOpen, setIsAddChoreOpen] = useState(false)
@@ -864,9 +892,6 @@ export default function DashboardPage() {
       ) : (
         <ParentDashboardPage
           parentName={parentName}
-          points={points}
-          level={level}
-          nextLevelPoints={nextLevelPoints}
           kids={kids}
           chores={chores}
           rewards={rewards}
