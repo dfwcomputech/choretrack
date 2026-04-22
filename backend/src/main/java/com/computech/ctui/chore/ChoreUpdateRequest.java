@@ -2,6 +2,7 @@ package com.computech.ctui.chore;
 
 import java.time.LocalDate;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -19,5 +20,16 @@ public record ChoreUpdateRequest(
 		@NotBlank(message = "assignedChildId is required")
 		String assignedChildId,
 		LocalDate dueDate,
-		ChoreStatus status) {
+		ChoreStatus status,
+		@Valid ChoreRecurrenceRequest recurrence) {
+
+	public ChoreUpdateRequest(
+			final String title,
+			final String description,
+			final Integer points,
+			final String assignedChildId,
+			final LocalDate dueDate,
+			final ChoreStatus status) {
+		this(title, description, points, assignedChildId, dueDate, status, null);
+	}
 }

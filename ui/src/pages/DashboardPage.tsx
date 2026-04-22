@@ -473,8 +473,9 @@ export default function DashboardPage() {
     setCreateChoreFieldErrors({})
     setIsCreatingChore(true)
     try {
-      const createdChore = await createChore(payload, token)
-      setChores((prev) => [toChoreItem(createdChore), ...prev])
+      await createChore(payload, token)
+      const refreshedChores = await listChores(token)
+      setChores(refreshedChores.map(toChoreItem))
       setChoreSuccessMessage(t('dashboard.success.choreCreated'))
       setIsAddChoreOpen(false)
     } catch (error) {
@@ -512,8 +513,9 @@ export default function DashboardPage() {
     setUpdateChoreFieldErrors({})
     setIsUpdatingChore(true)
     try {
-      const updatedChore = await updateChore(selectedChore.id, payload, token)
-      setChores((prev) => prev.map((chore) => (chore.id === selectedChore.id ? toChoreItem(updatedChore) : chore)))
+      await updateChore(selectedChore.id, payload, token)
+      const refreshedChores = await listChores(token)
+      setChores(refreshedChores.map(toChoreItem))
       setChoreSuccessMessage(t('dashboard.success.choreUpdated'))
       setIsEditChoreOpen(false)
       setSelectedChore(null)

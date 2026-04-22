@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,47 @@ class ChoreServiceUnitTests {
 		assertThat(created.assignedChildId()).isEqualTo(child.id());
 		assertThat(created.assignedChildName()).isEqualTo("Preston");
 		assertThat(created.status()).isEqualTo(ChoreStatus.PENDING);
+	}
+
+	@Test
+	void createsRecurringDailyChoresForWeekdaysOnly() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				"Before school",
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING,
+				new ChoreRecurrenceRequest(
+						RecurrenceType.DAILY,
+						LocalDate.parse("2026-04-24"),
+						LocalDate.parse("2026-05-01"),
+						Set.of(
+								RecurrenceDayOfWeek.MON,
+								RecurrenceDayOfWeek.TUE,
+								RecurrenceDayOfWeek.WED,
+								RecurrenceDayOfWeek.THU,
+								RecurrenceDayOfWeek.FRI),
+						"before school")), "angie");
+
+		final List<ChoreResponse> chores = choreService.listActiveChores("angie")
+				.stream()
+				.filter(chore -> "Feed Jessie".equals(chore.title()))
+				.sorted((left, right) -> left.dueDate().compareTo(right.dueDate()))
+				.toList();
+
+		assertThat(chores).hasSize(6);
+		assertThat(chores).extracting(ChoreResponse::dueDate).containsExactly(
+				LocalDate.parse("2026-04-24"),
+				LocalDate.parse("2026-04-27"),
+				LocalDate.parse("2026-04-28"),
+				LocalDate.parse("2026-04-29"),
+				LocalDate.parse("2026-04-30"),
+				LocalDate.parse("2026-05-01"));
 	}
 
 	@Test
@@ -106,6 +148,44 @@ class ChoreServiceUnitTests {
 
 		final List<ChoreResponse> activeChores = choreService.listActiveChores("angie");
 		assertThat(activeChores).isEmpty();
+	}
+
+	@Test
+	void deletingRecurringOccurrenceStopsFutureOccurrencesOnly() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING,
+				new ChoreRecurrenceRequest(
+						RecurrenceType.DAILY,
+						LocalDate.parse("2026-04-24"),
+						LocalDate.parse("2026-04-28"),
+						null,
+						null)), "angie");
+
+		final ChoreResponse targetOccurrence = choreService.listActiveChores("angie")
+				.stream()
+				.filter(chore -> LocalDate.parse("2026-04-26").equals(chore.dueDate()))
+				.findFirst()
+				.orElseThrow();
+		choreService.deleteChore(targetOccurrence.id(), "angie");
+
+		final List<LocalDate> remainingDueDates = choreService.listActiveChores("angie")
+				.stream()
+				.map(ChoreResponse::dueDate)
+				.sorted()
+				.toList();
+
+		assertThat(remainingDueDates).containsExactly(
+				LocalDate.parse("2026-04-24"),
+				LocalDate.parse("2026-04-25"));
 	}
 
 	@Test

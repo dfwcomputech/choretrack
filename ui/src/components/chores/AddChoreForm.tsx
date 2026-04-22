@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { KidAccount } from '../dashboard/types'
-import type { CreateChorePayload } from '../../services/choreService'
+import type { CreateChorePayload, RecurrenceDayOfWeek } from '../../services/choreService'
 
 interface AddChoreFormProps {
   isOpen: boolean
@@ -20,7 +20,22 @@ interface ChoreFormValues {
   assignedChildId: string
   dueDate: string
   status: 'PENDING' | 'COMPLETED'
+  repeatDaily: boolean
+  recurrenceStartDate: string
+  recurrenceEndDate: string
+  recurrenceDaysOfWeek: RecurrenceDayOfWeek[]
+  recurrenceTimeOfDay: string
 }
+
+const recurrenceDayOptions: Array<{ value: RecurrenceDayOfWeek; label: string }> = [
+  { value: 'MON', label: 'Mon' },
+  { value: 'TUE', label: 'Tue' },
+  { value: 'WED', label: 'Wed' },
+  { value: 'THU', label: 'Thu' },
+  { value: 'FRI', label: 'Fri' },
+  { value: 'SAT', label: 'Sat' },
+  { value: 'SUN', label: 'Sun' },
+]
 
 export default function AddChoreForm({ isOpen, isSubmitting, kids, errorMessage, fieldErrors, onClose, onSubmit }: AddChoreFormProps) {
   const { t } = useTranslation()
@@ -31,6 +46,11 @@ export default function AddChoreForm({ isOpen, isSubmitting, kids, errorMessage,
     assignedChildId: kids[0]?.id ?? '',
     dueDate: '',
     status: 'PENDING',
+    repeatDaily: false,
+    recurrenceStartDate: '',
+    recurrenceEndDate: '',
+    recurrenceDaysOfWeek: [],
+    recurrenceTimeOfDay: '',
   })
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
@@ -40,6 +60,13 @@ export default function AddChoreForm({ isOpen, isSubmitting, kids, errorMessage,
   const handleInputChange = <T extends keyof ChoreFormValues>(field: T, value: ChoreFormValues[T]) => {
     setFormValues((prev) => ({ ...prev, [field]: value }))
     setValidationErrors((prev) => ({ ...prev, [field]: '' }))
+  }
+
+  const toggleRecurrenceDay = (day: RecurrenceDayOfWeek) => {
+    const nextDays = formValues.recurrenceDaysOfWeek.includes(day)
+      ? formValues.recurrenceDaysOfWeek.filter((selectedDay) => selectedDay !== day)
+      : [...formValues.recurrenceDaysOfWeek, day]
+    handleInputChange('recurrenceDaysOfWeek', nextDays)
   }
 
   const validate = () => {
@@ -55,6 +82,21 @@ export default function AddChoreForm({ isOpen, isSubmitting, kids, errorMessage,
     } else if (!kids.some((kid) => kid.id === selectedChildId)) {
       nextErrors.assignedChildId = t('chores.validation.assignedChildInvalid')
     }
+    if (formValues.repeatDaily) {
+      if (!formValues.recurrenceStartDate) {
+        nextErrors.recurrenceStartDate = t('chores.validation.recurrenceStartDateRequired')
+      }
+      if (!formValues.recurrenceEndDate) {
+        nextErrors.recurrenceEndDate = t('chores.validation.recurrenceEndDateRequired')
+      }
+      if (
+        formValues.recurrenceStartDate &&
+        formValues.recurrenceEndDate &&
+        formValues.recurrenceEndDate < formValues.recurrenceStartDate
+      ) {
+        nextErrors.recurrenceEndDate = t('chores.validation.recurrenceEndDateAfterStart')
+      }
+    }
     setValidationErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
   }
@@ -66,8 +108,17 @@ export default function AddChoreForm({ isOpen, isSubmitting, kids, errorMessage,
       description: formValues.description.trim(),
       points: formValues.points,
       assignedChildId: selectedChildId,
-      dueDate: formValues.dueDate || undefined,
+      dueDate: formValues.repeatDaily ? formValues.recurrenceStartDate || undefined : formValues.dueDate || undefined,
       status: formValues.status,
+      recurrence: formValues.repeatDaily
+        ? {
+            type: 'DAILY',
+            startDate: formValues.recurrenceStartDate,
+            endDate: formValues.recurrenceEndDate,
+            daysOfWeek: formValues.recurrenceDaysOfWeek.length > 0 ? formValues.recurrenceDaysOfWeek : undefined,
+            timeOfDay: formValues.recurrenceTimeOfDay.trim() || undefined,
+          }
+        : undefined,
     })
   }
 
@@ -144,16 +195,85 @@ export default function AddChoreForm({ isOpen, isSubmitting, kids, errorMessage,
               />
               {mergedFieldErrors.points ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.points}</p> : null}
             </label>
-            <label htmlFor="add-chore-due-date" className="block text-sm font-semibold text-slate-600">
-              {t('chores.dueDate')}
+
+            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
               <input
-                id="add-chore-due-date"
-                type="date"
-                value={formValues.dueDate}
-                onChange={(event) => handleInputChange('dueDate', event.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                type="checkbox"
+                checked={formValues.repeatDaily}
+                onChange={(event) => handleInputChange('repeatDaily', event.target.checked)}
+                className="h-4 w-4 rounded border-slate-300"
               />
+              {t('chores.repeatDaily')}
             </label>
+
+            {formValues.repeatDaily ? (
+              <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <label htmlFor="add-chore-recurrence-start-date" className="block text-sm font-semibold text-slate-600">
+                  {t('chores.recurrenceStartDate')}
+                  <input
+                    id="add-chore-recurrence-start-date"
+                    type="date"
+                    value={formValues.recurrenceStartDate}
+                    onChange={(event) => handleInputChange('recurrenceStartDate', event.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                    aria-invalid={Boolean(mergedFieldErrors.recurrenceStartDate)}
+                  />
+                  {mergedFieldErrors.recurrenceStartDate ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.recurrenceStartDate}</p> : null}
+                </label>
+                <label htmlFor="add-chore-recurrence-end-date" className="block text-sm font-semibold text-slate-600">
+                  {t('chores.recurrenceEndDate')}
+                  <input
+                    id="add-chore-recurrence-end-date"
+                    type="date"
+                    value={formValues.recurrenceEndDate}
+                    onChange={(event) => handleInputChange('recurrenceEndDate', event.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                    aria-invalid={Boolean(mergedFieldErrors.recurrenceEndDate)}
+                  />
+                  {mergedFieldErrors.recurrenceEndDate ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.recurrenceEndDate}</p> : null}
+                </label>
+                <div>
+                  <p className="text-sm font-semibold text-slate-600">{t('chores.recurrenceDaysOfWeek')}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {recurrenceDayOptions.map((day) => {
+                      const selected = formValues.recurrenceDaysOfWeek.includes(day.value)
+                      return (
+                        <button
+                          key={day.value}
+                          type="button"
+                          onClick={() => toggleRecurrenceDay(day.value)}
+                          className={`rounded-full border px-3 py-1 text-xs font-semibold ${selected ? 'border-primary-600 bg-primary-100 text-primary-800' : 'border-slate-300 bg-white text-slate-700'}`}
+                        >
+                          {day.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+                <label htmlFor="add-chore-recurrence-time" className="block text-sm font-semibold text-slate-600">
+                  {t('chores.recurrenceTimeOfDay')}
+                  <input
+                    id="add-chore-recurrence-time"
+                    value={formValues.recurrenceTimeOfDay}
+                    onChange={(event) => handleInputChange('recurrenceTimeOfDay', event.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                    placeholder={t('chores.placeholders.recurrenceTimeOfDay')}
+                  />
+                </label>
+              </div>
+            ) : (
+              <label htmlFor="add-chore-due-date" className="block text-sm font-semibold text-slate-600">
+                {t('chores.dueDate')}
+                <input
+                  id="add-chore-due-date"
+                  type="date"
+                  value={formValues.dueDate}
+                  onChange={(event) => handleInputChange('dueDate', event.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </label>
+            )}
+
             <label htmlFor="add-chore-status" className="block text-sm font-semibold text-slate-600">
               {t('chores.status')}
               <select

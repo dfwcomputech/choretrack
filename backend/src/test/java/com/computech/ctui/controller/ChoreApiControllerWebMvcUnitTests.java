@@ -84,6 +84,43 @@ class ChoreApiControllerWebMvcUnitTests {
 	}
 
 	@Test
+	void createRecurringChoreAcceptsRecurrencePayload() throws Exception {
+		when(choreService.createChore(any(), eq("angie"))).thenReturn(new ChoreResponse(
+				"chore-123",
+				"Feed Jessie",
+				"Before school",
+				10,
+				"child-123",
+				"Preston",
+				LocalDate.parse("2026-04-25"),
+				ChoreStatus.PENDING,
+				Instant.parse("2026-04-19T10:00:00Z"),
+				Instant.parse("2026-04-19T10:00:00Z")));
+
+		mockMvc.perform(post("/api/chores")
+				.principal(new UsernamePasswordAuthenticationToken("angie", "n/a", List.of()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{
+						  "title":"Feed Jessie",
+						  "description":"Before school",
+						  "points":10,
+						  "assignedChildId":"child-123",
+						  "recurrence":{
+						    "type":"DAILY",
+						    "startDate":"2026-04-25",
+						    "endDate":"2026-05-02",
+						    "daysOfWeek":["MON","TUE","WED","THU","FRI"],
+						    "timeOfDay":"before school"
+						  }
+						}
+						"""))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.title").value("Feed Jessie"))
+				.andExpect(jsonPath("$.status").value("PENDING"));
+	}
+
+	@Test
 	void createChoreReturnsBadRequestForInvalidPayload() throws Exception {
 		mockMvc.perform(post("/api/chores")
 				.principal(new UsernamePasswordAuthenticationToken("angie", "n/a", List.of()))
