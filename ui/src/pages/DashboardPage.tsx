@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import DashboardHeader from '../components/layout/DashboardHeader'
@@ -51,6 +51,10 @@ interface DashboardState {
   registered?: boolean
   username?: string
   firstName?: string
+}
+
+interface JwtPayload {
+  sub?: string
 }
 
 const fallbackParentName = 'Parent'
@@ -152,8 +156,8 @@ const getTokenSubject = (token: string): string => {
       Math.ceil(normalizedPayload.length / BASE64_PADDING_MULTIPLE) * BASE64_PADDING_MULTIPLE,
       '=',
     )
-    const decodedPayload = JSON.parse(atob(paddedPayload)) as { sub?: unknown }
-    return typeof decodedPayload.sub === 'string' ? decodedPayload.sub.trim() : ''
+    const decodedPayload = JSON.parse(atob(paddedPayload)) as JwtPayload
+    return decodedPayload.sub?.trim() ?? ''
   } catch {
     return ''
   }
@@ -164,7 +168,8 @@ export default function DashboardPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const state = (location.state as DashboardState | null) ?? null
-  const parentName = state?.firstName?.trim() || state?.username?.trim() || getTokenSubject(token) || fallbackParentName
+  const tokenSubject = useMemo(() => getTokenSubject(token), [token])
+  const parentName = state?.firstName?.trim() || state?.username?.trim() || tokenSubject || fallbackParentName
   const [activeNav, setActiveNav] = useState('dashboard')
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isAddChoreOpen, setIsAddChoreOpen] = useState(false)
