@@ -29,19 +29,54 @@ const parseSeasonPassMilestones = (): RewardMilestone[] => {
     const parsed = JSON.parse(raw) as unknown
     if (!Array.isArray(parsed)) return []
     return parsed
-      .map((entry) => {
-        const record = entry as Partial<RewardMilestone>
+      .map((entry, index) => {
+        const record = entry as Partial<RewardMilestone> & {
+          title?: string
+          description?: string
+          icon?: string
+          rewardId?: string
+        }
         if (typeof record.id !== 'string' || !record.id.trim()) return null
-        if (typeof record.title !== 'string' || !record.title.trim()) return null
-        if (typeof record.description !== 'string') return null
-        if (typeof record.icon !== 'string' || !record.icon.trim()) return null
         if (typeof record.pointsRequired !== 'number' || !Number.isFinite(record.pointsRequired)) return null
+
+        const parsedRewards = Array.isArray(record.rewards)
+          ? record.rewards
+              .map((reward) => {
+                const rewardRecord = reward as {
+                  id?: string
+                  title?: string
+                  description?: string
+                  icon?: string
+                }
+                if (typeof rewardRecord.id !== 'string' || !rewardRecord.id.trim()) return null
+                if (typeof rewardRecord.title !== 'string' || !rewardRecord.title.trim()) return null
+                if (typeof rewardRecord.description !== 'string') return null
+                if (typeof rewardRecord.icon !== 'string' || !rewardRecord.icon.trim()) return null
+                return {
+                  id: rewardRecord.id,
+                  title: rewardRecord.title,
+                  description: rewardRecord.description,
+                  icon: rewardRecord.icon,
+                }
+              })
+              .filter((reward): reward is RewardMilestone['rewards'][number] => Boolean(reward))
+          : []
+
+        if (parsedRewards.length === 0 && typeof record.title === 'string' && record.title.trim()) {
+          parsedRewards.push({
+            id: typeof record.rewardId === 'string' && record.rewardId.trim() ? record.rewardId : `${record.id}-reward-${index}`,
+            title: record.title,
+            description: typeof record.description === 'string' ? record.description : 'Season Pass reward',
+            icon: typeof record.icon === 'string' && record.icon.trim() ? record.icon : '🎁',
+          })
+        }
+
+        if (parsedRewards.length === 0) return null
+
         return {
           id: record.id,
-          title: record.title,
-          description: record.description,
-          icon: record.icon,
           pointsRequired: record.pointsRequired,
+          rewards: parsedRewards,
         }
       })
       .filter((entry): entry is RewardMilestone => Boolean(entry))

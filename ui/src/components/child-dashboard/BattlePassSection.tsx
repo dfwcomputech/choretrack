@@ -1,9 +1,14 @@
-export interface RewardMilestone {
+export interface MilestoneRewardOption {
   id: string
   title: string
   description: string
   icon: string
+}
+
+export interface RewardMilestone {
+  id: string
   pointsRequired: number
+  rewards: MilestoneRewardOption[]
 }
 
 interface BattlePassSectionProps {
@@ -36,6 +41,11 @@ export default function BattlePassSection({ points, currentLevel, nextLevelPoint
   const sortedMilestones = [...milestones].sort((a, b) => a.pointsRequired - b.pointsRequired)
   const nextMilestone = sortedMilestones.find((milestone) => points < milestone.pointsRequired) ?? null
   const activeMilestoneId = nextMilestone?.id ?? sortedMilestones[sortedMilestones.length - 1]?.id ?? ''
+  const nextMilestoneLabel = !nextMilestone
+    ? 'All unlocked!'
+    : nextMilestone.rewards.length > 1
+      ? `Choose 1 reward (${nextMilestone.rewards.length} options)`
+      : `${nextMilestone.rewards[0]?.icon ?? '🎁'} ${nextMilestone.rewards[0]?.title ?? 'Reward'}`
 
   return (
     <section className="overflow-hidden rounded-3xl border border-primary-200 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 p-6 text-white shadow-lg lg:p-8">
@@ -49,7 +59,7 @@ export default function BattlePassSection({ points, currentLevel, nextLevelPoint
         </div>
         <div className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-right">
           <p className="text-xs font-semibold uppercase tracking-wide text-primary-100">Next unlock</p>
-          <p className="mt-1 text-lg font-bold">{nextMilestone ? `${nextMilestone.icon} ${nextMilestone.title}` : 'All unlocked!'}</p>
+          <p className="mt-1 text-lg font-bold">{nextMilestoneLabel}</p>
         </div>
       </div>
 
@@ -76,6 +86,7 @@ export default function BattlePassSection({ points, currentLevel, nextLevelPoint
         {sortedMilestones.map((milestone) => {
           const unlocked = points >= milestone.pointsRequired
           const isActive = milestone.id === activeMilestoneId
+          const primaryReward = milestone.rewards[0]
           return (
             <article
               key={milestone.id}
@@ -87,10 +98,15 @@ export default function BattlePassSection({ points, currentLevel, nextLevelPoint
                     : 'border-white/20 bg-white/10 text-white'
               }`}
             >
-              <p className="text-2xl">{milestone.icon}</p>
+              <p className="text-2xl">{primaryReward?.icon ?? '🎁'}</p>
               <p className="mt-2 text-sm font-semibold uppercase tracking-wide">Unlock at {milestone.pointsRequired} pts</p>
-              <h3 className="mt-1 text-lg font-bold">{milestone.title}</h3>
-              <p className="mt-1 text-sm opacity-90">{milestone.description}</p>
+              <h3 className="mt-1 text-lg font-bold">{primaryReward?.title ?? 'Season reward'}</h3>
+              <p className="mt-1 text-sm opacity-90">{primaryReward?.description ?? 'Season Pass reward'}</p>
+              {milestone.rewards.length > 1 ? (
+                <p className="mt-2 text-xs font-semibold uppercase tracking-wide">
+                  Choose 1 reward · {milestone.rewards.length} options available
+                </p>
+              ) : null}
               <p className="mt-3 text-xs font-semibold uppercase tracking-wide">{unlocked ? 'Unlocked' : 'Locked'}</p>
             </article>
           )
