@@ -17,12 +17,15 @@ public record Chore(
 		boolean active,
 		Instant deletedAt,
 		Instant completedAt,
-		String completedByChildId) {
+		String completedByChildId,
+		String recurrenceSeriesId,
+		RecurrenceType recurrenceType,
+		String recurrenceTimeOfDay) {
 
 	public Chore(final String id, final String title, final String description, final int points,
 			final String assignedChildId, final LocalDate dueDate, final ChoreStatus status, final String parentId,
 			final Instant createdAt, final Instant updatedAt, final boolean active, final Instant deletedAt) {
 		this(id, title, description, points, assignedChildId, dueDate, status, parentId, createdAt, updatedAt, active,
-				deletedAt, null, null);
+				deletedAt, null, null, null, null, null);
 	}
 }

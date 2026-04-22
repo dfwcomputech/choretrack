@@ -1,4 +1,14 @@
 export type ChoreStatus = 'PENDING' | 'COMPLETED'
+export type RecurrenceType = 'DAILY'
+export type RecurrenceDayOfWeek = 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN'
+
+export interface ChoreRecurrencePayload {
+  type: RecurrenceType
+  startDate: string
+  endDate: string
+  daysOfWeek?: RecurrenceDayOfWeek[]
+  timeOfDay?: string
+}
 
 export interface ChoreResponse {
   id: string
@@ -20,6 +30,7 @@ export interface CreateChorePayload {
   assignedChildId: string
   dueDate?: string
   status?: ChoreStatus
+  recurrence?: ChoreRecurrencePayload
 }
 
 export type UpdateChorePayload = CreateChorePayload

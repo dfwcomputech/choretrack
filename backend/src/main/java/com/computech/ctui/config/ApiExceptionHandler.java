@@ -82,6 +82,12 @@ public class ApiExceptionHandler {
 				.body(new ErrorResponse(exception.getMessage(), null));
 	}
 
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ErrorResponse> handleIllegalArgumentException(final IllegalArgumentException exception) {
+		return ResponseEntity.badRequest()
+				.body(new ErrorResponse(exception.getMessage(), null));
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse> handleUnexpectedException(final Exception exception) {
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

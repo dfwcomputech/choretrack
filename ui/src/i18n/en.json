@@ -397,6 +397,11 @@
     "assignedChild": "Assigned Child",
     "selectChild": "Select a child",
     "dueDate": "Due Date",
+    "repeatDaily": "Repeat Daily",
+    "recurrenceStartDate": "Start Date",
+    "recurrenceEndDate": "End Date",
+    "recurrenceDaysOfWeek": "Days of Week (optional)",
+    "recurrenceTimeOfDay": "Time of Day (optional)",
     "due": "Due",
     "status": "Status",
     "markPending": "Mark pending",
@@ -406,13 +411,17 @@
     "completing": "Completing...",
     "placeholders": {
       "title": "Take out trash",
-      "description": "Empty dishwasher and wipe counters"
+      "description": "Empty dishwasher and wipe counters",
+      "recurrenceTimeOfDay": "Before school"
     },
     "validation": {
       "titleRequired": "Title is required.",
       "pointsPositive": "Points must be positive.",
       "assignedChildRequired": "Assigned child is required.",
-      "assignedChildInvalid": "Please select a valid child account."
+      "assignedChildInvalid": "Please select a valid child account.",
+      "recurrenceStartDateRequired": "Start date is required for daily chores.",
+      "recurrenceEndDateRequired": "End date is required for daily chores.",
+      "recurrenceEndDateAfterStart": "End date must be on or after start date."
     }
   },
   "seasonPass": {
