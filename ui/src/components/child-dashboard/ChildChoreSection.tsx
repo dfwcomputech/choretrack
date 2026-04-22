@@ -33,7 +33,7 @@ export default function ChildChoreSection({ chores, completingChoreId, reverting
   const completedChores = chores.filter((chore) => chore.status === 'COMPLETED' || chore.completed)
 
   const renderChore = (chore: ChoreItem, completed: boolean) => {
-    const canCompleteToday = chore.dueDate === today
+    const canCompleteToday = chore.dueDate != null && chore.dueDate === today
     const completeDisabled = completingChoreId === chore.id || !canCompleteToday
 
     return (
