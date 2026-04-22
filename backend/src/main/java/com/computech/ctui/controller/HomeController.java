@@ -10,4 +10,9 @@ public class HomeController {
 	public String index() {
 		return "forward:/index.html";
 	}
+
+	@GetMapping("/dashboard")
+	public String dashboard() {
+		return "forward:/index.html";
+	}
 }

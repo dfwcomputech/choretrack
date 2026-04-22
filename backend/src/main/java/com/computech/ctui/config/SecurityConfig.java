@@ -41,6 +41,11 @@ public class SecurityConfig {
 						.permitAll()
 						.requestMatchers("/api/**").authenticated()
 						.anyRequest().permitAll())
+				.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint((request, response, ex) -> {
+					response.setStatus(401);
+					response.setContentType("application/json");
+					response.getWriter().write("{\"message\":\"unauthorized\",\"field\":null}");
+				}))
 				.authenticationProvider(authenticationProvider)
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.cors(Customizer.withDefaults())
