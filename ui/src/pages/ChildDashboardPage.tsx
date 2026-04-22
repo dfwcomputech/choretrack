@@ -29,7 +29,7 @@ const parseSeasonPassMilestones = (): RewardMilestone[] => {
     const parsed = JSON.parse(raw) as unknown
     if (!Array.isArray(parsed)) return []
     return parsed
-      .map((entry, index) => {
+      .map((entry) => {
         const record = entry as Partial<RewardMilestone> & {
           title?: string
           description?: string
@@ -64,7 +64,7 @@ const parseSeasonPassMilestones = (): RewardMilestone[] => {
 
         if (parsedRewards.length === 0 && typeof record.title === 'string' && record.title.trim()) {
           parsedRewards.push({
-            id: typeof record.rewardId === 'string' && record.rewardId.trim() ? record.rewardId : `${record.id}-reward-${index}`,
+            id: typeof record.rewardId === 'string' && record.rewardId.trim() ? record.rewardId : `${record.id}-reward`,
             title: record.title,
             description: typeof record.description === 'string' ? record.description : 'Season Pass reward',
             icon: typeof record.icon === 'string' && record.icon.trim() ? record.icon : '🎁',

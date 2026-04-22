@@ -23,6 +23,14 @@ const toPercent = (points: number, nextLevelPoints: number) => {
   return Math.max(0, Math.min((points / nextLevelPoints) * 100, 100))
 }
 
+const formatNextMilestoneLabel = (milestone: RewardMilestone | null) => {
+  if (!milestone) return 'All unlocked!'
+  if (milestone.rewards.length > 1) {
+    return `Choose 1 reward (${milestone.rewards.length} options)`
+  }
+  return `${milestone.rewards[0]?.icon ?? '🎁'} ${milestone.rewards[0]?.title ?? 'Reward'}`
+}
+
 export default function BattlePassSection({ points, currentLevel, nextLevelPoints, milestones }: BattlePassSectionProps) {
   if (milestones.length === 0) {
     return (
@@ -41,11 +49,7 @@ export default function BattlePassSection({ points, currentLevel, nextLevelPoint
   const sortedMilestones = [...milestones].sort((a, b) => a.pointsRequired - b.pointsRequired)
   const nextMilestone = sortedMilestones.find((milestone) => points < milestone.pointsRequired) ?? null
   const activeMilestoneId = nextMilestone?.id ?? sortedMilestones[sortedMilestones.length - 1]?.id ?? ''
-  const nextMilestoneLabel = !nextMilestone
-    ? 'All unlocked!'
-    : nextMilestone.rewards.length > 1
-      ? `Choose 1 reward (${nextMilestone.rewards.length} options)`
-      : `${nextMilestone.rewards[0]?.icon ?? '🎁'} ${nextMilestone.rewards[0]?.title ?? 'Reward'}`
+  const nextMilestoneLabel = formatNextMilestoneLabel(nextMilestone)
 
   return (
     <section className="overflow-hidden rounded-3xl border border-primary-200 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 p-6 text-white shadow-lg lg:p-8">
