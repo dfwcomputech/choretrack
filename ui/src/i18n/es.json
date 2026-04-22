@@ -383,7 +383,8 @@
       "passwordRequired": "La contraseña es obligatoria.",
       "passwordMinLength": "La contraseña debe tener al menos 8 caracteres.",
       "firstNameRequired": "El nombre es obligatorio."
-    }
+    },
+    "completeOnlyToday": "Solo puedes completar tareas programadas para hoy."
   },
   "chores": {
     "addChore": "Agregar tarea",

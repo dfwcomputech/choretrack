@@ -283,7 +283,7 @@ class ChoreServiceUnitTests {
 				"Pick up clothes",
 				25,
 				child.id(),
-				null,
+				LocalDate.now(),
 				ChoreStatus.PENDING), "angie");
 		choreService.completeChore(created.id(), "preston1");
 
@@ -313,6 +313,57 @@ class ChoreServiceUnitTests {
 	}
 
 	@Test
+	void rejectsChildCompletionForPastOrFutureChoreDate() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		final ChoreResponse pastChore = choreService.createChore(new ChoreCreateRequest(
+				"Past chore",
+				null,
+				15,
+				child.id(),
+				LocalDate.now().minusDays(1),
+				ChoreStatus.PENDING), "angie");
+		final ChoreResponse futureChore = choreService.createChore(new ChoreCreateRequest(
+				"Future chore",
+				null,
+				15,
+				child.id(),
+				LocalDate.now().plusDays(1),
+				ChoreStatus.PENDING), "angie");
+
+		assertThatThrownBy(() -> choreService.completeChore(pastChore.id(), "preston1"))
+				.isInstanceOf(ForbiddenOperationException.class)
+				.hasMessage("You can only complete chores scheduled for today");
+		assertThatThrownBy(() -> choreService.completeChore(futureChore.id(), "preston1"))
+				.isInstanceOf(ForbiddenOperationException.class)
+				.hasMessage("You can only complete chores scheduled for today");
+	}
+
+	@Test
+	void parentCanCompleteChildChoreForAnyDate() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		final ChoreResponse created = choreService.createChore(new ChoreCreateRequest(
+				"Clean room",
+				"Pick up clothes",
+				25,
+				child.id(),
+				LocalDate.now().plusDays(3),
+				ChoreStatus.PENDING), "angie");
+
+		final ChoreCompletionResponse completion = choreService.completeChore(created.id(), "angie");
+
+		assertThat(completion.status()).isEqualTo(ChoreStatus.COMPLETED);
+		assertThat(completion.pointsAwarded()).isEqualTo(25);
+		assertThat(completion.completedByChildId()).isEqualTo(child.id());
+		assertThat(completion.childCurrentPoints()).isEqualTo(25);
+	}
+
+	@Test
 	void revertsCompletedChoreBackToPendingAndRemovesPoints() {
 		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
 		final ChoreService choreService = createService(userRepository);
@@ -323,7 +374,7 @@ class ChoreServiceUnitTests {
 				"Pick up clothes",
 				25,
 				child.id(),
-				null,
+				LocalDate.now(),
 				ChoreStatus.PENDING), "angie");
 		choreService.completeChore(created.id(), "preston1");
 

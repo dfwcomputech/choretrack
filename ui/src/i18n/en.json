@@ -383,7 +383,8 @@
       "passwordRequired": "Password is required.",
       "passwordMinLength": "Password must be at least 8 characters.",
       "firstNameRequired": "First name is required."
-    }
+    },
+    "completeOnlyToday": "You can only complete chores scheduled for today."
   },
   "chores": {
     "addChore": "Add Chore",

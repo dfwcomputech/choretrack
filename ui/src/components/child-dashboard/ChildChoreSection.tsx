@@ -18,12 +18,25 @@ const formatDueDate = (dueDate: string | null, t: (key: string) => string) => {
   return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(parsedDate)
 }
 
+const currentUtcDate = () => {
+  const now = new Date()
+  const year = now.getUTCFullYear()
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(now.getUTCDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export default function ChildChoreSection({ chores, completingChoreId, revertingChoreId, onComplete, onRevert }: ChildChoreSectionProps) {
   const { t } = useTranslation()
+  const today = currentUtcDate()
   const pendingChores = chores.filter((chore) => chore.status !== 'COMPLETED' && !chore.completed)
   const completedChores = chores.filter((chore) => chore.status === 'COMPLETED' || chore.completed)
 
-  const renderChore = (chore: ChoreItem, completed: boolean) => (
+  const renderChore = (chore: ChoreItem, completed: boolean) => {
+    const canCompleteToday = chore.dueDate === today
+    const completeDisabled = completingChoreId === chore.id || !canCompleteToday
+
+    return (
     <li key={chore.id} className={`rounded-2xl border p-4 ${completed ? 'border-emerald-200 bg-emerald-50' : 'border-primary-100 bg-white'}`}>
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -37,7 +50,7 @@ export default function ChildChoreSection({ chores, completingChoreId, reverting
             <button
               type="button"
               onClick={() => onComplete(chore.id)}
-              disabled={completingChoreId === chore.id}
+              disabled={completeDisabled}
               className="mt-2 rounded-lg bg-primary-600 px-3 py-2 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-slate-300"
             >
               {completingChoreId === chore.id ? t('chores.completing') : t('common.complete')}
@@ -52,10 +65,13 @@ export default function ChildChoreSection({ chores, completingChoreId, reverting
               {revertingChoreId === chore.id ? t('children.moving') : t('children.moveToPending')}
             </button>
           )}
+          {!completed && !canCompleteToday ? (
+            <p className="mt-2 text-[11px] text-slate-500">{t('children.completeOnlyToday')}</p>
+          ) : null}
         </div>
       </div>
     </li>
-  )
+  )}
 
   const pendingContent =
     pendingChores.length === 0 ? (
