@@ -144,8 +144,8 @@ export default function EditChoreForm({
   const mergedFieldErrors = { ...validationErrors, ...fieldErrors }
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/60 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+    <div className="fixed inset-0 z-30 flex items-start justify-center overflow-y-auto bg-slate-900/60 p-4 sm:items-center">
+      <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
         <h3 className="text-2xl font-bold text-slate-900">{t('chores.editChore')}</h3>
         {errorMessage ? <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{errorMessage}</div> : null}
         <form
