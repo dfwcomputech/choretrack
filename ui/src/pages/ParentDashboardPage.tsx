@@ -165,7 +165,7 @@ export default function ParentDashboardPage({
     <div className="space-y-6">
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h1 className="text-4xl font-bold tracking-tight text-slate-900">Welcome back, {parentName}</h1>
-        <p className="mt-3 text-base text-slate-600">Track each child&apos;s progress, chores, and rewards from your dashboard.</p>
+        <p className="mt-3 text-base text-slate-600">Track each child's progress, chores, and rewards from your dashboard.</p>
       </section>
       <KinProgressSection childrenProgress={childProgress} />
       <div className="grid gap-6 xl:grid-cols-2">

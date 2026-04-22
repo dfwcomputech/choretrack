@@ -168,6 +168,7 @@ export default function DashboardPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const state = (location.state as DashboardState | null) ?? null
+  // Token verification is enforced by backend APIs; this is only a UI fallback for displaying a name.
   const tokenSubject = useMemo(() => getTokenSubject(token), [token])
   const parentName = state?.firstName?.trim() || state?.username?.trim() || tokenSubject || fallbackParentName
   const [activeNav, setActiveNav] = useState('dashboard')
