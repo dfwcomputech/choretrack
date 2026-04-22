@@ -5,7 +5,7 @@ import type { ChoreItem, KidAccount, RewardItem } from '../components/dashboard/
 import Sidebar from '../components/layout/Sidebar'
 import KinProgressSection, { type ChildProgressSummary } from '../components/parent/KinProgressSection'
 import RewardList from '../components/rewards/RewardList'
-import SeasonPassBuilder, { type SeasonPassEntry } from '../components/rewards/SeasonPassBuilder'
+import SeasonPassBuilder, { type SeasonPassMilestone } from '../components/rewards/SeasonPassBuilder'
 
 const LEVEL_SIZE = 100
 const STORAGE_KEY = 'choretrack.parent.season-pass'
@@ -29,41 +29,40 @@ interface ParentDashboardPageProps {
   onDeleteChild: (kid: KidAccount) => void
 }
 
-const parseStoredSeasonPass = (): SeasonPassEntry[] => {
-  const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) return []
-
-  try {
-    const parsed = JSON.parse(raw) as unknown
-    if (!Array.isArray(parsed)) return []
-
-    return parsed
-      .map((entry, index) => {
-        const record = entry as Partial<SeasonPassEntry>
-        if (typeof record.rewardId !== 'string' || !record.rewardId.trim()) {
-          return null
-        }
-        return {
-          level: typeof record.level === 'number' && Number.isFinite(record.level) ? record.level : index + 1,
-          rewardId: record.rewardId,
-        }
-      })
-      .filter((entry): entry is SeasonPassEntry => Boolean(entry))
-      .sort((a, b) => a.level - b.level)
-      .map((entry, index) => ({ ...entry, level: index + 1 }))
-  } catch {
-    return []
-  }
+interface StoredSeasonPassReward {
+  id: string
+  title: string
+  description: string
+  icon: string
 }
 
 interface StoredSeasonPassMilestone {
   id: string
   level: number
-  rewardId: string
-  title: string
-  description: string
-  icon: string
   pointsRequired: number
+  rewards: StoredSeasonPassReward[]
+}
+
+const buildSeasonPassMilestones = (rewards: RewardItem[]): SeasonPassMilestone[] => {
+  const sortedRewards = [...rewards].sort((a, b) => {
+    if (a.pointsCost !== b.pointsCost) return a.pointsCost - b.pointsCost
+    return a.name.localeCompare(b.name)
+  })
+
+  return sortedRewards.reduce<SeasonPassMilestone[]>((milestones, reward) => {
+    const lastMilestone = milestones[milestones.length - 1]
+    if (lastMilestone && lastMilestone.pointsRequired === reward.pointsCost) {
+      lastMilestone.rewards.push(reward)
+      return milestones
+    }
+
+    milestones.push({
+      id: `milestone-${reward.pointsCost}-${milestones.length + 1}`,
+      pointsRequired: reward.pointsCost,
+      rewards: [reward],
+    })
+    return milestones
+  }, [])
 }
 
 export default function ParentDashboardPage({
@@ -85,7 +84,6 @@ export default function ParentDashboardPage({
   onDeleteChild,
 }: ParentDashboardPageProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const [seasonPassEntries, setSeasonPassEntries] = useState<SeasonPassEntry[]>(() => parseStoredSeasonPass())
   const [seasonPassMessage, setSeasonPassMessage] = useState('')
 
   useEffect(() => {
@@ -94,27 +92,7 @@ export default function ParentDashboardPage({
     return () => window.clearTimeout(timeout)
   }, [seasonPassMessage])
 
-  const rewardById = useMemo(() => {
-    return rewards.reduce<Record<string, RewardItem>>((accumulator, reward) => {
-      accumulator[reward.id] = reward
-      return accumulator
-    }, {})
-  }, [rewards])
-
-  const normalizedSeasonPassEntries = useMemo(() => {
-    if (rewards.length === 0) return []
-
-    const rewardIdSet = new Set(rewards.map((reward) => reward.id))
-    const validEntries = seasonPassEntries
-      .filter((entry) => rewardIdSet.has(entry.rewardId))
-      .map((entry, index) => ({ ...entry, level: index + 1 }))
-
-    if (validEntries.length > 0) {
-      return validEntries
-    }
-
-    return rewards.slice(0, 3).map((reward, index) => ({ level: index + 1, rewardId: reward.id }))
-  }, [rewards, seasonPassEntries])
+  const seasonPassMilestones = useMemo(() => buildSeasonPassMilestones(rewards), [rewards])
 
   const childProgress: ChildProgressSummary[] = useMemo(() => {
     return kids.map((kid) => {
@@ -124,10 +102,14 @@ export default function ParentDashboardPage({
 
       const currentLevel = Math.max(1, Math.floor(completedPoints / LEVEL_SIZE) + 1)
       const progressToNextLevel = ((completedPoints % LEVEL_SIZE) / LEVEL_SIZE) * 100
-      const nextSeasonReward =
-        normalizedSeasonPassEntries.find((entry) => entry.level >= currentLevel && rewardById[entry.rewardId]) ??
-        (normalizedSeasonPassEntries.length > 0 ? normalizedSeasonPassEntries[normalizedSeasonPassEntries.length - 1] : null)
-      const nextRewardName = nextSeasonReward ? rewardById[nextSeasonReward.rewardId]?.name ?? 'Season reward' : 'No season reward assigned'
+      const nextMilestone =
+        seasonPassMilestones.find((milestone) => completedPoints < milestone.pointsRequired) ??
+        (seasonPassMilestones.length > 0 ? seasonPassMilestones[seasonPassMilestones.length - 1] : null)
+      const nextRewardName = nextMilestone
+        ? nextMilestone.rewards.length > 1
+          ? `Choose 1 of ${nextMilestone.rewards.length} rewards`
+          : nextMilestone.rewards[0]?.name ?? 'Season reward'
+        : 'No season reward assigned'
 
       return {
         id: kid.id,
@@ -139,24 +121,20 @@ export default function ParentDashboardPage({
         nextRewardName,
       }
     })
-  }, [chores, kids, normalizedSeasonPassEntries, rewardById])
+  }, [chores, kids, seasonPassMilestones])
 
   const handleSaveSeasonPass = () => {
-    const storedSeasonPass: StoredSeasonPassMilestone[] = normalizedSeasonPassEntries
-      .map((entry) => {
-        const reward = rewardById[entry.rewardId]
-        if (!reward) return null
-        return {
-          id: reward.id,
-          level: entry.level,
-          rewardId: reward.id,
-          title: reward.name,
-          description: reward.description || 'Season Pass reward',
-          icon: reward.icon,
-          pointsRequired: reward.pointsCost,
-        }
-      })
-      .filter((entry): entry is StoredSeasonPassMilestone => Boolean(entry))
+    const storedSeasonPass: StoredSeasonPassMilestone[] = seasonPassMilestones.map((milestone, index) => ({
+      id: milestone.id,
+      level: index + 1,
+      pointsRequired: milestone.pointsRequired,
+      rewards: milestone.rewards.map((reward) => ({
+        id: reward.id,
+        title: reward.name,
+        description: reward.description || 'Season Pass reward',
+        icon: reward.icon,
+      })),
+    }))
     localStorage.setItem(STORAGE_KEY, JSON.stringify(storedSeasonPass))
     setSeasonPassMessage('Season Pass saved successfully.')
   }
@@ -170,7 +148,7 @@ export default function ParentDashboardPage({
       <KinProgressSection childrenProgress={childProgress} />
       <div className="grid gap-6 xl:grid-cols-2">
         <RewardList rewards={rewards} onAddReward={onAddReward} onEditReward={onEditReward} onDeleteReward={onDeleteReward} />
-        <SeasonPassBuilder rewards={rewards} seasonPassEntries={normalizedSeasonPassEntries} onChange={setSeasonPassEntries} onSave={handleSaveSeasonPass} />
+        <SeasonPassBuilder rewards={rewards} milestones={seasonPassMilestones} onSave={handleSaveSeasonPass} />
       </div>
     </div>
   )
@@ -196,7 +174,7 @@ export default function ParentDashboardPage({
     rewards: (
       <div className="space-y-6">
         <RewardList rewards={rewards} onAddReward={onAddReward} onEditReward={onEditReward} onDeleteReward={onDeleteReward} />
-        <SeasonPassBuilder rewards={rewards} seasonPassEntries={normalizedSeasonPassEntries} onChange={setSeasonPassEntries} onSave={handleSaveSeasonPass} />
+        <SeasonPassBuilder rewards={rewards} milestones={seasonPassMilestones} onSave={handleSaveSeasonPass} />
       </div>
     ),
     settings: (
