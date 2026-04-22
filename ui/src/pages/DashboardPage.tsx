@@ -139,12 +139,28 @@ const toRewardItem = (reward: RewardResponse): RewardItem => ({
   icon: '🎁',
 })
 
+const getTokenSubject = (token: string): string => {
+  if (!token.trim()) return ''
+
+  const [, payload] = token.split('.')
+  if (!payload) return ''
+
+  try {
+    const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const paddedPayload = normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, '=')
+    const decodedPayload = JSON.parse(atob(paddedPayload)) as { sub?: unknown }
+    return typeof decodedPayload.sub === 'string' ? decodedPayload.sub.trim() : ''
+  } catch {
+    return ''
+  }
+}
+
 export default function DashboardPage() {
   const { logout, token } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const state = (location.state as DashboardState | null) ?? null
-  const parentName = state?.firstName?.trim() || state?.username?.trim() || fallbackParentName
+  const parentName = state?.firstName?.trim() || state?.username?.trim() || getTokenSubject(token) || fallbackParentName
   const [activeNav, setActiveNav] = useState('dashboard')
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isAddChoreOpen, setIsAddChoreOpen] = useState(false)
@@ -864,9 +880,6 @@ export default function DashboardPage() {
       ) : (
         <ParentDashboardPage
           parentName={parentName}
-          points={points}
-          level={level}
-          nextLevelPoints={nextLevelPoints}
           kids={kids}
           chores={chores}
           rewards={rewards}

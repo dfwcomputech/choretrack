@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, type ReactElement } from 'react'
 import ChoresSection from '../components/dashboard/ChoresSection'
 import KinSection from '../components/dashboard/KinSection'
-import OverviewSection from '../components/dashboard/OverviewSection'
 import type { ChoreItem, KidAccount, RewardItem } from '../components/dashboard/types'
 import Sidebar from '../components/layout/Sidebar'
 import KinProgressSection, { type ChildProgressSummary } from '../components/parent/KinProgressSection'
@@ -13,9 +12,6 @@ const STORAGE_KEY = 'choretrack.parent.season-pass'
 
 interface ParentDashboardPageProps {
   parentName: string
-  points: number
-  level: number
-  nextLevelPoints: number
   kids: KidAccount[]
   chores: ChoreItem[]
   rewards: RewardItem[]
@@ -72,9 +68,6 @@ interface StoredSeasonPassMilestone {
 
 export default function ParentDashboardPage({
   parentName,
-  points,
-  level,
-  nextLevelPoints,
   kids,
   chores,
   rewards,
@@ -170,7 +163,10 @@ export default function ParentDashboardPage({
 
   const dashboardContent = (
     <div className="space-y-6">
-      <OverviewSection parentName={parentName} level={level} points={points} nextLevelPoints={nextLevelPoints} />
+      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h1 className="text-4xl font-bold tracking-tight text-slate-900">Welcome back, {parentName}</h1>
+        <p className="mt-3 text-base text-slate-600">Track each child&apos;s progress, chores, and rewards from your dashboard.</p>
+      </section>
       <KinProgressSection childrenProgress={childProgress} />
       <div className="grid gap-6 xl:grid-cols-2">
         <RewardList rewards={rewards} onAddReward={onAddReward} onEditReward={onEditReward} onDeleteReward={onDeleteReward} />
