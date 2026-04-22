@@ -57,7 +57,7 @@ const buildSeasonPassMilestones = (rewards: RewardItem[]): SeasonPassMilestone[]
     }
 
     milestones.push({
-      id: `milestone-${reward.pointsCost}`,
+      id: `milestone-${reward.pointsCost}-${milestones.length + 1}`,
       pointsRequired: reward.pointsCost,
       rewards: [reward],
     })

@@ -63,8 +63,9 @@ const parseSeasonPassMilestones = (): RewardMilestone[] => {
           : []
 
         if (parsedRewards.length === 0 && typeof record.title === 'string' && record.title.trim()) {
+          const rewardTitleSlug = record.title.trim().toLowerCase().replace(/\s+/g, '-')
           parsedRewards.push({
-            id: typeof record.rewardId === 'string' && record.rewardId.trim() ? record.rewardId : `${record.id}-reward`,
+            id: typeof record.rewardId === 'string' && record.rewardId.trim() ? record.rewardId : `${record.id}-reward-${rewardTitleSlug}-${record.pointsRequired}`,
             title: record.title,
             description: typeof record.description === 'string' ? record.description : 'Season Pass reward',
             icon: typeof record.icon === 'string' && record.icon.trim() ? record.icon : '🎁',
