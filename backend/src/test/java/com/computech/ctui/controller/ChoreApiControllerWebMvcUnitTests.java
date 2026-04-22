@@ -302,6 +302,17 @@ class ChoreApiControllerWebMvcUnitTests {
 	}
 
 	@Test
+	void completeChoreReturnsForbiddenWhenChildCompletesOutsideToday() throws Exception {
+		when(choreService.completeChore("chore-123", "preston1"))
+				.thenThrow(new ForbiddenOperationException("You can only complete chores scheduled for today"));
+
+		mockMvc.perform(post("/api/chores/chore-123/complete")
+				.principal(new UsernamePasswordAuthenticationToken("preston1", "n/a", List.of())))
+				.andExpect(status().isForbidden())
+				.andExpect(jsonPath("$.message").value("You can only complete chores scheduled for today"));
+	}
+
+	@Test
 	void completeChoreReturnsUnauthorizedWhenAuthenticationMissing() throws Exception {
 		mockMvc.perform(post("/api/chores/chore-123/complete"))
 				.andExpect(status().isUnauthorized());

@@ -177,13 +177,29 @@ public class ChoreService {
 	}
 
 	public synchronized ChoreCompletionResponse completeChore(final String choreId, final String authenticatedUsername) {
-		final UserAccount child = resolveChild(authenticatedUsername, "only child users can complete chores");
+		final UserAccount authenticatedUser = resolveAuthenticatedUser(
+				authenticatedUsername,
+				"only parent or child users can complete chores");
 		final Chore chore = choreRepository.findById(choreId)
 		.filter(Chore::active)
 		.orElseThrow(() -> new ChoreNotFoundException("chore not found"));
 
-		if (!child.id().equals(chore.assignedChildId())) {
-			throw new ForbiddenOperationException("child cannot complete this chore");
+		final UserAccount child;
+		if (authenticatedUser.role() == AccountRole.CHILD) {
+			child = authenticatedUser;
+			if (!child.id().equals(chore.assignedChildId())) {
+				throw new ForbiddenOperationException("child cannot complete this chore");
+			}
+			if (chore.dueDate() == null || !LocalDate.now().equals(chore.dueDate())) {
+				throw new ForbiddenOperationException("You can only complete chores scheduled for today");
+			}
+		} else if (authenticatedUser.role() == AccountRole.PARENT) {
+			if (!authenticatedUser.id().equals(chore.parentId())) {
+				throw new ForbiddenOperationException("parent cannot access this chore");
+			}
+			child = resolveOwnedChild(chore.assignedChildId(), authenticatedUser.id());
+		} else {
+			throw new ForbiddenOperationException("only parent or child users can complete chores");
 		}
 		if (chore.status() == ChoreStatus.COMPLETED) {
 			throw new ChoreAlreadyCompletedException("chore has already been completed");
