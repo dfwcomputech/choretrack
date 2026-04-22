@@ -252,6 +252,10 @@
     "pts": "pts",
     "levelWithCount": "Nivel {{count}}"
   },
+  "language": {
+    "switchToSpanish": "Cambiar a español",
+    "switchToEnglish": "Cambiar a inglés"
+  },
   "auth": {
     "backToLanding": "Volver a la página principal",
     "needAccount": "¿Necesitas una cuenta?",
@@ -294,6 +298,7 @@
     "fallbackParentName": "Padre",
     "fallbackChildName": "Niño",
     "parentRole": "Padre",
+    "parentRoleLowercase": "padre",
     "childRole": "Niño",
     "parentMenu": "Menú de padres",
     "expandSidebar": "Expandir barra lateral",

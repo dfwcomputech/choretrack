@@ -108,7 +108,7 @@ export default function BattlePassSection({ points, currentLevel, nextLevelPoint
               <p className="text-2xl">{primaryReward?.icon ?? '🎁'}</p>
               <p className="mt-2 text-sm font-semibold uppercase tracking-wide">{t('battlePass.unlockAtPoints', { points: milestone.pointsRequired })}</p>
               <h3 className="mt-1 text-lg font-bold">{primaryReward?.title ?? t('seasonPass.defaultRewardName')}</h3>
-              <p className="mt-1 text-sm opacity-90">{primaryReward?.description ?? t('seasonPass.defaultRewardDescription')}</p>
+              <p className="mt-1 text-sm opacity-90">{primaryReward?.description || t('seasonPass.defaultRewardDescription')}</p>
               {milestone.rewards.length > 1 ? (
                 <p className="mt-2 text-xs font-semibold uppercase tracking-wide">
                   {t('battlePass.chooseRewardOptionsAvailable', { count: milestone.rewards.length })}

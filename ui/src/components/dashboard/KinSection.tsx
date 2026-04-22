@@ -30,7 +30,7 @@ export default function KinSection({ parentName, kids, onAddChild, onEditChild, 
             <span className="text-3xl">👩</span>
             <div>
               <p className="text-xl font-semibold text-slate-900">{parentName}</p>
-               <p className="text-slate-600">({t('dashboard.parentRole').toLowerCase()})</p>
+               <p className="text-slate-600">({t('dashboard.parentRoleLowercase')})</p>
             </div>
           </div>
           <button type="button" className="rounded-lg border border-slate-300 px-3 py-1 font-medium text-slate-700 hover:bg-white">

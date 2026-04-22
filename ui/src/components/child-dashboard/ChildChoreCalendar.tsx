@@ -15,7 +15,8 @@ const parseDueDate = (dueDate: string | null) => {
 
 export default function ChildChoreCalendar({ chores }: ChildChoreCalendarProps) {
   const { t } = useTranslation()
-  const weekdayLabels = t('children.weekdayLabels', { returnObjects: true }) as string[]
+  const translatedWeekdayLabels = t('children.weekdayLabels', { returnObjects: true })
+  const weekdayLabels = Array.isArray(translatedWeekdayLabels) ? translatedWeekdayLabels : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const now = new Date()
   const year = now.getFullYear()
   const monthIndex = now.getMonth()

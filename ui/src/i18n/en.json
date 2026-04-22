@@ -252,6 +252,10 @@
     "pts": "pts",
     "levelWithCount": "Level {{count}}"
   },
+  "language": {
+    "switchToSpanish": "Switch to Spanish",
+    "switchToEnglish": "Switch to English"
+  },
   "auth": {
     "backToLanding": "Back to landing page",
     "needAccount": "Need an account?",
@@ -294,6 +298,7 @@
     "fallbackParentName": "Parent",
     "fallbackChildName": "Kid",
     "parentRole": "Parent",
+    "parentRoleLowercase": "parent",
     "childRole": "Child",
     "parentMenu": "Parent menu",
     "expandSidebar": "Expand sidebar",

@@ -1,13 +1,6 @@
 import { BarChart3, CheckSquare, ChevronLeft, ChevronRight, Gift, Settings, Users } from 'lucide-react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-
-const navItems = [
-  { id: 'dashboard', labelKey: 'dashboard.nav.dashboard', icon: BarChart3 },
-  { id: 'kin', labelKey: 'dashboard.nav.kin', icon: Users },
-  { id: 'chores', labelKey: 'dashboard.nav.chores', icon: CheckSquare },
-  { id: 'rewards', labelKey: 'dashboard.nav.rewards', icon: Gift },
-  { id: 'settings', labelKey: 'dashboard.nav.settings', icon: Settings },
-] as const
 
 interface SidebarProps {
   activeNav: string
@@ -18,6 +11,18 @@ interface SidebarProps {
 
 export default function Sidebar({ activeNav, onNavChange, isCollapsed, onToggleCollapse }: SidebarProps) {
   const { t } = useTranslation()
+  const navItems = useMemo(
+    () =>
+      [
+        { id: 'dashboard', labelKey: 'dashboard.nav.dashboard', icon: BarChart3 },
+        { id: 'kin', labelKey: 'dashboard.nav.kin', icon: Users },
+        { id: 'chores', labelKey: 'dashboard.nav.chores', icon: CheckSquare },
+        { id: 'rewards', labelKey: 'dashboard.nav.rewards', icon: Gift },
+        { id: 'settings', labelKey: 'dashboard.nav.settings', icon: Settings },
+      ] as const,
+    [],
+  )
+
   return (
     <aside
       className={`w-full rounded-3xl border border-slate-200 bg-white p-3 shadow-sm transition-all lg:sticky lg:top-24 lg:h-fit ${

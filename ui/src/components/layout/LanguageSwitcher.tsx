@@ -5,7 +5,7 @@ interface LanguageSwitcherProps {
 }
 
 export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
   const currentLanguage = i18n.language.startsWith('es') ? 'es' : 'en'
 
   return (
@@ -13,7 +13,7 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
       type="button"
       onClick={() => void i18n.changeLanguage(currentLanguage === 'en' ? 'es' : 'en')}
       className={className}
-      aria-label={currentLanguage === 'en' ? 'Cambiar a español' : 'Switch to English'}
+      aria-label={currentLanguage === 'en' ? t('language.switchToSpanish') : t('language.switchToEnglish')}
     >
       {currentLanguage === 'en' ? 'ES' : 'EN'}
     </button>

@@ -22,7 +22,7 @@ interface ChildDashboardPageProps {
 
 const STORAGE_KEY = 'choretrack.parent.season-pass'
 
-const parseSeasonPassMilestones = (): RewardMilestone[] => {
+const parseSeasonPassMilestones = (defaultDescription: string): RewardMilestone[] => {
   const raw = localStorage.getItem(STORAGE_KEY)
   if (!raw) return []
 
@@ -68,7 +68,7 @@ const parseSeasonPassMilestones = (): RewardMilestone[] => {
             parsedRewards.push({
               id: typeof record.rewardId === 'string' && record.rewardId.trim() ? record.rewardId : `${record.id}-reward-${rewardTitleSlug}-${record.pointsRequired}`,
               title: record.title,
-              description: typeof record.description === 'string' ? record.description : '',
+              description: typeof record.description === 'string' ? record.description : defaultDescription,
               icon: typeof record.icon === 'string' && record.icon.trim() ? record.icon : '🎁',
             })
         }
@@ -103,7 +103,7 @@ export default function ChildDashboardPage({
   onRevertChore,
 }: ChildDashboardPageProps) {
   const { t } = useTranslation()
-  const childRewardMilestones = useMemo(() => parseSeasonPassMilestones(), [])
+  const childRewardMilestones = useMemo(() => parseSeasonPassMilestones(t('seasonPass.defaultRewardDescription')), [t])
 
   return (
     <>

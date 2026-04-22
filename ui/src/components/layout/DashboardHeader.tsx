@@ -15,12 +15,12 @@ export default function DashboardHeader({
   isProfileOpen,
   onToggleProfile,
   accountName,
-  accountLabel,
+  accountLabel = undefined,
   accountAvatar = '👩',
   onLogout,
 }: DashboardHeaderProps) {
   const { t } = useTranslation()
-  const resolvedAccountLabel = accountLabel || t('dashboard.parentRole')
+  const resolvedAccountLabel = accountLabel ?? t('dashboard.parentRole')
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
