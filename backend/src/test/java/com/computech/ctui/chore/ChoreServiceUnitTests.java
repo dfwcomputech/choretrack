@@ -227,6 +227,125 @@ class ChoreServiceUnitTests {
 	}
 
 	@Test
+	void childDashboardDefaultsToTodayWhenDateNotProvided() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Today chore",
+				null,
+				10,
+				child.id(),
+				LocalDate.now(),
+				ChoreStatus.PENDING), "angie");
+		choreService.createChore(new ChoreCreateRequest(
+				"Tomorrow chore",
+				null,
+				10,
+				child.id(),
+				LocalDate.now().plusDays(1),
+				ChoreStatus.PENDING), "angie");
+
+		final ChildDashboardResponse dashboard = choreService.getChildDashboard(child.username(), null);
+
+		assertThat(dashboard.selectedDate()).isEqualTo(LocalDate.now());
+		assertThat(dashboard.selectedDateIsToday()).isTrue();
+		assertThat(dashboard.chores()).extracting(ChildDashboardChoreResponse::title).containsExactly("Today chore");
+	}
+
+	@Test
+	void childDashboardReturnsSelectedDateChoresOnly() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+		final LocalDate selectedDate = LocalDate.parse("2026-04-22");
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				"Before school",
+				10,
+				child.id(),
+				selectedDate,
+				ChoreStatus.PENDING), "angie");
+		choreService.createChore(new ChoreCreateRequest(
+				"Wash dishes",
+				"After breakfast",
+				10,
+				child.id(),
+				selectedDate.plusDays(1),
+				ChoreStatus.PENDING), "angie");
+
+		final ChildDashboardResponse dashboard = choreService.getChildDashboard(child.username(), "2026-04-22");
+
+		assertThat(dashboard.selectedDate()).isEqualTo(selectedDate);
+		assertThat(dashboard.chores()).hasSize(1);
+		assertThat(dashboard.chores().get(0).title()).isEqualTo("Feed Jessie");
+	}
+
+	@Test
+	void childDashboardReturnsEmptyChoresForDateWithoutAssignments() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		final ChildDashboardResponse dashboard = choreService.getChildDashboard(child.username(), "2026-04-23");
+
+		assertThat(dashboard.selectedDate()).isEqualTo(LocalDate.parse("2026-04-23"));
+		assertThat(dashboard.chores()).isEmpty();
+	}
+
+	@Test
+	void childDashboardRejectsInvalidDateFormat() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		createParentAndChild("angie", "preston1", userRepository);
+
+		assertThatThrownBy(() -> choreService.getChildDashboard("preston1", "04-23-2026"))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("Invalid date format. Expected yyyy-MM-dd");
+	}
+
+	@Test
+	void childDashboardReturnsOnlyAuthenticatedChildChores() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse childA = createParentAndChild("angie", "preston1", userRepository);
+		final ChildAccountResponse childB = createChildForParent("angie", "rylan1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Child A chore",
+				null,
+				10,
+				childA.id(),
+				LocalDate.parse("2026-04-22"),
+				ChoreStatus.PENDING), "angie");
+		choreService.createChore(new ChoreCreateRequest(
+				"Child B chore",
+				null,
+				10,
+				childB.id(),
+				LocalDate.parse("2026-04-22"),
+				ChoreStatus.PENDING), "angie");
+
+		final ChildDashboardResponse dashboard = choreService.getChildDashboard(childA.username(), "2026-04-22");
+
+		assertThat(dashboard.chores()).hasSize(1);
+		assertThat(dashboard.chores().get(0).title()).isEqualTo("Child A chore");
+	}
+
+	@Test
+	void childDashboardRejectsNonChildUsers() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		createParentAndChild("angie", "preston1", userRepository);
+
+		assertThatThrownBy(() -> choreService.getChildDashboard("angie", "2026-04-22"))
+				.isInstanceOf(ForbiddenOperationException.class)
+				.hasMessage("only child users can view child dashboard");
+	}
+
+	@Test
 	void returnsNotFoundForMissingChore() {
 		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
 		final ChoreService choreService = createService(userRepository);
