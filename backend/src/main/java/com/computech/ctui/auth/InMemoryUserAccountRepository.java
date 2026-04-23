@@ -6,9 +6,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.springframework.stereotype.Repository;
-
-@Repository
 public class InMemoryUserAccountRepository implements UserAccountRepository {
 
 	private final ConcurrentMap<String, UserAccount> usersById = new ConcurrentHashMap<>();
@@ -55,6 +52,11 @@ public class InMemoryUserAccountRepository implements UserAccountRepository {
 			emailIndex.put(normalize(userAccount.email()), userAccount.id());
 		}
 		return userAccount;
+	}
+
+	@Override
+	public long countAll() {
+		return usersById.size();
 	}
 
 	private String normalize(final String value) {
