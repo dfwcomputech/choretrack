@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import BattlePassSection, { type RewardMilestone } from '../components/child-dashboard/BattlePassSection'
 import ChildChoreCalendar from '../components/child-dashboard/ChildChoreCalendar'
+import ChildDaySwipeNavigator from '../components/child-dashboard/ChildDaySwipeNavigator'
 import ChildChoreSection from '../components/child-dashboard/ChildChoreSection'
 import type { ChoreItem } from '../components/dashboard/types'
 
@@ -21,6 +22,17 @@ interface ChildDashboardPageProps {
 }
 
 const STORAGE_KEY = 'choretrack.parent.season-pass'
+const MOBILE_BREAKPOINT_PX = 767
+
+const currentUtcDate = () => {
+  const now = new Date()
+  const year = now.getUTCFullYear()
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(now.getUTCDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const isSmallScreen = () => (typeof window !== 'undefined' ? window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`).matches : false)
 
 const parseSeasonPassMilestones = (defaultDescription: string): RewardMilestone[] => {
   const raw = localStorage.getItem(STORAGE_KEY)
@@ -103,7 +115,17 @@ export default function ChildDashboardPage({
   onRevertChore,
 }: ChildDashboardPageProps) {
   const { t } = useTranslation()
+  const [selectedDate, setSelectedDate] = useState(currentUtcDate)
+  const [showMobileNavigator, setShowMobileNavigator] = useState(isSmallScreen)
   const childRewardMilestones = useMemo(() => parseSeasonPassMilestones(t('seasonPass.defaultRewardDescription')), [t])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`)
+    const onChange = (event: MediaQueryListEvent) => setShowMobileNavigator(event.matches)
+    mediaQuery.addEventListener('change', onChange)
+    return () => mediaQuery.removeEventListener('change', onChange)
+  }, [])
 
   return (
     <>
@@ -140,14 +162,16 @@ export default function ChildDashboardPage({
       ) : null}
 
       <div className="grid gap-6 2xl:grid-cols-[1.2fr_1fr]">
+        {showMobileNavigator ? <ChildDaySwipeNavigator selectedDate={selectedDate} onDateChange={setSelectedDate} /> : null}
         <ChildChoreSection
           chores={chores}
+          selectedDate={selectedDate}
           completingChoreId={completingChoreId}
           revertingChoreId={revertingChoreId}
           onComplete={onCompleteChore}
           onRevert={onRevertChore}
         />
-        <ChildChoreCalendar chores={chores} />
+        {!showMobileNavigator ? <ChildChoreCalendar chores={chores} selectedDate={selectedDate} onDateChange={setSelectedDate} /> : null}
       </div>
     </>
   )

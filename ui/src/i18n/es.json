@@ -370,6 +370,12 @@
     "calendarSubtitle": "Mira qué vence cada día de este mes.",
     "weekdayLabels": ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
     "moreCount": "+{{count}} más",
+    "selectedDay": "Día seleccionado: {{day}}",
+    "previousDay": "Anterior",
+    "nextDay": "Siguiente",
+    "swipeHint": "Desliza a la izquierda o derecha para cambiar de día.",
+    "noChoresForDay": "No hay tareas para este día.",
+    "enjoyFreeDay": "¡Disfruta tu día libre!",
     "placeholders": {
       "username": "avery123",
       "password": "••••••••",
