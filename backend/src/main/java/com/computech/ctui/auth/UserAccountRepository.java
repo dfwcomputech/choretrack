@@ -16,4 +16,6 @@ public interface UserAccountRepository {
 	List<UserAccount> findByParentId(String parentId);
 
 	UserAccount save(UserAccount userAccount);
+
+	long countAll();
 }

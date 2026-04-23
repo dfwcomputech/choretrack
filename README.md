@@ -22,13 +22,17 @@ cd backend
 
 ### Authentication
 
-The backend now uses JWT-based auth with an in-memory user repository.
+The backend now uses JWT-based auth with PostgreSQL-backed persistence.
 
 - Login endpoint: `POST /api/auth/login`
 - Registration endpoint: `POST /api/auth/register`
 - Protected endpoints: `/api/**` (except `/api/auth/**`)
 - Default dev credentials: `admin / password`
-- Demo accounts auto-seeded at startup: `angie`, `preston`, `rylan`, `karla` (all use password `password`)
+- Demo accounts are seeded only when the user table is empty: `angie`, `preston`, `rylan`, `karla` (all use password `password`)
+
+### Database Configuration
+
+Set `DATABASE_URL` for the backend datasource (for Render PostgreSQL use your service URL). Optional credentials can be provided via `DATABASE_USERNAME` and `DATABASE_PASSWORD`.
 
 Example login request:
 

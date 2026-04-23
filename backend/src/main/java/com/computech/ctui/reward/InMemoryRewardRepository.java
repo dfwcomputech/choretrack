@@ -5,9 +5,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.springframework.stereotype.Repository;
-
-@Repository
 public class InMemoryRewardRepository implements RewardRepository {
 
 private final ConcurrentMap<String, Reward> rewardsById = new ConcurrentHashMap<>();

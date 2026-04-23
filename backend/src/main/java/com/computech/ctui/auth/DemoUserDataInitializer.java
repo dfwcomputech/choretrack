@@ -19,6 +19,9 @@ public class DemoUserDataInitializer {
 	}
 
 	private void initialize() {
+		if (userAccountRepository.countAll() > 0) {
+			return;
+		}
 		final UserAccount parent = createDemoUserIfMissing("angie", "angie@choretrack.demo", "Angie", "Parent",
 				AccountRole.PARENT, null);
 		final String parentId = parent == null ? null : parent.id();

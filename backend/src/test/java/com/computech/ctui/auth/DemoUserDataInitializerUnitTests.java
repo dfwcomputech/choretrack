@@ -21,6 +21,7 @@ class DemoUserDataInitializerUnitTests {
 		final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
 
 		when(passwordEncoder.encode("password")).thenReturn("encoded-password");
+		when(userAccountRepository.countAll()).thenReturn(0L);
 		when(userAccountRepository.existsByUsernameIgnoreCase(any())).thenReturn(false);
 		when(userAccountRepository.existsByEmailIgnoreCase(any())).thenReturn(false);
 
@@ -39,6 +40,7 @@ class DemoUserDataInitializerUnitTests {
 		when(userAccountRepository.existsByUsernameIgnoreCase(eq("preston"))).thenReturn(false);
 		when(userAccountRepository.existsByUsernameIgnoreCase(eq("rylan"))).thenReturn(false);
 		when(userAccountRepository.existsByUsernameIgnoreCase(eq("karla"))).thenReturn(false);
+		when(userAccountRepository.countAll()).thenReturn(0L);
 		when(userAccountRepository.existsByEmailIgnoreCase(any())).thenReturn(false);
 		when(passwordEncoder.encode("password")).thenReturn("encoded-password");
 
@@ -47,5 +49,18 @@ class DemoUserDataInitializerUnitTests {
 		verify(userAccountRepository, times(3)).save(any(UserAccount.class));
 		verify(passwordEncoder, times(3)).encode("password");
 		verify(userAccountRepository, never()).existsByEmailIgnoreCase(eq("angie@choretrack.demo"));
+	}
+
+	@Test
+	void doesNotSeedWhenRepositoryAlreadyHasUsers() {
+		final UserAccountRepository userAccountRepository = mock(UserAccountRepository.class);
+		final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+
+		when(userAccountRepository.countAll()).thenReturn(2L);
+
+		new DemoUserDataInitializer(userAccountRepository, passwordEncoder);
+
+		verify(userAccountRepository, never()).save(any(UserAccount.class));
+		verify(passwordEncoder, never()).encode("password");
 	}
 }
