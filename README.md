@@ -32,7 +32,7 @@ The backend now uses JWT-based auth with PostgreSQL-backed persistence.
 
 ### Database Configuration
 
-Set `DATABASE_URL` for the backend datasource (for Render PostgreSQL use your service URL). Optional credentials can be provided via `DATABASE_USERNAME` and `DATABASE_PASSWORD`.
+Set `DATABASE_URL` for the backend datasource (for Render PostgreSQL use your service URL).
 
 Example login request:
 
