@@ -370,6 +370,12 @@
     "calendarSubtitle": "See what's due each day this month.",
     "weekdayLabels": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     "moreCount": "+{{count}} more",
+    "selectedDay": "Selected day: {{day}}",
+    "previousDay": "Previous",
+    "nextDay": "Next",
+    "swipeHint": "Swipe left or right to change days.",
+    "noChoresForDay": "No chores for this day.",
+    "enjoyFreeDay": "Enjoy your free day!",
     "placeholders": {
       "username": "avery123",
       "password": "••••••••",

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 interface ChildChoreSectionProps {
   chores: ChoreItem[]
+  selectedDate: string
   completingChoreId: string | null
   revertingChoreId: string | null
   onComplete: (choreId: string) => void
@@ -26,11 +27,12 @@ const currentUtcDate = () => {
   return `${year}-${month}-${day}`
 }
 
-export default function ChildChoreSection({ chores, completingChoreId, revertingChoreId, onComplete, onRevert }: ChildChoreSectionProps) {
+export default function ChildChoreSection({ chores, selectedDate, completingChoreId, revertingChoreId, onComplete, onRevert }: ChildChoreSectionProps) {
   const { t } = useTranslation()
   const today = currentUtcDate()
-  const pendingChores = chores.filter((chore) => chore.status !== 'COMPLETED' && !chore.completed)
-  const completedChores = chores.filter((chore) => chore.status === 'COMPLETED' || chore.completed)
+  const choresForSelectedDay = chores.filter((chore) => chore.dueDate === selectedDate)
+  const pendingChores = choresForSelectedDay.filter((chore) => chore.status !== 'COMPLETED' && !chore.completed)
+  const completedChores = choresForSelectedDay.filter((chore) => chore.status === 'COMPLETED' || chore.completed)
 
   const renderChore = (chore: ChoreItem, completed: boolean) => {
     const canCompleteToday = chore.dueDate != null && chore.dueDate === today
@@ -92,17 +94,24 @@ export default function ChildChoreSection({ chores, completingChoreId, reverting
       <h2 className="text-2xl font-bold text-slate-900">{t('children.choreMissions')}</h2>
       <p className="mt-1 text-sm text-slate-600">{t('children.choreMissionsSubtitle')}</p>
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-2">
-        <div>
-          <h3 className="text-sm font-bold uppercase tracking-wide text-primary-700">{t('common.pending')} ({pendingChores.length})</h3>
-          <ul className="mt-3 space-y-3">{pendingContent}</ul>
+      {choresForSelectedDay.length === 0 ? (
+        <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center">
+          <p className="text-base font-semibold text-slate-700">{t('children.noChoresForDay')}</p>
+          <p className="mt-1 text-sm text-slate-600">{t('children.enjoyFreeDay')}</p>
         </div>
+      ) : (
+        <div className="mt-5 grid gap-5 xl:grid-cols-2">
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wide text-primary-700">{t('common.pending')} ({pendingChores.length})</h3>
+            <ul className="mt-3 space-y-3">{pendingContent}</ul>
+          </div>
 
-        <div>
-          <h3 className="text-sm font-bold uppercase tracking-wide text-emerald-700">{t('common.completed')} ({completedChores.length})</h3>
-          <ul className="mt-3 space-y-3">{completedContent}</ul>
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wide text-emerald-700">{t('common.completed')} ({completedChores.length})</h3>
+            <ul className="mt-3 space-y-3">{completedContent}</ul>
+          </div>
         </div>
-      </div>
+      )}
     </section>
   )
 }

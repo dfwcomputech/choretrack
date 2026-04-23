@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 
 interface ChildChoreCalendarProps {
   chores: ChoreItem[]
+  selectedDate: string
+  onDateChange: (date: string) => void
 }
 
 const parseDueDate = (dueDate: string | null) => {
@@ -13,15 +15,24 @@ const parseDueDate = (dueDate: string | null) => {
   return { year, month, day }
 }
 
-export default function ChildChoreCalendar({ chores }: ChildChoreCalendarProps) {
+const parseSelectedDate = (date: string) => {
+  const [year, month, day] = date.split('-').map(Number)
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null
+  if (year < 1 || month < 1 || month > 12 || day < 1 || day > 31) return null
+  return { year, month, day }
+}
+
+export default function ChildChoreCalendar({ chores, selectedDate, onDateChange }: ChildChoreCalendarProps) {
   const { t } = useTranslation()
   const translatedWeekdayLabels = t('children.weekdayLabels', { returnObjects: true })
   const weekdayLabels = Array.isArray(translatedWeekdayLabels) ? translatedWeekdayLabels : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const parsedSelectedDate = parseSelectedDate(selectedDate)
   const now = new Date()
-  const year = now.getFullYear()
-  const monthIndex = now.getMonth()
+  const year = parsedSelectedDate?.year ?? now.getFullYear()
+  const selectedMonth = parsedSelectedDate?.month ?? now.getMonth() + 1
+  const monthIndex = selectedMonth - 1
   const month = monthIndex + 1
-  const monthName = now.toLocaleString(undefined, { month: 'long', year: 'numeric' })
+  const monthName = new Date(year, monthIndex, 1).toLocaleString(undefined, { month: 'long', year: 'numeric' })
   const firstDayOffset = new Date(year, monthIndex, 1).getDay()
   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
 
@@ -56,8 +67,15 @@ export default function ChildChoreCalendar({ chores }: ChildChoreCalendarProps) 
           if (!cell.day) return <div key={cell.key} className="min-h-24 rounded-xl bg-slate-50/40" />
 
           const dayChores = choresByDay[cell.day] ?? []
+          const selected = parsedSelectedDate?.year === year && parsedSelectedDate?.month === month && parsedSelectedDate?.day === cell.day
+          const dateValue = `${year}-${String(month).padStart(2, '0')}-${String(cell.day).padStart(2, '0')}`
           return (
-            <article key={cell.key} className="min-h-24 rounded-xl border border-slate-200 bg-slate-50 p-2">
+            <button
+              type="button"
+              key={cell.key}
+              onClick={() => onDateChange(dateValue)}
+              className={`min-h-24 rounded-xl border p-2 text-left ${selected ? 'border-primary-500 bg-primary-50 ring-2 ring-primary-200' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'}`}
+            >
               <p className="text-xs font-bold text-slate-700">{cell.day}</p>
               <ul className="mt-1 space-y-1">
                 {dayChores.slice(0, 3).map((chore) => {
@@ -72,7 +90,7 @@ export default function ChildChoreCalendar({ chores }: ChildChoreCalendarProps) 
                 })}
                 {dayChores.length > 3 ? <li className="text-[11px] font-semibold text-slate-500">{t('children.moreCount', { count: dayChores.length - 3 })}</li> : null}
               </ul>
-            </article>
+            </button>
           )
         })}
       </div>
