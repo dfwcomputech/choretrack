@@ -3,7 +3,11 @@ package com.computech.ctui.chore;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -17,6 +21,8 @@ import com.computech.ctui.auth.UserAccountRepository;
 
 @Service
 public class ChoreService {
+
+	private static final DateTimeFormatter REQUEST_DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
 	private final ChoreRepository choreRepository;
 	private final UserAccountRepository userAccountRepository;
@@ -45,6 +51,43 @@ public class ChoreService {
 			.toList();
 		}
 		throw new IllegalStateException("Unexpected account role for chore listing: " + authenticatedUser.role());
+	}
+
+	public ChildDashboardResponse getChildDashboard(final String authenticatedUsername, final String date) {
+		final UserAccount child = resolveChild(authenticatedUsername, "only child users can view child dashboard");
+		final LocalDate selectedDate = resolveRequestedDate(date);
+		final LocalDate today = LocalDate.now();
+		final YearMonth selectedMonth = YearMonth.from(selectedDate);
+
+		final List<ChildDashboardChoreResponse> choresForSelectedDate = choreRepository
+				.findByAssignedChildIdAndDueDate(child.id(), selectedDate)
+				.stream()
+				.filter(Chore::active)
+				.sorted(Comparator.comparing(Chore::createdAt))
+				.map(this::toChildDashboardChoreResponse)
+				.toList();
+
+		final List<ChildDashboardCalendarEntryResponse> calendarEntries = choreRepository
+				.findByAssignedChildId(child.id())
+				.stream()
+				.filter(Chore::active)
+				.filter(chore -> chore.dueDate() != null)
+				.filter(chore -> YearMonth.from(chore.dueDate()).equals(selectedMonth))
+				.sorted(Comparator.comparing(Chore::dueDate).thenComparing(Chore::createdAt))
+				.map(this::toChildDashboardCalendarEntryResponse)
+				.toList();
+
+		return new ChildDashboardResponse(
+				new ChildDashboardChildResponse(
+						child.id(),
+						resolveChildName(child),
+						child.currentPoints(),
+						currentLevelForPoints(child.currentPoints()),
+						pointsToNextLevel(child.currentPoints())),
+				selectedDate,
+				selectedDate.equals(today),
+				choresForSelectedDate,
+				new ChildDashboardCalendarResponse(selectedMonth.getMonthValue(), selectedMonth.getYear(), calendarEntries));
 	}
 
 	public synchronized ChoreResponse createChore(final ChoreCreateRequest request, final String authenticatedUsername) {
@@ -408,6 +451,25 @@ public class ChoreService {
 		return ((Math.max(0, currentPoints) / 100) + 1) * 100;
 	}
 
+	private int currentLevelForPoints(final int currentPoints) {
+		return (Math.max(0, currentPoints) / 100) + 1;
+	}
+
+	private int pointsToNextLevel(final int currentPoints) {
+		return nextLevelAt(currentPoints) - Math.max(0, currentPoints);
+	}
+
+	private LocalDate resolveRequestedDate(final String date) {
+		if (date == null || date.isBlank()) {
+			return LocalDate.now();
+		}
+		try {
+			return LocalDate.parse(date, REQUEST_DATE_FORMATTER);
+		} catch (DateTimeParseException exception) {
+			throw new IllegalArgumentException("Invalid date format. Expected yyyy-MM-dd");
+		}
+	}
+
 	private String normalizeDescription(final String description) {
 		if (description == null || description.isBlank()) {
 			return null;
@@ -427,6 +489,24 @@ public class ChoreService {
 		chore.status(),
 		chore.createdAt(),
 		chore.updatedAt());
+	}
+
+	private ChildDashboardChoreResponse toChildDashboardChoreResponse(final Chore chore) {
+		return new ChildDashboardChoreResponse(
+				chore.id(),
+				chore.title(),
+				chore.description(),
+				chore.dueDate(),
+				chore.points(),
+				chore.status());
+	}
+
+	private ChildDashboardCalendarEntryResponse toChildDashboardCalendarEntryResponse(final Chore chore) {
+		return new ChildDashboardCalendarEntryResponse(
+				chore.dueDate(),
+				chore.id(),
+				chore.title(),
+				chore.status());
 	}
 
 	private String resolveChildName(final UserAccount child) {

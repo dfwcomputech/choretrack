@@ -1,5 +1,6 @@
 package com.computech.ctui.chore;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,6 +23,23 @@ public class InMemoryChoreRepository implements ChoreRepository {
 		return choresById.values()
 				.stream()
 				.filter(chore -> parentId.equals(chore.parentId()))
+				.toList();
+	}
+
+	@Override
+	public List<Chore> findByAssignedChildId(final String childId) {
+		return choresById.values()
+				.stream()
+				.filter(chore -> childId.equals(chore.assignedChildId()))
+				.toList();
+	}
+
+	@Override
+	public List<Chore> findByAssignedChildIdAndDueDate(final String childId, final LocalDate dueDate) {
+		return choresById.values()
+				.stream()
+				.filter(chore -> childId.equals(chore.assignedChildId()))
+				.filter(chore -> dueDate.equals(chore.dueDate()))
 				.toList();
 	}
 
