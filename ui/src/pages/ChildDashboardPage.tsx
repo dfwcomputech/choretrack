@@ -22,6 +22,7 @@ interface ChildDashboardPageProps {
 }
 
 const STORAGE_KEY = 'choretrack.parent.season-pass'
+const MOBILE_BREAKPOINT_PX = 767
 
 const currentUtcDate = () => {
   const now = new Date()
@@ -31,7 +32,7 @@ const currentUtcDate = () => {
   return `${year}-${month}-${day}`
 }
 
-const isSmallScreen = () => (typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false)
+const isSmallScreen = () => (typeof window !== 'undefined' ? window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`).matches : false)
 
 const parseSeasonPassMilestones = (defaultDescription: string): RewardMilestone[] => {
   const raw = localStorage.getItem(STORAGE_KEY)
@@ -120,7 +121,7 @@ export default function ChildDashboardPage({
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
-    const mediaQuery = window.matchMedia('(max-width: 767px)')
+    const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`)
     const onChange = (event: MediaQueryListEvent) => setShowMobileNavigator(event.matches)
     mediaQuery.addEventListener('change', onChange)
     return () => mediaQuery.removeEventListener('change', onChange)

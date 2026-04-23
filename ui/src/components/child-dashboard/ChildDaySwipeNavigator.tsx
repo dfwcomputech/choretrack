@@ -6,6 +6,8 @@ interface ChildDaySwipeNavigatorProps {
   onDateChange: (date: string) => void
 }
 
+const SWIPE_THRESHOLD_PX = 40
+
 const addDays = (date: string, days: number) => {
   const [year, month, day] = date.split('-').map(Number)
   if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return date
@@ -38,9 +40,9 @@ export default function ChildDaySwipeNavigator({ selectedDate, onDateChange }: C
         const startX = touchStartX.current
         const endX = event.changedTouches[0]?.clientX
         touchStartX.current = null
-        if (startX == null || endX == null) return
+        if (startX === null || endX === undefined) return
         const delta = endX - startX
-        if (Math.abs(delta) < 40) return
+        if (Math.abs(delta) < SWIPE_THRESHOLD_PX) return
         changeDay(delta < 0 ? 1 : -1)
       }}
     >
