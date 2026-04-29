@@ -37,6 +37,10 @@ public class UserAccountJpaEntity {
 	@Column(nullable = false)
 	private AccountRole role;
 
+	@Enumerated(EnumType.STRING)
+	@Column(columnDefinition = "VARCHAR(20) DEFAULT 'FREE'")
+	private AccountType accountType;
+
 	private String parentId;
 
 	@Column(nullable = false)
@@ -121,6 +125,14 @@ public class UserAccountJpaEntity {
 
 	public void setRole(final AccountRole role) {
 		this.role = role;
+	}
+
+	public AccountType getAccountType() {
+		return accountType;
+	}
+
+	public void setAccountType(final AccountType accountType) {
+		this.accountType = accountType;
 	}
 
 	public String getParentId() {

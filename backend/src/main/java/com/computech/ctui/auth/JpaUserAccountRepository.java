@@ -59,6 +59,7 @@ public class JpaUserAccountRepository implements UserAccountRepository {
 		entity.setLastName(userAccount.lastName());
 		entity.setDisplayName(userAccount.displayName());
 		entity.setRole(userAccount.role());
+		entity.setAccountType(userAccount.accountType() != null ? userAccount.accountType() : AccountType.FREE);
 		entity.setParentId(userAccount.parentId());
 		entity.setCreatedAt(userAccount.createdAt());
 		entity.setActive(userAccount.active());
@@ -79,6 +80,7 @@ public class JpaUserAccountRepository implements UserAccountRepository {
 				entity.getLastName(),
 				entity.getDisplayName(),
 				entity.getRole(),
+				entity.getAccountType() != null ? entity.getAccountType() : AccountType.FREE,
 				entity.getParentId(),
 				entity.getCreatedAt(),
 				entity.isActive(),

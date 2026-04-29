@@ -14,6 +14,7 @@ import com.computech.ctui.chore.ChoreAlreadyCompletedException;
 import com.computech.ctui.chore.ChoreAlreadyPendingException;
 import com.computech.ctui.chore.ChoreNotFoundException;
 import com.computech.ctui.reward.RewardNotFoundException;
+import com.computech.ctui.auth.AccountPlanLimitException;
 import com.computech.ctui.auth.DuplicateUserException;
 import com.computech.ctui.auth.ForbiddenOperationException;
 import com.computech.ctui.auth.ChildAccountNotFoundException;
@@ -42,6 +43,12 @@ public class ApiExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleForbiddenOperationException(final ForbiddenOperationException exception) {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN)
 				.body(new ErrorResponse(exception.getMessage(), null));
+	}
+
+	@ExceptionHandler(AccountPlanLimitException.class)
+	public ResponseEntity<ErrorResponse> handleAccountPlanLimitException(final AccountPlanLimitException exception) {
+		return ResponseEntity.status(HttpStatus.FORBIDDEN)
+				.body(new ErrorResponse(exception.getMessage(), exception.getField()));
 	}
 
 	@ExceptionHandler(ChildAccountNotFoundException.class)

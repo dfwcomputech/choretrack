@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.computech.ctui.auth.AccountPlanService;
 import com.computech.ctui.auth.AccountRole;
 import com.computech.ctui.auth.ForbiddenOperationException;
 import com.computech.ctui.auth.UserAccount;
@@ -16,10 +17,13 @@ public class RewardService {
 
 private final RewardRepository rewardRepository;
 private final UserAccountRepository userAccountRepository;
+private final AccountPlanService accountPlanService;
 
-public RewardService(final RewardRepository rewardRepository, final UserAccountRepository userAccountRepository) {
+public RewardService(final RewardRepository rewardRepository, final UserAccountRepository userAccountRepository,
+		final AccountPlanService accountPlanService) {
 this.rewardRepository = rewardRepository;
 this.userAccountRepository = userAccountRepository;
+this.accountPlanService = accountPlanService;
 }
 
 public List<RewardResponse> listActiveRewards(final String authenticatedUsername) {
@@ -33,6 +37,11 @@ return rewardRepository.findByParentId(parent.id())
 
 public synchronized RewardResponse createReward(final RewardCreateRequest request, final String authenticatedUsername) {
 final UserAccount parent = resolveParent(authenticatedUsername, "only parent users can manage rewards");
+final long activeRewardCount = rewardRepository.findByParentId(parent.id())
+		.stream()
+		.filter(Reward::active)
+		.count();
+accountPlanService.enforceRewardCreationLimit(parent, activeRewardCount);
 final Instant now = Instant.now();
 final Reward created = rewardRepository.save(new Reward(
 UUID.randomUUID().toString(),

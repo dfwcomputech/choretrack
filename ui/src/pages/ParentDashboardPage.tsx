@@ -13,6 +13,7 @@ const STORAGE_KEY = 'choretrack.parent.season-pass'
 
 interface ParentDashboardPageProps {
   parentName: string
+  accountType?: string
   kids: KidAccount[]
   chores: ChoreItem[]
   rewards: RewardItem[]
@@ -68,6 +69,7 @@ const buildSeasonPassMilestones = (rewards: RewardItem[]): SeasonPassMilestone[]
 
 export default function ParentDashboardPage({
   parentName,
+  accountType,
   kids,
   chores,
   rewards,
@@ -182,7 +184,31 @@ export default function ParentDashboardPage({
     settings: (
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-2xl font-bold text-slate-900">{t('dashboard.nav.settings')}</h2>
-        <p className="mt-2 text-sm text-slate-600">{t('dashboard.settingsSoon')}</p>
+        {accountType ? (
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-slate-700">{t('accountType.label')}:</span>
+              <span className="rounded-full bg-primary-100 px-3 py-1 text-sm font-semibold text-primary-700">
+                {t(`accountType.${accountType}`, accountType)}
+              </span>
+            </div>
+            {accountType === 'FREE' ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm text-amber-800">{t('accountType.upgradeHint')}</p>
+                <button
+                  type="button"
+                  className="mt-3 rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-1"
+                  disabled
+                  title={t('accountType.upgradeLabel')}
+                >
+                  {t('accountType.upgradeLabel')}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-slate-600">{t('dashboard.settingsSoon')}</p>
+        )}
       </section>
     ),
   }

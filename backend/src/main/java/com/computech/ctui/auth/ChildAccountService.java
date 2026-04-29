@@ -14,16 +14,25 @@ public class ChildAccountService {
 	private final UserAccountRepository userAccountRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final String defaultUsername;
+	private final AccountPlanService accountPlanService;
 
 	public ChildAccountService(final UserAccountRepository userAccountRepository, final PasswordEncoder passwordEncoder,
-			@Value("${security.default-user.name}") final String defaultUsername) {
+			@Value("${security.default-user.name}") final String defaultUsername,
+			final AccountPlanService accountPlanService) {
 		this.userAccountRepository = userAccountRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.defaultUsername = defaultUsername;
+		this.accountPlanService = accountPlanService;
 	}
 
 	public synchronized ChildAccountResponse createChild(final ChildAccountRequest request, final String authenticatedUsername) {
 		final UserAccount parent = resolveParent(authenticatedUsername, "only parent users can create child accounts");
+
+		final long activeChildCount = userAccountRepository.findByParentId(parent.id())
+				.stream()
+				.filter(child -> child.role() == AccountRole.CHILD && child.active())
+				.count();
+		accountPlanService.enforceChildCreationLimit(parent, activeChildCount);
 
 		final String username = request.username().trim();
 		if (defaultUsername.equalsIgnoreCase(username) || userAccountRepository.existsByUsernameIgnoreCase(username)) {
@@ -82,6 +91,7 @@ public class ChildAccountService {
 				lastName,
 				displayName,
 				child.role(),
+				child.accountType(),
 				child.parentId(),
 				child.createdAt(),
 				child.active(),
@@ -107,6 +117,7 @@ public class ChildAccountService {
 					child.lastName(),
 					child.displayName(),
 					child.role(),
+					child.accountType(),
 					child.parentId(),
 					child.createdAt(),
 					false,

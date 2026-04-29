@@ -343,6 +343,14 @@
       "deleteChildFailed": "Unable to remove child account. Please try again."
     }
   },
+  "accountType": {
+    "label": "Account Type",
+    "FREE": "Free Account",
+    "PAID": "Paid Account",
+    "DEMO": "Demo Account",
+    "upgradeLabel": "Upgrade to Paid",
+    "upgradeHint": "Upgrade to remove limits and unlock all features."
+  },
   "children": {
     "addChildAccount": "Add Child Account",
     "empty": "No children added yet.",
