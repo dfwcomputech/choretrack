@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import com.computech.ctui.auth.AccountPlanService;
 import com.computech.ctui.auth.ChildAccountRequest;
 import com.computech.ctui.auth.ChildAccountResponse;
 import com.computech.ctui.auth.ChildAccountService;
@@ -554,7 +555,7 @@ class ChoreServiceUnitTests {
 	}
 
 	private ChoreService createService(final InMemoryUserAccountRepository userRepository) {
-		return new ChoreService(new InMemoryChoreRepository(), userRepository);
+		return new ChoreService(new InMemoryChoreRepository(), userRepository, new AccountPlanService());
 	}
 
 	private ChildAccountResponse createParentAndChild(final String parentUsername, final String childUsername,
@@ -571,7 +572,8 @@ class ChoreServiceUnitTests {
 	private ChildAccountResponse createChildForParent(final String parentUsername, final String childUsername,
 			final InMemoryUserAccountRepository repository) {
 		final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin");
+		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin",
+				new AccountPlanService());
 		return childAccountService.createChild(
 				new ChildAccountRequest(childUsername, "SecurePassword123", "Preston", "Family", "Preston"),
 				parentUsername);

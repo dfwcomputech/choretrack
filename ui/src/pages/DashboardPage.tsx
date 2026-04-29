@@ -47,6 +47,7 @@ import {
   type RewardResponse,
   type UpdateRewardPayload,
 } from '../services/rewardService'
+import { getParentAccount } from '../services/authService'
 
 interface DashboardState {
   registered?: boolean
@@ -231,6 +232,7 @@ export default function DashboardPage() {
   const [childCompletionErrorMessage, setChildCompletionErrorMessage] = useState('')
   const [childCompletionSuccessMessage, setChildCompletionSuccessMessage] = useState('')
   const [isRedirectingForUnauthorized, setIsRedirectingForUnauthorized] = useState(false)
+  const [parentAccountType, setParentAccountType] = useState<string>('')
   const defaultRewards = useMemo(() => buildDefaultRewards((key) => t(key)), [t])
 
   const visibleChores = chores
@@ -249,6 +251,23 @@ export default function DashboardPage() {
     await logout()
     navigate('/', { replace: true })
   }, [isRedirectingForUnauthorized, logout, navigate])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadParentAccount = async () => {
+      if (!token.trim()) return
+      const account = await getParentAccount(token)
+      if (!cancelled && account) {
+        setParentAccountType(account.accountType)
+      }
+    }
+
+    void loadParentAccount()
+    return () => {
+      cancelled = true
+    }
+  }, [token])
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -899,6 +918,7 @@ export default function DashboardPage() {
       ) : (
         <ParentDashboardPage
           parentName={parentName}
+          accountType={parentAccountType}
           kids={kids}
           chores={chores}
           rewards={rewards}

@@ -15,6 +15,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.computech.ctui.auth.AccountRole;
+import com.computech.ctui.auth.AccountPlanService;
 import com.computech.ctui.auth.ForbiddenOperationException;
 import com.computech.ctui.auth.UserAccount;
 import com.computech.ctui.auth.UserAccountRepository;
@@ -26,10 +27,13 @@ public class ChoreService {
 
 	private final ChoreRepository choreRepository;
 	private final UserAccountRepository userAccountRepository;
+	private final AccountPlanService accountPlanService;
 
-	public ChoreService(final ChoreRepository choreRepository, final UserAccountRepository userAccountRepository) {
+	public ChoreService(final ChoreRepository choreRepository, final UserAccountRepository userAccountRepository,
+			final AccountPlanService accountPlanService) {
 		this.choreRepository = choreRepository;
 		this.userAccountRepository = userAccountRepository;
+		this.accountPlanService = accountPlanService;
 	}
 
 	public List<ChoreResponse> listActiveChores(final String authenticatedUsername) {
@@ -95,6 +99,12 @@ public class ChoreService {
 		final UserAccount child = resolveOwnedChild(request.assignedChildId(), parent.id());
 		final ChoreStatus status = request.status() == null ? ChoreStatus.PENDING : request.status();
 		final Instant now = Instant.now();
+
+		final long activeChoreCount = choreRepository.findByParentId(parent.id())
+				.stream()
+				.filter(Chore::active)
+				.count();
+		accountPlanService.enforceChoreCreationLimit(parent, activeChoreCount);
 
 		if (request.recurrence() == null) {
 			final Chore created = choreRepository.save(new Chore(
@@ -279,6 +289,7 @@ public class ChoreService {
 		child.lastName(),
 		child.displayName(),
 		child.role(),
+		child.accountType(),
 		child.parentId(),
 		child.createdAt(),
 		child.active(),
@@ -340,6 +351,7 @@ public class ChoreService {
 		child.lastName(),
 		child.displayName(),
 		child.role(),
+		child.accountType(),
 		child.parentId(),
 		child.createdAt(),
 		child.active(),

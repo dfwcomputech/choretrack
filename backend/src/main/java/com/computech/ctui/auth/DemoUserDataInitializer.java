@@ -23,15 +23,15 @@ public class DemoUserDataInitializer {
 			return;
 		}
 		final UserAccount parent = createDemoUserIfMissing("angie", "angie@choretrack.demo", "Angie", "Parent",
-				AccountRole.PARENT, null);
+				AccountRole.PARENT, AccountType.DEMO, null);
 		final String parentId = parent == null ? null : parent.id();
-		createDemoUserIfMissing("preston", "preston@choretrack.demo", "Preston", "Kid", AccountRole.CHILD, parentId);
-		createDemoUserIfMissing("rylan", "rylan@choretrack.demo", "Rylan", "Kid", AccountRole.CHILD, parentId);
-		createDemoUserIfMissing("karla", "karla@choretrack.demo", "Karla", "Kid", AccountRole.CHILD, parentId);
+		createDemoUserIfMissing("preston", "preston@choretrack.demo", "Preston", "Kid", AccountRole.CHILD, AccountType.FREE, parentId);
+		createDemoUserIfMissing("rylan", "rylan@choretrack.demo", "Rylan", "Kid", AccountRole.CHILD, AccountType.FREE, parentId);
+		createDemoUserIfMissing("karla", "karla@choretrack.demo", "Karla", "Kid", AccountRole.CHILD, AccountType.FREE, parentId);
 	}
 
 	private UserAccount createDemoUserIfMissing(final String username, final String email, final String firstName,
-			final String lastName, final AccountRole role, final String parentId) {
+			final String lastName, final AccountRole role, final AccountType accountType, final String parentId) {
 		if (userAccountRepository.existsByUsernameIgnoreCase(username) || userAccountRepository.existsByEmailIgnoreCase(email)) {
 			return null;
 		}
@@ -45,6 +45,7 @@ public class DemoUserDataInitializer {
 				lastName,
 				firstName,
 				role,
+				accountType,
 				parentId,
 				Instant.now()));
 	}

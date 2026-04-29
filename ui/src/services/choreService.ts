@@ -132,6 +132,13 @@ const handleMutationError = async (
     throw new ChoreServiceError('Please correct the highlighted fields and try again.', response.status, fieldErrors)
   }
 
+  if (response.status === 403) {
+    const errorBody = await parseJson<ErrorBody>(response)
+    const message = errorBody?.message ?? statusMessages[403] ?? fallbackMessage
+    const fieldErrors = errorBody?.field ? { [errorBody.field]: message } : {}
+    throw new ChoreServiceError(message, response.status, fieldErrors)
+  }
+
   if (response.status in statusMessages) {
     throw new ChoreServiceError(statusMessages[response.status] ?? fallbackMessage, response.status)
   }

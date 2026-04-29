@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import com.computech.ctui.auth.AccountType;
 import com.computech.ctui.auth.DuplicateUserException;
 import com.computech.ctui.auth.RegistrationResponse;
 import com.computech.ctui.auth.RegistrationService;
@@ -43,7 +44,7 @@ class AuthControllerWebMvcUnitTests {
 	@Test
 	void registerReturnsCreatedForValidPayload() throws Exception {
 		when(registrationService.register(any())).thenReturn(
-				new RegistrationResponse("generated-id", "mike123", "mike@example.com", "Mike", "User"));
+				new RegistrationResponse("generated-id", "mike123", "mike@example.com", "Mike", "User", AccountType.FREE));
 
 		mockMvc.perform(post("/api/auth/register")
 				.contentType(MediaType.APPLICATION_JSON)

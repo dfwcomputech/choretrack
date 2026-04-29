@@ -41,10 +41,11 @@ public class RegistrationService {
 				request.lastName().trim(),
 				request.firstName().trim(),
 				AccountRole.PARENT,
+				AccountType.FREE,
 				null,
 				Instant.now());
 
 		final UserAccount saved = userAccountRepository.save(userAccount);
-		return new RegistrationResponse(saved.id(), saved.username(), saved.email(), saved.firstName(), saved.lastName());
+		return new RegistrationResponse(saved.id(), saved.username(), saved.email(), saved.firstName(), saved.lastName(), saved.accountType());
 	}
 }

@@ -17,7 +17,7 @@ class ChildAccountServiceUnitTests {
 		final InMemoryUserAccountRepository repository = new InMemoryUserAccountRepository();
 		final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		final RegistrationService registrationService = new RegistrationService(repository, encoder, "admin");
-		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin");
+		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin", new AccountPlanService());
 
 		final RegistrationResponse parent = registrationService.register(
 				new RegistrationRequest("angie", "angie@example.com", "SecurePassword123", "Angie", "Parent"));
@@ -43,7 +43,7 @@ class ChildAccountServiceUnitTests {
 		final InMemoryUserAccountRepository repository = new InMemoryUserAccountRepository();
 		final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		final RegistrationService registrationService = new RegistrationService(repository, encoder, "admin");
-		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin");
+		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin", new AccountPlanService());
 
 		registrationService.register(
 				new RegistrationRequest("angie", "angie@example.com", "SecurePassword123", "Angie", "Parent"));
@@ -62,7 +62,7 @@ class ChildAccountServiceUnitTests {
 		final InMemoryUserAccountRepository repository = new InMemoryUserAccountRepository();
 		final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		final RegistrationService registrationService = new RegistrationService(repository, encoder, "admin");
-		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin");
+		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin", new AccountPlanService());
 
 		registrationService.register(
 				new RegistrationRequest("angie", "angie@example.com", "SecurePassword123", "Angie", "Parent"));
@@ -82,7 +82,7 @@ class ChildAccountServiceUnitTests {
 		final InMemoryUserAccountRepository repository = new InMemoryUserAccountRepository();
 		final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		final RegistrationService registrationService = new RegistrationService(repository, encoder, "admin");
-		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin");
+		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin", new AccountPlanService());
 
 		registrationService.register(
 				new RegistrationRequest("angie", "angie@example.com", "SecurePassword123", "Angie", "Parent"));
@@ -104,7 +104,7 @@ class ChildAccountServiceUnitTests {
 		final InMemoryUserAccountRepository repository = new InMemoryUserAccountRepository();
 		final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		final RegistrationService registrationService = new RegistrationService(repository, encoder, "admin");
-		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin");
+		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin", new AccountPlanService());
 
 		registrationService.register(
 				new RegistrationRequest("angie", "angie@example.com", "SecurePassword123", "Angie", "Parent"));
@@ -130,7 +130,7 @@ class ChildAccountServiceUnitTests {
 		final InMemoryUserAccountRepository repository = new InMemoryUserAccountRepository();
 		final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		final RegistrationService registrationService = new RegistrationService(repository, encoder, "admin");
-		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin");
+		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin", new AccountPlanService());
 
 		registrationService.register(
 				new RegistrationRequest("angie", "angie@example.com", "SecurePassword123", "Angie", "Parent"));
@@ -145,5 +145,24 @@ class ChildAccountServiceUnitTests {
 				"karen"))
 				.isInstanceOf(ForbiddenOperationException.class)
 				.hasMessage("parent cannot access this child account");
+	}
+
+	@Test
+	void rejectsFreeAccountWhenChildLimitReached() {
+		final InMemoryUserAccountRepository repository = new InMemoryUserAccountRepository();
+		final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		final RegistrationService registrationService = new RegistrationService(repository, encoder, "admin");
+		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin",
+				new AccountPlanService());
+
+		registrationService.register(
+				new RegistrationRequest("angie", "angie@example.com", "SecurePassword123", "Angie", "Parent"));
+		childAccountService.createChild(new ChildAccountRequest("child1", "SecurePassword123", "Child", "One", "C1"), "angie");
+		childAccountService.createChild(new ChildAccountRequest("child2", "SecurePassword123", "Child", "Two", "C2"), "angie");
+
+		assertThatThrownBy(() -> childAccountService.createChild(
+				new ChildAccountRequest("child3", "SecurePassword123", "Child", "Three", "C3"), "angie"))
+				.isInstanceOf(AccountPlanLimitException.class)
+				.hasMessageContaining("Free accounts can only create");
 	}
 }

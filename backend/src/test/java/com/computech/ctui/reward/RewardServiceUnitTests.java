@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import com.computech.ctui.auth.AccountPlanService;
 import com.computech.ctui.auth.ChildAccountRequest;
 import com.computech.ctui.auth.ChildAccountService;
 import com.computech.ctui.auth.ForbiddenOperationException;
@@ -128,7 +129,7 @@ null), "angie"))
 }
 
 private RewardService createService(final InMemoryUserAccountRepository userRepository) {
-return new RewardService(new InMemoryRewardRepository(), userRepository);
+return new RewardService(new InMemoryRewardRepository(), userRepository, new AccountPlanService());
 }
 
 	private void createParent(final String parentUsername, final InMemoryUserAccountRepository repository) {
@@ -143,7 +144,8 @@ return new RewardService(new InMemoryRewardRepository(), userRepository);
 			final InMemoryUserAccountRepository repository) {
 		final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		final RegistrationService registrationService = new RegistrationService(repository, encoder, "admin");
-		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin");
+		final ChildAccountService childAccountService = new ChildAccountService(repository, encoder, "admin",
+				new AccountPlanService());
 		registrationService.register(
 				new RegistrationRequest(parentUsername, parentUsername + "@example.com", "SecurePassword123",
 						capitalize(parentUsername), "Parent"));

@@ -12,6 +12,14 @@ export interface RegistrationResponse {
   email: string
   firstName: string
   lastName: string
+  accountType?: string
+}
+
+export interface ParentAccountResponse {
+  id: string
+  username: string
+  displayName: string
+  accountType: string
 }
 
 export interface LoginUserPayload {
@@ -186,4 +194,24 @@ export const logoutUser = async (token: string): Promise<void> => {
     console.warn('Logout API request failed due to a network or server error.')
     return
   }
+}
+
+export const getParentAccount = async (token: string): Promise<ParentAccountResponse | null> => {
+  if (!token.trim()) return null
+
+  try {
+    const response = await fetch('/api/me', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (response.ok) {
+      return (await response.json()) as ParentAccountResponse
+    }
+  } catch {
+    // Non-critical — silently ignore errors for account type fetch
+  }
+
+  return null
 }

@@ -147,7 +147,10 @@ export const createChildAccount = async (payload: CreateChildAccountPayload, tok
   }
 
   if (response.status === 403) {
-    throw new ChildServiceError('Only parent users can create child accounts.', response.status)
+    const errorBody = await parseJson<ErrorBody>(response)
+    const message = errorBody?.message ?? 'Only parent users can create child accounts.'
+    const fieldErrors = errorBody?.field ? { [errorBody.field]: message } : {}
+    throw new ChildServiceError(message, response.status, fieldErrors)
   }
 
   if (response.status >= 500) {

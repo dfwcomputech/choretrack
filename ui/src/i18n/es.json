@@ -343,6 +343,14 @@
       "deleteChildFailed": "No se puede eliminar la cuenta infantil. Inténtalo de nuevo."
     }
   },
+  "accountType": {
+    "label": "Tipo de Cuenta",
+    "FREE": "Cuenta Gratuita",
+    "PAID": "Cuenta de Pago",
+    "DEMO": "Cuenta Demo",
+    "upgradeLabel": "Actualizar a Pago",
+    "upgradeHint": "Actualiza para eliminar límites y desbloquear todas las funciones."
+  },
   "children": {
     "addChildAccount": "Agregar cuenta infantil",
     "empty": "Aún no se han agregado hijos.",
