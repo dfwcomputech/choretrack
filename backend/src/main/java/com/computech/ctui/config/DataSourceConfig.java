@@ -19,7 +19,7 @@ public class DataSourceConfig {
 
 	@Bean
 	DataSource dataSource(
-			@Value("${spring.datasource.url:jdbc:postgresql://localhost:5432/choretrack}") final String url,
+			@Value("${spring.datasource.url}") final String url,
 			@Value("${spring.datasource.driver-class-name:org.postgresql.Driver}") final String driverClassName,
 			@Value("${spring.datasource.username:#{null}}") final String username,
 			@Value("${spring.datasource.password:#{null}}") final String password) {
