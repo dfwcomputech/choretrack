@@ -15,7 +15,7 @@ public class AccountPlanService {
 		}
 		if (currentActiveChildCount >= FREE_MAX_CHILDREN) {
 			throw new AccountPlanLimitException(
-					"Free accounts can only create " + FREE_MAX_CHILDREN + " children account.",
+					"Free accounts can only create " + FREE_MAX_CHILDREN + " child accounts.",
 					"accountType");
 		}
 	}
@@ -37,7 +37,7 @@ public class AccountPlanService {
 		}
 		if (currentActiveRewardCount >= FREE_MAX_ACTIVE_REWARDS) {
 			throw new AccountPlanLimitException(
-					"Free accounts can only create " + FREE_MAX_ACTIVE_REWARDS + " rewards.",
+					"Free accounts can only create " + FREE_MAX_ACTIVE_REWARDS + " active rewards.",
 					"accountType");
 		}
 	}
