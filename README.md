@@ -32,7 +32,29 @@ The backend now uses JWT-based auth with PostgreSQL-backed persistence.
 
 ### Database Configuration
 
-Set `DATABASE_URL` for the backend datasource (for Render PostgreSQL use your service URL).
+Set the `DATABASE_URL` environment variable to configure the PostgreSQL datasource.
+
+The application accepts both the standard Render PostgreSQL URL format and the JDBC URL format:
+
+```
+# Render Internal Database URL (preferred for Render deployments)
+DATABASE_URL=postgresql://<user>:<password>@<host>/<database>
+
+# Standard JDBC URL (for local development or other environments)
+DATABASE_URL=jdbc:postgresql://<host>:<port>/<database>
+```
+
+The application automatically converts `postgresql://` URLs to the required `jdbc:postgresql://` format.
+
+If `DATABASE_URL` is not set, the application falls back to `jdbc:postgresql://localhost:5432/choretrack`.
+
+**Render Setup:**
+
+In your Render Web Service environment variables, add:
+
+```
+DATABASE_URL=<Internal Database URL from Render PostgreSQL dashboard>
+```
 
 Example login request:
 
