@@ -10,7 +10,7 @@ interface ParentChildSectionProps {
   rewards: RewardItem[]
   points: number
   level: number
-  onAddChore: (childId: string) => void
+  onAddChore: (childId?: string) => void
   onToggleChore: (id: string) => void
   onEditChore: (chore: ChoreItem) => void
   onDeleteChore: (chore: ChoreItem) => void

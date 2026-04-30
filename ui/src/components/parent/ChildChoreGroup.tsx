@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ChoreItem } from '../dashboard/types'
+import { formatDueDate } from '../../utils/dateFormatters'
 
 interface ChildChoreGroupProps {
   title: string
@@ -14,13 +15,6 @@ interface ChildChoreGroupProps {
   defaultCollapsed?: boolean
 }
 
-const formatDueDate = (dueDate: string | null, t: (key: string) => string) => {
-  if (!dueDate) return t('chores.noDueDate')
-  const [year, month, day] = dueDate.split('-').map(Number)
-  if (!year || !month || !day) return dueDate
-  const parsedDate = new Date(Date.UTC(year, month - 1, day))
-  return new Intl.DateTimeFormat(undefined, { timeZone: 'UTC' }).format(parsedDate)
-}
 
 export default function ChildChoreGroup({
   title,

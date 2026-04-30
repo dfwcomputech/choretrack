@@ -1,5 +1,6 @@
 import type { ChoreItem, KidAccount } from './types'
 import { useTranslation } from 'react-i18next'
+import { formatDueDate } from '../../utils/dateFormatters'
 
 interface ChoresSectionProps {
   chores: ChoreItem[]
@@ -12,13 +13,6 @@ interface ChoresSectionProps {
 
 const formatStatus = (status: ChoreItem['status'], t: (key: string) => string) => (status === 'COMPLETED' ? t('common.completed') : t('common.pending'))
 
-const formatDueDate = (dueDate: string | null, t: (key: string) => string) => {
-  if (!dueDate) return t('chores.noDueDate')
-  const [year, month, day] = dueDate.split('-').map(Number)
-  if (!year || !month || !day) return dueDate
-  const parsedDate = new Date(Date.UTC(year, month - 1, day))
-  return new Intl.DateTimeFormat(undefined, { timeZone: 'UTC' }).format(parsedDate)
-}
 
 export default function ChoresSection({ chores, kids, onToggleChore, onEditChore, onDeleteChore, onAddChore }: ChoresSectionProps) {
   const { t } = useTranslation()
