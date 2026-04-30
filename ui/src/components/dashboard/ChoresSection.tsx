@@ -7,7 +7,7 @@ interface ChoresSectionProps {
   onToggleChore: (id: string) => void
   onEditChore: (chore: ChoreItem) => void
   onDeleteChore: (chore: ChoreItem) => void
-  onAddChore: () => void
+  onAddChore: (childId?: string) => void
 }
 
 const formatStatus = (status: ChoreItem['status'], t: (key: string) => string) => (status === 'COMPLETED' ? t('common.completed') : t('common.pending'))
@@ -30,7 +30,7 @@ export default function ChoresSection({ chores, kids, onToggleChore, onEditChore
         <h2 className="text-3xl font-bold text-slate-900">{t('dashboard.nav.chores')}</h2>
         <button
           type="button"
-          onClick={onAddChore}
+          onClick={() => onAddChore()}
           className="rounded-xl bg-primary-100 px-4 py-2 text-lg font-semibold text-primary-700 hover:bg-primary-200"
         >
           + {t('chores.addChore')}

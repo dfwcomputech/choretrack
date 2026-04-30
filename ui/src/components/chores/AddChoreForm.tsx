@@ -12,6 +12,7 @@ interface AddChoreFormProps {
   errorMessage: string
   fieldErrors: Record<string, string>
   prefill?: ChoreTemplateResponse | null
+  defaultChildId?: string
   onClose: () => void
   onSubmit: (payload: CreateChorePayload) => Promise<void>
 }
@@ -40,13 +41,13 @@ const recurrenceDayOptions: Array<{ value: RecurrenceDayOfWeek; label: string }>
   { value: 'SUN', label: 'Sun' },
 ]
 
-export default function AddChoreForm({ isOpen, isSubmitting, kids, errorMessage, fieldErrors, prefill, onClose, onSubmit }: AddChoreFormProps) {
+export default function AddChoreForm({ isOpen, isSubmitting, kids, errorMessage, fieldErrors, prefill, defaultChildId, onClose, onSubmit }: AddChoreFormProps) {
   const { t } = useTranslation()
   const [formValues, setFormValues] = useState<ChoreFormValues>({
     title: '',
     description: '',
     points: 10,
-    assignedChildId: kids[0]?.id ?? '',
+    assignedChildId: defaultChildId ?? kids[0]?.id ?? '',
     dueDate: '',
     status: 'PENDING',
     repeatDaily: false,

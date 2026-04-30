@@ -307,6 +307,7 @@
     "parentSummary": "Sigue el progreso, las tareas y las recompensas de cada hijo desde tu panel.",
     "pointsToNextLevel": "{{points}} puntos para el Nivel {{level}}",
     "settingsSoon": "Pronto habrá más ajustes para padres.",
+    "noChildrenYet": "Aún no hay hijos. Agrega un hijo para comenzar.",
     "nav": {
       "dashboard": "Panel",
       "kin": "Familia",
@@ -419,6 +420,9 @@
     "unassigned": "Sin asignar",
     "noDueDate": "Sin fecha de vencimiento",
     "completing": "Completando...",
+    "dailyChores": "Tareas Diarias",
+    "upcomingChores": "Próximas Tareas",
+    "noChoresForChild": "Aún no hay tareas asignadas.",
     "placeholders": {
       "title": "Sacar la basura",
       "description": "Vaciar el lavavajillas y limpiar los mostradores"

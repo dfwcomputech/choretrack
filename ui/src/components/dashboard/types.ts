@@ -18,6 +18,7 @@ export interface ChoreItem {
   dueDate: string | null
   status: 'PENDING' | 'COMPLETED'
   completed: boolean
+  recurring: boolean
 }
 
 export interface RewardItem {

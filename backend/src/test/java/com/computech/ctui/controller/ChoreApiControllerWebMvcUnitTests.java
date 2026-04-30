@@ -63,7 +63,8 @@ class ChoreApiControllerWebMvcUnitTests {
 				LocalDate.parse("2026-04-25"),
 				ChoreStatus.PENDING,
 				Instant.parse("2026-04-19T10:00:00Z"),
-				Instant.parse("2026-04-19T10:00:00Z")));
+				Instant.parse("2026-04-19T10:00:00Z"),
+				null));
 
 		mockMvc.perform(post("/api/chores")
 				.principal(new UsernamePasswordAuthenticationToken("angie", "n/a", List.of()))
@@ -95,7 +96,8 @@ class ChoreApiControllerWebMvcUnitTests {
 				LocalDate.parse("2026-04-25"),
 				ChoreStatus.PENDING,
 				Instant.parse("2026-04-19T10:00:00Z"),
-				Instant.parse("2026-04-19T10:00:00Z")));
+				Instant.parse("2026-04-19T10:00:00Z"),
+				"series-abc"));
 
 		mockMvc.perform(post("/api/chores")
 				.principal(new UsernamePasswordAuthenticationToken("angie", "n/a", List.of()))
@@ -223,7 +225,8 @@ class ChoreApiControllerWebMvcUnitTests {
 				LocalDate.parse("2026-04-26"),
 				ChoreStatus.PENDING,
 				Instant.parse("2026-04-19T10:00:00Z"),
-				Instant.parse("2026-04-19T10:15:00Z")));
+				Instant.parse("2026-04-19T10:15:00Z"),
+				null));
 
 		mockMvc.perform(put("/api/chores/chore-123")
 				.principal(new UsernamePasswordAuthenticationToken("angie", "n/a", List.of()))

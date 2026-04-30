@@ -307,6 +307,7 @@
     "parentSummary": "Track each child's progress, chores, and rewards from your dashboard.",
     "pointsToNextLevel": "{{points}} points to Level {{level}}",
     "settingsSoon": "More parent settings are coming soon.",
+    "noChildrenYet": "No children added yet. Add a child to get started.",
     "nav": {
       "dashboard": "Dashboard",
       "kin": "Kin",
@@ -424,6 +425,9 @@
     "unassigned": "Unassigned",
     "noDueDate": "No due date",
     "completing": "Completing...",
+    "dailyChores": "Daily Chores",
+    "upcomingChores": "Upcoming Chores",
+    "noChoresForChild": "No chores assigned yet.",
     "placeholders": {
       "title": "Take out trash",
       "description": "Empty dishwasher and wipe counters",
