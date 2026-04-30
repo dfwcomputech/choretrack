@@ -28,7 +28,7 @@ public class LibraryService {
 			choreTemplate("template-chore-15", "Practice instrument", "Practice your musical instrument for 20 minutes", 15, "School"));
 
 	private static final List<RewardTemplateJpaEntity> DEFAULT_REWARD_TEMPLATES = List.of(
-			rewardTemplate("template-reward-1", "Get Icecream", "Pick your favorite ice cream treat", 80, "Food"),
+			rewardTemplate("template-reward-1", "Get Ice Cream", "Pick your favorite ice cream treat", 80, "Food"),
 			rewardTemplate("template-reward-2", "Extra gaming time", "30 minutes of extra gaming time", 150, "Screen Time"),
 			rewardTemplate("template-reward-3", "Go to the movies", "Choose a movie to watch with the family", 200, "Outing"),
 			rewardTemplate("template-reward-4", "Buy something small", "Choose a small item from the store (up to $10)", 250, "Shopping"),
