@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { KidAccount } from '../dashboard/types'
 import type { CreateChorePayload, RecurrenceDayOfWeek } from '../../services/choreService'
+import ChoreLibraryModal from './ChoreLibraryModal'
+import type { ChoreTemplateResponse } from '../../services/libraryService'
 
 interface AddChoreFormProps {
   isOpen: boolean
@@ -9,6 +11,7 @@ interface AddChoreFormProps {
   kids: KidAccount[]
   errorMessage: string
   fieldErrors: Record<string, string>
+  prefill?: ChoreTemplateResponse | null
   onClose: () => void
   onSubmit: (payload: CreateChorePayload) => Promise<void>
 }
@@ -37,7 +40,7 @@ const recurrenceDayOptions: Array<{ value: RecurrenceDayOfWeek; label: string }>
   { value: 'SUN', label: 'Sun' },
 ]
 
-export default function AddChoreForm({ isOpen, isSubmitting, kids, errorMessage, fieldErrors, onClose, onSubmit }: AddChoreFormProps) {
+export default function AddChoreForm({ isOpen, isSubmitting, kids, errorMessage, fieldErrors, prefill, onClose, onSubmit }: AddChoreFormProps) {
   const { t } = useTranslation()
   const [formValues, setFormValues] = useState<ChoreFormValues>({
     title: '',
@@ -53,6 +56,18 @@ export default function AddChoreForm({ isOpen, isSubmitting, kids, errorMessage,
     recurrenceTimeOfDay: '',
   })
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false)
+
+  useEffect(() => {
+    if (isOpen && prefill) {
+      setFormValues((prev) => ({
+        ...prev,
+        title: prefill.title,
+        description: prefill.description ?? '',
+        points: prefill.suggestedPoints,
+      }))
+    }
+  }, [isOpen, prefill])
 
   if (!isOpen) return null
   const selectedChildId = kids.some((kid) => kid.id === formValues.assignedChildId) ? formValues.assignedChildId : (kids[0]?.id ?? '')
@@ -124,10 +139,35 @@ export default function AddChoreForm({ isOpen, isSubmitting, kids, errorMessage,
 
   const mergedFieldErrors = { ...validationErrors, ...fieldErrors }
 
+  const handleSelectFromLibrary = (template: ChoreTemplateResponse) => {
+    setFormValues((prev) => ({
+      ...prev,
+      title: template.title,
+      description: template.description ?? '',
+      points: template.suggestedPoints,
+    }))
+    setValidationErrors({})
+  }
+
   return (
+    <>
+      <ChoreLibraryModal
+        isOpen={isLibraryOpen}
+        onClose={() => setIsLibraryOpen(false)}
+        onSelect={handleSelectFromLibrary}
+      />
     <div className="fixed inset-0 z-30 flex items-start justify-center overflow-y-auto bg-slate-900/60 p-4 sm:items-center">
       <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
-        <h3 className="text-2xl font-bold text-slate-900">{t('chores.addChore')}</h3>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="text-2xl font-bold text-slate-900">{t('chores.addChore')}</h3>
+          <button
+            type="button"
+            onClick={() => setIsLibraryOpen(true)}
+            className="shrink-0 rounded-lg border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-700 hover:bg-primary-100"
+          >
+            {t('library.browseLibrary')}
+          </button>
+        </div>
         {errorMessage ? <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{errorMessage}</div> : null}
         <form
           onSubmit={(event) => {
@@ -302,5 +342,6 @@ export default function AddChoreForm({ isOpen, isSubmitting, kids, errorMessage,
         </form>
       </div>
     </div>
+    </>
   )
 }

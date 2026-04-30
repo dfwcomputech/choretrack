@@ -125,7 +125,7 @@
     },
     "defaultRewards": {
       "icecream": {
-        "name": "Get Icecream",
+        "name": "Get Ice Cream",
         "description": "Pick your favorite ice cream treat."
       },
       "gaming": {
@@ -472,6 +472,20 @@
     "title": "Kid dashboard",
     "greeting": "Hi {{name}}!",
     "subtitle": "Complete chores, earn points, and unlock awesome rewards."
+  },
+  "library": {
+    "browseLibrary": "Browse Library",
+    "loading": "Loading...",
+    "noResults": "No templates found.",
+    "loadError": "Unable to load library. Please try again.",
+    "chore": {
+      "title": "Chore Library",
+      "searchPlaceholder": "Search chores (e.g. dog, clean, homework)"
+    },
+    "reward": {
+      "title": "Reward Library",
+      "searchPlaceholder": "Search rewards (e.g. gaming, movies, icecream)"
+    }
   },
   "footer": {
     "brand": "ChoreTrack",
