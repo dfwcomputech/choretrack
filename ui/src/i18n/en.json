@@ -473,6 +473,20 @@
     "greeting": "Hi {{name}}!",
     "subtitle": "Complete chores, earn points, and unlock awesome rewards."
   },
+  "library": {
+    "browseLibrary": "Browse Library",
+    "loading": "Loading...",
+    "noResults": "No templates found.",
+    "loadError": "Unable to load library. Please try again.",
+    "chore": {
+      "title": "Chore Library",
+      "searchPlaceholder": "Search chores (e.g. dog, clean, homework)"
+    },
+    "reward": {
+      "title": "Reward Library",
+      "searchPlaceholder": "Search rewards (e.g. gaming, movies, icecream)"
+    }
+  },
   "footer": {
     "brand": "ChoreTrack",
     "tagline": "Making family chores fun and rewarding.",

@@ -464,6 +464,20 @@
     "greeting": "¡Hola {{name}}!",
     "subtitle": "Completa tareas, gana puntos y desbloquea recompensas increíbles."
   },
+  "library": {
+    "browseLibrary": "Explorar Biblioteca",
+    "loading": "Cargando...",
+    "noResults": "No se encontraron plantillas.",
+    "loadError": "No se pudo cargar la biblioteca. Inténtalo de nuevo.",
+    "chore": {
+      "title": "Biblioteca de Tareas",
+      "searchPlaceholder": "Buscar tareas (ej. perro, limpiar, tarea)"
+    },
+    "reward": {
+      "title": "Biblioteca de Recompensas",
+      "searchPlaceholder": "Buscar recompensas (ej. juegos, películas, helado)"
+    }
+  },
   "footer": {
     "brand": "ChoreTrack",
     "tagline": "Haciendo las tareas del hogar divertidas y gratificantes.",
