@@ -21,6 +21,7 @@ export interface ChoreResponse {
   status: ChoreStatus
   createdAt: string
   updatedAt: string
+  recurrenceSeriesId?: string | null
 }
 
 export interface CreateChorePayload {

@@ -1,5 +1,6 @@
 import type { ChoreItem, KidAccount } from './types'
 import { useTranslation } from 'react-i18next'
+import { formatDueDate } from '../../utils/dateFormatters'
 
 interface ChoresSectionProps {
   chores: ChoreItem[]
@@ -7,18 +8,11 @@ interface ChoresSectionProps {
   onToggleChore: (id: string) => void
   onEditChore: (chore: ChoreItem) => void
   onDeleteChore: (chore: ChoreItem) => void
-  onAddChore: () => void
+  onAddChore: (childId?: string) => void
 }
 
 const formatStatus = (status: ChoreItem['status'], t: (key: string) => string) => (status === 'COMPLETED' ? t('common.completed') : t('common.pending'))
 
-const formatDueDate = (dueDate: string | null, t: (key: string) => string) => {
-  if (!dueDate) return t('chores.noDueDate')
-  const [year, month, day] = dueDate.split('-').map(Number)
-  if (!year || !month || !day) return dueDate
-  const parsedDate = new Date(Date.UTC(year, month - 1, day))
-  return new Intl.DateTimeFormat(undefined, { timeZone: 'UTC' }).format(parsedDate)
-}
 
 export default function ChoresSection({ chores, kids, onToggleChore, onEditChore, onDeleteChore, onAddChore }: ChoresSectionProps) {
   const { t } = useTranslation()
@@ -30,7 +24,7 @@ export default function ChoresSection({ chores, kids, onToggleChore, onEditChore
         <h2 className="text-3xl font-bold text-slate-900">{t('dashboard.nav.chores')}</h2>
         <button
           type="button"
-          onClick={onAddChore}
+          onClick={() => onAddChore()}
           className="rounded-xl bg-primary-100 px-4 py-2 text-lg font-semibold text-primary-700 hover:bg-primary-200"
         >
           + {t('chores.addChore')}

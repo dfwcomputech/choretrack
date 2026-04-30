@@ -13,5 +13,6 @@ public record ChoreResponse(
 		LocalDate dueDate,
 		ChoreStatus status,
 		Instant createdAt,
-		Instant updatedAt) {
+		Instant updatedAt,
+		String recurrenceSeriesId) {
 }

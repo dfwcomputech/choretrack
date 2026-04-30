@@ -132,6 +132,7 @@ const toChoreItem = (chore: ChoreResponse): ChoreItem => ({
   dueDate: chore.dueDate,
   status: chore.status,
   completed: chore.status === 'COMPLETED',
+  recurring: Boolean(chore.recurrenceSeriesId),
 })
 
 const toRewardItem = (reward: RewardResponse): RewardItem => ({
@@ -177,6 +178,7 @@ export default function DashboardPage() {
   const [activeNav, setActiveNav] = useState('dashboard')
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isAddChoreOpen, setIsAddChoreOpen] = useState(false)
+  const [addChoreDefaultChildId, setAddChoreDefaultChildId] = useState<string | undefined>(undefined)
   const [isEditChoreOpen, setIsEditChoreOpen] = useState(false)
   const [isDeleteChoreOpen, setIsDeleteChoreOpen] = useState(false)
   const [isAddRewardOpen, setIsAddRewardOpen] = useState(false)
@@ -473,10 +475,11 @@ export default function DashboardPage() {
     }
   }
 
-  const openAddChoreDialog = () => {
+  const openAddChoreDialog = (childId?: string) => {
     setChoreSuccessMessage('')
     setCreateChoreErrorMessage('')
     setCreateChoreFieldErrors({})
+    setAddChoreDefaultChildId(childId)
     setIsAddChoreOpen(true)
   }
 
@@ -484,6 +487,7 @@ export default function DashboardPage() {
     if (isCreatingChore) return
     setCreateChoreErrorMessage('')
     setCreateChoreFieldErrors({})
+    setAddChoreDefaultChildId(undefined)
     setIsAddChoreOpen(false)
   }
 
@@ -944,6 +948,7 @@ export default function DashboardPage() {
           kids={kids}
           errorMessage={createChoreErrorMessage}
           fieldErrors={createChoreFieldErrors}
+          defaultChildId={addChoreDefaultChildId}
           onClose={closeAddChoreDialog}
           onSubmit={handleCreateChore}
         />

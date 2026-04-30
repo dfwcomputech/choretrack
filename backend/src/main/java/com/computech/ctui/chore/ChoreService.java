@@ -500,7 +500,8 @@ public class ChoreService {
 		chore.dueDate(),
 		chore.status(),
 		chore.createdAt(),
-		chore.updatedAt());
+		chore.updatedAt(),
+		chore.recurrenceSeriesId());
 	}
 
 	private ChildDashboardChoreResponse toChildDashboardChoreResponse(final Chore chore) {

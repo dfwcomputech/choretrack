@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, type ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
-import ChoresSection from '../components/dashboard/ChoresSection'
 import KinSection from '../components/dashboard/KinSection'
 import type { ChoreItem, KidAccount, RewardItem } from '../components/dashboard/types'
 import Sidebar from '../components/layout/Sidebar'
 import KinProgressSection, { type ChildProgressSummary } from '../components/parent/KinProgressSection'
+import ParentChildSection from '../components/parent/ParentChildSection'
 import RewardList from '../components/rewards/RewardList'
 import SeasonPassBuilder, { type SeasonPassMilestone } from '../components/rewards/SeasonPassBuilder'
 
@@ -19,7 +19,7 @@ interface ParentDashboardPageProps {
   rewards: RewardItem[]
   activeNav: string
   onNavChange: (id: string) => void
-  onAddChore: () => void
+  onAddChore: (childId?: string) => void
   onToggleChore: (id: string) => void
   onEditChore: (chore: ChoreItem) => void
   onDeleteChore: (chore: ChoreItem) => void
@@ -150,10 +150,35 @@ export default function ParentDashboardPage({
         <p className="mt-3 text-base text-slate-600">{t('dashboard.parentSummary')}</p>
       </section>
       <KinProgressSection childrenProgress={childProgress} />
-      <div className="grid gap-6 xl:grid-cols-2">
-        <RewardList rewards={rewards} onAddReward={onAddReward} onEditReward={onEditReward} onDeleteReward={onDeleteReward} />
-        <SeasonPassBuilder rewards={rewards} milestones={seasonPassMilestones} onSave={handleSaveSeasonPass} />
-      </div>
+      {kids.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-slate-500 shadow-sm">
+          {t('dashboard.noChildrenYet')}
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {kids.map((kid) => {
+            const kidChores = chores.filter((chore) => chore.childId === kid.id)
+            const progress = childProgress.find((p) => p.id === kid.id)
+            return (
+              <ParentChildSection
+                key={kid.id}
+                kid={kid}
+                chores={kidChores}
+                rewards={rewards}
+                points={progress?.points ?? 0}
+                level={progress?.level ?? 1}
+                onAddChore={onAddChore}
+                onToggleChore={onToggleChore}
+                onEditChore={onEditChore}
+                onDeleteChore={onDeleteChore}
+                onAddReward={onAddReward}
+                onEditReward={onEditReward}
+                onDeleteReward={onDeleteReward}
+              />
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 
@@ -166,14 +191,47 @@ export default function ParentDashboardPage({
       </div>
     ),
     chores: (
-      <ChoresSection
-        chores={chores}
-        kids={kids}
-        onToggleChore={onToggleChore}
-        onEditChore={onEditChore}
-        onDeleteChore={onDeleteChore}
-        onAddChore={onAddChore}
-      />
+      <div className="space-y-6">
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h2 className="text-3xl font-bold text-slate-900">{t('dashboard.nav.chores')}</h2>
+            <button
+              type="button"
+              onClick={() => onAddChore()}
+              className="rounded-xl bg-primary-100 px-4 py-2 text-lg font-semibold text-primary-700 hover:bg-primary-200"
+            >
+              + {t('chores.addChore')}
+            </button>
+          </div>
+        </section>
+        {kids.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-slate-500 shadow-sm">
+            {t('dashboard.noChildrenYet')}
+          </div>
+        ) : (
+          kids.map((kid) => {
+            const kidChores = chores.filter((chore) => chore.childId === kid.id)
+            const progress = childProgress.find((p) => p.id === kid.id)
+            return (
+              <ParentChildSection
+                key={kid.id}
+                kid={kid}
+                chores={kidChores}
+                rewards={rewards}
+                points={progress?.points ?? 0}
+                level={progress?.level ?? 1}
+                onAddChore={onAddChore}
+                onToggleChore={onToggleChore}
+                onEditChore={onEditChore}
+                onDeleteChore={onDeleteChore}
+                onAddReward={onAddReward}
+                onEditReward={onEditReward}
+                onDeleteReward={onDeleteReward}
+              />
+            )
+          })
+        )}
+      </div>
     ),
     rewards: (
       <div className="space-y-6">
