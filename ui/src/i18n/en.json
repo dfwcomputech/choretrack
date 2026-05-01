@@ -427,6 +427,11 @@
     "completing": "Completing...",
     "dailyChores": "Daily Chores",
     "upcomingChores": "Upcoming Chores",
+    "tabs": {
+      "today": "Today",
+      "upcoming": "Upcoming",
+      "past": "Past"
+    },
     "noChoresForChild": "No chores assigned yet.",
     "placeholders": {
       "title": "Take out trash",

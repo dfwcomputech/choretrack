@@ -422,6 +422,11 @@
     "completing": "Completando...",
     "dailyChores": "Tareas Diarias",
     "upcomingChores": "Próximas Tareas",
+    "tabs": {
+      "today": "Hoy",
+      "upcoming": "Próximas",
+      "past": "Pasadas"
+    },
     "noChoresForChild": "Aún no hay tareas asignadas.",
     "placeholders": {
       "title": "Sacar la basura",
