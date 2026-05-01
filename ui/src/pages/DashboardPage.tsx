@@ -574,9 +574,9 @@ export default function DashboardPage() {
     setDeleteChoreErrorMessage('')
     setIsDeletingChore(true)
     try {
-      const deletedChoreId = selectedChore.id
-      await deleteChore(deletedChoreId, token)
-      setChores((prev) => prev.filter((chore) => chore.id !== deletedChoreId))
+      await deleteChore(selectedChore.id, token)
+      const refreshedChores = await listChores(token)
+      setChores(refreshedChores.map(toChoreItem))
       setChoreSuccessMessage(t('dashboard.success.choreDeleted'))
       setIsDeleteChoreOpen(false)
       setSelectedChore(null)
