@@ -1,3 +1,5 @@
+import type { ChoreRecurrencePayload } from '../../services/choreService'
+
 export interface KidAccount {
   id: string
   name: string
@@ -20,6 +22,7 @@ export interface ChoreItem {
   completed: boolean
   recurring: boolean
   recurrenceSeriesId?: string | null
+  recurrence?: ChoreRecurrencePayload | null
 }
 
 export interface RewardItem {

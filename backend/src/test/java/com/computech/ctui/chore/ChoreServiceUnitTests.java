@@ -645,6 +645,93 @@ class ChoreServiceUnitTests {
 	}
 
 	@Test
+	void recurringChoreResponseIncludesRecurrenceMetadata() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed the dog",
+				null,
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING,
+				new ChoreRecurrenceRequest(
+						RecurrenceType.DAILY,
+						LocalDate.parse("2026-05-01"),
+						LocalDate.parse("2026-05-07"),
+						Set.of(RecurrenceDayOfWeek.MON, RecurrenceDayOfWeek.WED),
+						"After school")), "angie");
+
+		final ChoreResponse occurrence = choreService.listActiveChores("angie")
+				.stream()
+				.findFirst()
+				.orElseThrow();
+
+		assertThat(occurrence.recurrenceSeriesId()).isNotNull();
+		assertThat(occurrence.recurrence()).isNotNull();
+		assertThat(occurrence.recurrence().type()).isEqualTo(RecurrenceType.DAILY);
+		assertThat(occurrence.recurrence().startDate()).isEqualTo(LocalDate.parse("2026-05-01"));
+		assertThat(occurrence.recurrence().endDate()).isEqualTo(LocalDate.parse("2026-05-07"));
+		assertThat(occurrence.recurrence().daysOfWeek()).containsExactlyInAnyOrder("MON", "WED");
+		assertThat(occurrence.recurrence().timeOfDay()).isEqualTo("After school");
+	}
+
+	@Test
+	void updateSeriesChoresWithRecurrenceConfigRegeneratesOccurrences() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed the dog",
+				null,
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING,
+				new ChoreRecurrenceRequest(
+						RecurrenceType.DAILY,
+						LocalDate.parse("2026-05-01"),
+						LocalDate.parse("2026-05-07"),
+						null,
+						null)), "angie");
+
+		final ChoreResponse anyOccurrence = choreService.listActiveChores("angie")
+				.stream()
+				.findFirst()
+				.orElseThrow();
+
+		choreService.updateSeriesChores(anyOccurrence.id(), new ChoreUpdateRequest(
+				"Feed Jessie",
+				null,
+				15,
+				child.id(),
+				null,
+				ChoreStatus.PENDING,
+				new ChoreRecurrenceRequest(
+						RecurrenceType.DAILY,
+						LocalDate.parse("2026-05-08"),
+						LocalDate.parse("2026-05-10"),
+						null,
+						"Before school")), "angie");
+
+		final List<ChoreResponse> updatedOccurrences = choreService.listActiveChores("angie");
+		assertThat(updatedOccurrences).allMatch(chore -> "Feed Jessie".equals(chore.title()));
+		assertThat(updatedOccurrences).allMatch(chore -> chore.points() == 15);
+		assertThat(updatedOccurrences).extracting(ChoreResponse::dueDate)
+				.containsExactlyInAnyOrder(
+						LocalDate.parse("2026-05-08"),
+						LocalDate.parse("2026-05-09"),
+						LocalDate.parse("2026-05-10"));
+		assertThat(updatedOccurrences.get(0).recurrence()).isNotNull();
+		assertThat(updatedOccurrences.get(0).recurrence().startDate()).isEqualTo(LocalDate.parse("2026-05-08"));
+		assertThat(updatedOccurrences.get(0).recurrence().endDate()).isEqualTo(LocalDate.parse("2026-05-10"));
+		assertThat(updatedOccurrences.get(0).recurrence().timeOfDay()).isEqualTo("Before school");
+	}
+
+	@Test
 	void updateSeriesChoresFallsBackToSingleUpdateWhenNotInSeries() {
 		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
 		final ChoreService choreService = createService(userRepository);

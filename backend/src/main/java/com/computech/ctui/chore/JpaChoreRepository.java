@@ -59,6 +59,9 @@ public class JpaChoreRepository implements ChoreRepository {
 		entity.setRecurrenceSeriesId(chore.recurrenceSeriesId());
 		entity.setRecurrenceType(chore.recurrenceType());
 		entity.setRecurrenceTimeOfDay(chore.recurrenceTimeOfDay());
+		entity.setRecurrenceStartDate(chore.recurrenceStartDate());
+		entity.setRecurrenceEndDate(chore.recurrenceEndDate());
+		entity.setRecurrenceDaysOfWeek(chore.recurrenceDaysOfWeek());
 		return entity;
 	}
 
@@ -80,6 +83,9 @@ public class JpaChoreRepository implements ChoreRepository {
 				entity.getCompletedByChildId(),
 				entity.getRecurrenceSeriesId(),
 				entity.getRecurrenceType(),
-				entity.getRecurrenceTimeOfDay());
+				entity.getRecurrenceTimeOfDay(),
+				entity.getRecurrenceStartDate(),
+				entity.getRecurrenceEndDate(),
+				entity.getRecurrenceDaysOfWeek());
 	}
 }
