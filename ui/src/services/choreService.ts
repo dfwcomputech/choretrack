@@ -1,6 +1,7 @@
 export type ChoreStatus = 'PENDING' | 'COMPLETED'
 export type RecurrenceType = 'DAILY'
 export type RecurrenceDayOfWeek = 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN'
+export type UpdateScope = 'INSTANCE' | 'SERIES'
 
 export interface ChoreRecurrencePayload {
   type: RecurrenceType
@@ -182,11 +183,12 @@ export const createChore = async (payload: CreateChorePayload, token: string): P
   throw new ChoreServiceError('Unable to create chore. Please try again.', response.status)
 }
 
-export const updateChore = async (choreId: string, payload: UpdateChorePayload, token: string): Promise<ChoreResponse> => {
+export const updateChore = async (choreId: string, payload: UpdateChorePayload, token: string, scope?: UpdateScope): Promise<ChoreResponse> => {
   requireToken(token)
   let response: Response
+  const url = scope ? `/api/chores/${encodeURIComponent(choreId)}?scope=${scope}` : `/api/chores/${encodeURIComponent(choreId)}`
   try {
-    response = await fetch(`/api/chores/${encodeURIComponent(choreId)}`, {
+    response = await fetch(url, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${token}`,

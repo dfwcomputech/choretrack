@@ -353,6 +353,67 @@ class ChoreApiControllerWebMvcUnitTests {
 	}
 
 	@Test
+	void updateChoreWithSeriesScopeCallsUpdateSeriesChores() throws Exception {
+		when(choreService.updateSeriesChores(eq("chore-123"), any(), eq("angie"))).thenReturn(new ChoreResponse(
+				"chore-123",
+				"Feed Jessie",
+				null,
+				10,
+				"child-123",
+				"Preston",
+				LocalDate.parse("2026-05-01"),
+				ChoreStatus.PENDING,
+				Instant.parse("2026-04-19T10:00:00Z"),
+				Instant.parse("2026-04-19T10:15:00Z"),
+				"series-abc"));
+
+		mockMvc.perform(put("/api/chores/chore-123")
+				.param("scope", "SERIES")
+				.principal(new UsernamePasswordAuthenticationToken("angie", "n/a", List.of()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{
+						  "title":"Feed Jessie",
+						  "points":10,
+						  "assignedChildId":"child-123"
+						}
+						"""))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.title").value("Feed Jessie"))
+				.andExpect(jsonPath("$.recurrenceSeriesId").value("series-abc"));
+	}
+
+	@Test
+	void updateChoreWithInstanceScopeCallsUpdateChore() throws Exception {
+		when(choreService.updateChore(eq("chore-123"), any(), eq("angie"))).thenReturn(new ChoreResponse(
+				"chore-123",
+				"Feed Jessie",
+				null,
+				10,
+				"child-123",
+				"Preston",
+				LocalDate.parse("2026-05-01"),
+				ChoreStatus.PENDING,
+				Instant.parse("2026-04-19T10:00:00Z"),
+				Instant.parse("2026-04-19T10:15:00Z"),
+				"series-abc"));
+
+		mockMvc.perform(put("/api/chores/chore-123")
+				.param("scope", "INSTANCE")
+				.principal(new UsernamePasswordAuthenticationToken("angie", "n/a", List.of()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{
+						  "title":"Feed Jessie",
+						  "points":10,
+						  "assignedChildId":"child-123"
+						}
+						"""))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.title").value("Feed Jessie"));
+	}
+
+	@Test
 	void revertChoreReturnsUnauthorizedWhenAuthenticationMissing() throws Exception {
 		mockMvc.perform(post("/api/chores/chore-123/revert"))
 				.andExpect(status().isUnauthorized());

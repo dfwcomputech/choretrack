@@ -446,6 +446,11 @@
       "recurrenceStartDateRequired": "Start date is required for daily chores.",
       "recurrenceEndDateRequired": "End date is required for daily chores.",
       "recurrenceEndDateAfterStart": "End date must be on or after start date."
+    },
+    "updateScope": {
+      "seriesNotice": "This chore is part of a daily series.",
+      "thisOccurrence": "Update this day only",
+      "allOccurrences": "Update all chores in this daily series"
     }
   },
   "seasonPass": {

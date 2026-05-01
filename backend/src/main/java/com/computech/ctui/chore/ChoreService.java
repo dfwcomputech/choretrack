@@ -142,6 +142,48 @@ public class ChoreService {
 		return toResponse(generatedOccurrences.get(0), child);
 	}
 
+	public synchronized ChoreResponse updateSeriesChores(final String choreId, final ChoreUpdateRequest request,
+	final String authenticatedUsername) {
+		final UserAccount parent = resolveParent(authenticatedUsername, "only parent users can manage chores");
+		final Chore existing = resolveOwnedChore(choreId, parent.id());
+		final UserAccount child = resolveOwnedChild(request.assignedChildId(), parent.id());
+
+		if (existing.recurrenceSeriesId() == null) {
+			return updateChore(choreId, request, authenticatedUsername);
+		}
+
+		final String title = request.title().trim();
+		final String description = normalizeDescription(request.description());
+		final int points = request.points();
+		final Instant now = Instant.now();
+
+		choreRepository.findByParentId(parent.id())
+		.stream()
+		.filter(Chore::active)
+		.filter(chore -> existing.recurrenceSeriesId().equals(chore.recurrenceSeriesId()))
+		.forEach(chore -> choreRepository.save(new Chore(
+		chore.id(),
+		title,
+		description,
+		points,
+		child.id(),
+		chore.dueDate(),
+		chore.status(),
+		chore.parentId(),
+		chore.createdAt(),
+		now,
+		chore.active(),
+		chore.deletedAt(),
+		chore.completedAt(),
+		chore.completedByChildId(),
+		chore.recurrenceSeriesId(),
+		chore.recurrenceType(),
+		chore.recurrenceTimeOfDay())));
+
+		final Chore updatedTarget = resolveOwnedChore(choreId, parent.id());
+		return toResponse(updatedTarget, child);
+	}
+
 	public synchronized ChoreResponse updateChore(final String choreId, final ChoreUpdateRequest request,
 	final String authenticatedUsername) {
 		final UserAccount parent = resolveParent(authenticatedUsername, "only parent users can manage chores");
