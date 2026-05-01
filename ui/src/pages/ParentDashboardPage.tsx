@@ -164,16 +164,12 @@ export default function ParentDashboardPage({
                 key={kid.id}
                 kid={kid}
                 chores={kidChores}
-                rewards={rewards}
                 points={progress?.points ?? 0}
                 level={progress?.level ?? 1}
                 onAddChore={onAddChore}
                 onToggleChore={onToggleChore}
                 onEditChore={onEditChore}
                 onDeleteChore={onDeleteChore}
-                onAddReward={onAddReward}
-                onEditReward={onEditReward}
-                onDeleteReward={onDeleteReward}
               />
             )
           })}
@@ -217,16 +213,12 @@ export default function ParentDashboardPage({
                 key={kid.id}
                 kid={kid}
                 chores={kidChores}
-                rewards={rewards}
                 points={progress?.points ?? 0}
                 level={progress?.level ?? 1}
                 onAddChore={onAddChore}
                 onToggleChore={onToggleChore}
                 onEditChore={onEditChore}
                 onDeleteChore={onDeleteChore}
-                onAddReward={onAddReward}
-                onEditReward={onEditReward}
-                onDeleteReward={onDeleteReward}
               />
             )
           })

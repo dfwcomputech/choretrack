@@ -1,37 +1,28 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { ChoreItem, KidAccount, RewardItem } from '../dashboard/types'
+import type { ChoreItem, KidAccount } from '../dashboard/types'
 import ChildChoreGroup from './ChildChoreGroup'
-import ChildRewardGroup from './ChildRewardGroup'
 
 interface ParentChildSectionProps {
   kid: KidAccount
   chores: ChoreItem[]
-  rewards: RewardItem[]
   points: number
   level: number
   onAddChore: (childId?: string) => void
   onToggleChore: (id: string) => void
   onEditChore: (chore: ChoreItem) => void
   onDeleteChore: (chore: ChoreItem) => void
-  onAddReward: () => void
-  onEditReward: (reward: RewardItem) => void
-  onDeleteReward: (reward: RewardItem) => void
 }
 
 export default function ParentChildSection({
   kid,
   chores,
-  rewards,
   points,
   level,
   onAddChore,
   onToggleChore,
   onEditChore,
   onDeleteChore,
-  onAddReward,
-  onEditReward,
-  onDeleteReward,
 }: ParentChildSectionProps) {
   const { t } = useTranslation()
   const [isSectionCollapsed, setIsSectionCollapsed] = useState(false)
@@ -69,37 +60,27 @@ export default function ParentChildSection({
 
       {!isSectionCollapsed ? (
         <div className="border-t border-slate-100 px-6 pb-6 pt-4">
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="space-y-3">
-              <ChildChoreGroup
-                title={t('chores.dailyChores')}
-                icon="🔁"
-                chores={dailyChores}
-                onToggleChore={onToggleChore}
-                onEditChore={onEditChore}
-                onDeleteChore={onDeleteChore}
-                onAddChore={() => onAddChore(kid.id)}
-                addLabel={t('chores.addChore')}
-              />
-              <ChildChoreGroup
-                title={t('chores.upcomingChores')}
-                icon="📅"
-                chores={upcomingChores}
-                onToggleChore={onToggleChore}
-                onEditChore={onEditChore}
-                onDeleteChore={onDeleteChore}
-                onAddChore={() => onAddChore(kid.id)}
-                addLabel={t('chores.addChore')}
-              />
-            </div>
-            <div>
-              <ChildRewardGroup
-                rewards={rewards}
-                onAddReward={onAddReward}
-                onEditReward={onEditReward}
-                onDeleteReward={onDeleteReward}
-              />
-            </div>
+          <div className="space-y-3">
+            <ChildChoreGroup
+              title={t('chores.dailyChores')}
+              icon="🔁"
+              chores={dailyChores}
+              onToggleChore={onToggleChore}
+              onEditChore={onEditChore}
+              onDeleteChore={onDeleteChore}
+              onAddChore={() => onAddChore(kid.id)}
+              addLabel={t('chores.addChore')}
+            />
+            <ChildChoreGroup
+              title={t('chores.upcomingChores')}
+              icon="📅"
+              chores={upcomingChores}
+              onToggleChore={onToggleChore}
+              onEditChore={onEditChore}
+              onDeleteChore={onDeleteChore}
+              onAddChore={() => onAddChore(kid.id)}
+              addLabel={t('chores.addChore')}
+            />
           </div>
         </div>
       ) : null}
