@@ -13,6 +13,7 @@ import com.computech.ctui.chore.ChoreChildNotFoundException;
 import com.computech.ctui.chore.ChoreAlreadyCompletedException;
 import com.computech.ctui.chore.ChoreAlreadyPendingException;
 import com.computech.ctui.chore.ChoreNotFoundException;
+import com.computech.ctui.chore.DuplicateChoreException;
 import com.computech.ctui.library.SeasonTemplateNotFoundException;
 import com.computech.ctui.reward.RewardNotFoundException;
 import com.computech.ctui.auth.AccountPlanLimitException;
@@ -82,6 +83,12 @@ public class ApiExceptionHandler {
 			final ChoreAlreadyPendingException exception) {
 		return ResponseEntity.status(HttpStatus.CONFLICT)
 				.body(new ErrorResponse(exception.getMessage(), null));
+	}
+
+	@ExceptionHandler(DuplicateChoreException.class)
+	public ResponseEntity<ErrorResponse> handleDuplicateChoreException(final DuplicateChoreException exception) {
+		return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(new ErrorResponse(exception.getMessage(), exception.getField()));
 	}
 
 	@ExceptionHandler(RewardNotFoundException.class)

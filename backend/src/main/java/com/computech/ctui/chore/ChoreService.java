@@ -106,10 +106,15 @@ public class ChoreService {
 				.count();
 		accountPlanService.enforceChoreCreationLimit(parent, activeChoreCount);
 
+		final String normalizedTitle = request.title().trim();
+
 		if (request.recurrence() == null) {
+			if (request.dueDate() != null) {
+				validateNoDuplicateChore(child.id(), normalizedTitle, request.dueDate(), request.dueDate());
+			}
 			final Chore created = choreRepository.save(new Chore(
 			UUID.randomUUID().toString(),
-			request.title().trim(),
+			normalizedTitle,
 			normalizeDescription(request.description()),
 			request.points(),
 			child.id(),
@@ -129,8 +134,10 @@ public class ChoreService {
 		}
 
 		final String recurrenceSeriesId = UUID.randomUUID().toString();
+		validateNoDuplicateChore(child.id(), normalizedTitle,
+				request.recurrence().startDate(), request.recurrence().endDate());
 		final List<Chore> generatedOccurrences = createRecurringOccurrences(
-		request.title().trim(),
+		normalizedTitle,
 		normalizeDescription(request.description()),
 		request.points(),
 		child.id(),
@@ -529,6 +536,26 @@ public class ChoreService {
 			return null;
 		}
 		return description.trim();
+	}
+
+	private void validateNoDuplicateChore(final String childId, final String normalizedTitle,
+			final LocalDate newStart, final LocalDate newEnd) {
+		final boolean hasDuplicate = choreRepository.findByAssignedChildId(childId)
+				.stream()
+				.filter(Chore::active)
+				.filter(chore -> normalizedTitle.equalsIgnoreCase(chore.title().trim()))
+				.anyMatch(chore -> {
+					final LocalDate choreDate = chore.dueDate();
+					if (choreDate == null) {
+						return false;
+					}
+					return !choreDate.isBefore(newStart) && !choreDate.isAfter(newEnd);
+				});
+		if (hasDuplicate) {
+			throw new DuplicateChoreException(
+					"A chore with this title already exists for this child during the selected date range.",
+					"title");
+		}
 	}
 
 	private ChoreResponse toResponse(final Chore chore, final UserAccount child) {
