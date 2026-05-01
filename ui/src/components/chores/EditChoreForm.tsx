@@ -16,7 +16,7 @@ interface EditChoreFormProps {
     assignedChildId: string
     dueDate: string
     status: ChoreStatus
-    recurrence?: ChoreRecurrencePayload
+    recurrence?: ChoreRecurrencePayload | null
     recurrenceSeriesId?: string | null
   }
   onClose: () => void
@@ -70,7 +70,7 @@ export default function EditChoreForm({
     repeatDaily: Boolean(initialValues.recurrence),
     recurrenceStartDate: initialValues.recurrence?.startDate ?? '',
     recurrenceEndDate: initialValues.recurrence?.endDate ?? '',
-    recurrenceDaysOfWeek: initialValues.recurrence?.daysOfWeek ?? [],
+    recurrenceDaysOfWeek: (initialValues.recurrence?.daysOfWeek ?? []) as RecurrenceDayOfWeek[],
     recurrenceTimeOfDay: initialValues.recurrence?.timeOfDay ?? '',
   }), [initialValues])
   const [formValues, setFormValues] = useState<ChoreFormValues>(initialFormValues)
@@ -78,6 +78,9 @@ export default function EditChoreForm({
 
   if (!isOpen) return null
   const selectedChildId = kids.some((kid) => kid.id === formValues.assignedChildId) ? formValues.assignedChildId : (kids[0]?.id ?? '')
+
+  const showSeriesRecurrenceFields = isPartOfSeries && updateScope === 'SERIES'
+  const showRepeatDailyCheckbox = !isPartOfSeries
 
   const handleInputChange = <T extends keyof ChoreFormValues>(field: T, value: ChoreFormValues[T]) => {
     setFormValues((prev) => ({ ...prev, [field]: value }))
@@ -90,6 +93,8 @@ export default function EditChoreForm({
       : [...formValues.recurrenceDaysOfWeek, day]
     handleInputChange('recurrenceDaysOfWeek', nextDays)
   }
+
+  const showRecurrenceConfig = showSeriesRecurrenceFields || (!isPartOfSeries && formValues.repeatDaily)
 
   const validate = () => {
     const nextErrors: Record<string, string> = {}
@@ -104,7 +109,7 @@ export default function EditChoreForm({
     } else if (!kids.some((kid) => kid.id === selectedChildId)) {
       nextErrors.assignedChildId = t('chores.validation.assignedChildInvalid')
     }
-    if (formValues.repeatDaily) {
+    if (showRecurrenceConfig) {
       if (!formValues.recurrenceStartDate) {
         nextErrors.recurrenceStartDate = t('chores.validation.recurrenceStartDateRequired')
       }
@@ -130,9 +135,9 @@ export default function EditChoreForm({
       description: formValues.description.trim(),
       points: formValues.points,
       assignedChildId: selectedChildId,
-      dueDate: formValues.repeatDaily ? formValues.recurrenceStartDate || undefined : formValues.dueDate || undefined,
+      dueDate: showRecurrenceConfig ? formValues.recurrenceStartDate || undefined : formValues.dueDate || undefined,
       status: formValues.status,
-      recurrence: formValues.repeatDaily
+      recurrence: showRecurrenceConfig
         ? {
             type: 'DAILY',
             startDate: formValues.recurrenceStartDate,
@@ -216,17 +221,49 @@ export default function EditChoreForm({
               {mergedFieldErrors.points ? <p className="mt-1 text-xs font-medium text-red-600">{mergedFieldErrors.points}</p> : null}
             </label>
 
-            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-              <input
-                type="checkbox"
-                checked={formValues.repeatDaily}
-                onChange={(event) => handleInputChange('repeatDaily', event.target.checked)}
-                className="h-4 w-4 rounded border-slate-300"
-              />
-              {t('chores.repeatDaily')}
-            </label>
+            {isPartOfSeries ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <p className="text-sm font-semibold text-amber-800">{t('chores.updateScope.seriesNotice')}</p>
+                <div className="mt-2 space-y-1">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="radio"
+                      name="update-scope"
+                      value="INSTANCE"
+                      checked={updateScope === 'INSTANCE'}
+                      onChange={() => setUpdateScope('INSTANCE')}
+                      className="h-4 w-4 accent-primary-600"
+                    />
+                    {t('chores.updateScope.thisOccurrence')}
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="radio"
+                      name="update-scope"
+                      value="SERIES"
+                      checked={updateScope === 'SERIES'}
+                      onChange={() => setUpdateScope('SERIES')}
+                      className="h-4 w-4 accent-primary-600"
+                    />
+                    {t('chores.updateScope.allOccurrences')}
+                  </label>
+                </div>
+              </div>
+            ) : null}
 
-            {formValues.repeatDaily ? (
+            {showRepeatDailyCheckbox ? (
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={formValues.repeatDaily}
+                  onChange={(event) => handleInputChange('repeatDaily', event.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300"
+                />
+                {t('chores.repeatDaily')}
+              </label>
+            ) : null}
+
+            {showRecurrenceConfig ? (
               <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <label htmlFor="edit-chore-recurrence-start-date" className="block text-sm font-semibold text-slate-600">
                   {t('chores.recurrenceStartDate')}
@@ -306,36 +343,6 @@ export default function EditChoreForm({
                 <option value="COMPLETED">{t('common.completed')}</option>
               </select>
             </label>
-
-            {isPartOfSeries ? (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                <p className="text-sm font-semibold text-amber-800">{t('chores.updateScope.seriesNotice')}</p>
-                <div className="mt-2 space-y-1">
-                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
-                    <input
-                      type="radio"
-                      name="update-scope"
-                      value="INSTANCE"
-                      checked={updateScope === 'INSTANCE'}
-                      onChange={() => setUpdateScope('INSTANCE')}
-                      className="h-4 w-4 accent-primary-600"
-                    />
-                    {t('chores.updateScope.thisOccurrence')}
-                  </label>
-                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
-                    <input
-                      type="radio"
-                      name="update-scope"
-                      value="SERIES"
-                      checked={updateScope === 'SERIES'}
-                      onChange={() => setUpdateScope('SERIES')}
-                      className="h-4 w-4 accent-primary-600"
-                    />
-                    {t('chores.updateScope.allOccurrences')}
-                  </label>
-                </div>
-              </div>
-            ) : null}
           </div>
           <div className="mt-5 flex justify-end gap-2">
             <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 px-3 py-2 text-slate-700">

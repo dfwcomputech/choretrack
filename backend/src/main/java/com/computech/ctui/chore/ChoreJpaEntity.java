@@ -59,6 +59,12 @@ public class ChoreJpaEntity {
 
 	private String recurrenceTimeOfDay;
 
+	private LocalDate recurrenceStartDate;
+
+	private LocalDate recurrenceEndDate;
+
+	private String recurrenceDaysOfWeek;
+
 	protected ChoreJpaEntity() {
 	}
 
@@ -196,5 +202,29 @@ public class ChoreJpaEntity {
 
 	public void setRecurrenceTimeOfDay(final String recurrenceTimeOfDay) {
 		this.recurrenceTimeOfDay = recurrenceTimeOfDay;
+	}
+
+	public LocalDate getRecurrenceStartDate() {
+		return recurrenceStartDate;
+	}
+
+	public void setRecurrenceStartDate(final LocalDate recurrenceStartDate) {
+		this.recurrenceStartDate = recurrenceStartDate;
+	}
+
+	public LocalDate getRecurrenceEndDate() {
+		return recurrenceEndDate;
+	}
+
+	public void setRecurrenceEndDate(final LocalDate recurrenceEndDate) {
+		this.recurrenceEndDate = recurrenceEndDate;
+	}
+
+	public String getRecurrenceDaysOfWeek() {
+		return recurrenceDaysOfWeek;
+	}
+
+	public void setRecurrenceDaysOfWeek(final String recurrenceDaysOfWeek) {
+		this.recurrenceDaysOfWeek = recurrenceDaysOfWeek;
 	}
 }

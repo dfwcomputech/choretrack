@@ -7,10 +7,12 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -124,6 +126,9 @@ public class ChoreService {
 			status == ChoreStatus.COMPLETED ? child.id() : null,
 			null,
 			null,
+			null,
+			null,
+			null,
 			null));
 			return toResponse(created, child);
 		}
@@ -152,6 +157,24 @@ public class ChoreService {
 			return updateChore(choreId, request, authenticatedUsername);
 		}
 
+		if (request.recurrence() != null) {
+			final LocalDate cutoffDate = existing.recurrenceStartDate() != null
+			? existing.recurrenceStartDate()
+			: (existing.dueDate() != null ? existing.dueDate() : LocalDate.now());
+			deactivateSeriesOccurrences(parent.id(), existing.recurrenceSeriesId(), cutoffDate, Instant.now());
+			final List<Chore> generatedOccurrences = createRecurringOccurrences(
+			request.title().trim(),
+			normalizeDescription(request.description()),
+			request.points(),
+			child.id(),
+			parent.id(),
+			request.status() == null ? ChoreStatus.PENDING : request.status(),
+			request.recurrence(),
+			existing.recurrenceSeriesId(),
+			Instant.now());
+			return toResponse(generatedOccurrences.get(0), child);
+		}
+
 		final String title = request.title().trim();
 		final String description = normalizeDescription(request.description());
 		final int points = request.points();
@@ -178,7 +201,10 @@ public class ChoreService {
 		chore.completedByChildId(),
 		chore.recurrenceSeriesId(),
 		chore.recurrenceType(),
-		chore.recurrenceTimeOfDay())));
+		chore.recurrenceTimeOfDay(),
+		chore.recurrenceStartDate(),
+		chore.recurrenceEndDate(),
+		chore.recurrenceDaysOfWeek())));
 
 		final Chore updatedTarget = resolveOwnedChore(choreId, parent.id());
 		return toResponse(updatedTarget, child);
@@ -232,7 +258,10 @@ public class ChoreService {
 		: null,
 		existing.recurrenceSeriesId(),
 		existing.recurrenceType(),
-		existing.recurrenceTimeOfDay()));
+		existing.recurrenceTimeOfDay(),
+		existing.recurrenceStartDate(),
+		existing.recurrenceEndDate(),
+		existing.recurrenceDaysOfWeek()));
 		return toResponse(updated, child);
 	}
 
@@ -267,7 +296,10 @@ public class ChoreService {
 		existing.completedByChildId(),
 		existing.recurrenceSeriesId(),
 		existing.recurrenceType(),
-		existing.recurrenceTimeOfDay()));
+		existing.recurrenceTimeOfDay(),
+		existing.recurrenceStartDate(),
+		existing.recurrenceEndDate(),
+		existing.recurrenceDaysOfWeek()));
 		return new ChoreDeleteResponse("Chore deleted successfully");
 	}
 
@@ -318,7 +350,10 @@ public class ChoreService {
 		child.id(),
 		chore.recurrenceSeriesId(),
 		chore.recurrenceType(),
-		chore.recurrenceTimeOfDay()));
+		chore.recurrenceTimeOfDay(),
+		chore.recurrenceStartDate(),
+		chore.recurrenceEndDate(),
+		chore.recurrenceDaysOfWeek()));
 
 		final int updatedCurrentPoints = child.currentPoints() + completedChore.points();
 		final int updatedTotalEarnedPoints = child.totalEarnedPoints() + completedChore.points();
@@ -380,7 +415,10 @@ public class ChoreService {
 		null,
 		chore.recurrenceSeriesId(),
 		chore.recurrenceType(),
-		chore.recurrenceTimeOfDay()));
+		chore.recurrenceTimeOfDay(),
+		chore.recurrenceStartDate(),
+		chore.recurrenceEndDate(),
+		chore.recurrenceDaysOfWeek()));
 
 		final int updatedCurrentPoints = Math.max(0, child.currentPoints() - chore.points());
 		final int updatedTotalEarnedPoints = Math.max(0, child.totalEarnedPoints() - chore.points());
@@ -532,6 +570,14 @@ public class ChoreService {
 	}
 
 	private ChoreResponse toResponse(final Chore chore, final UserAccount child) {
+		final ChoreResponse.ChoreRecurrenceResponse recurrence = chore.recurrenceSeriesId() != null && chore.recurrenceType() != null
+		? new ChoreResponse.ChoreRecurrenceResponse(
+				chore.recurrenceType(),
+				chore.recurrenceStartDate(),
+				chore.recurrenceEndDate(),
+				parseDaysOfWeek(chore.recurrenceDaysOfWeek()),
+				chore.recurrenceTimeOfDay())
+		: null;
 		return new ChoreResponse(
 		chore.id(),
 		chore.title(),
@@ -543,7 +589,15 @@ public class ChoreService {
 		chore.status(),
 		chore.createdAt(),
 		chore.updatedAt(),
-		chore.recurrenceSeriesId());
+		chore.recurrenceSeriesId(),
+		recurrence);
+	}
+
+	private List<String> parseDaysOfWeek(final String daysOfWeek) {
+		if (daysOfWeek == null || daysOfWeek.isBlank()) {
+			return null;
+		}
+		return Arrays.asList(daysOfWeek.split(","));
 	}
 
 	private ChildDashboardChoreResponse toChildDashboardChoreResponse(final Chore chore) {
@@ -589,6 +643,9 @@ public class ChoreService {
 		}
 
 		final Set<DayOfWeek> allowedDays = recurrence.asJavaDaysOfWeek();
+		final String daysOfWeekString = recurrence.daysOfWeek() == null || recurrence.daysOfWeek().isEmpty()
+		? null
+		: recurrence.daysOfWeek().stream().map(Enum::name).collect(Collectors.joining(","));
 		final List<Chore> generatedOccurrences = new ArrayList<>();
 		for (LocalDate date = recurrence.startDate(); !date.isAfter(recurrence.endDate()); date = date.plusDays(1)) {
 			if (!allowedDays.isEmpty() && !allowedDays.contains(date.getDayOfWeek())) {
@@ -611,7 +668,10 @@ public class ChoreService {
 			status == ChoreStatus.COMPLETED ? childId : null,
 			recurrenceSeriesId,
 			recurrence.type(),
-			normalizeDescription(recurrence.timeOfDay()))));
+			normalizeDescription(recurrence.timeOfDay()),
+			recurrence.startDate(),
+			recurrence.endDate(),
+			daysOfWeekString)));
 		}
 
 		if (generatedOccurrences.isEmpty()) {
@@ -647,6 +707,9 @@ public class ChoreService {
 		chore.completedByChildId(),
 		chore.recurrenceSeriesId(),
 		chore.recurrenceType(),
-		chore.recurrenceTimeOfDay())));
+		chore.recurrenceTimeOfDay(),
+		chore.recurrenceStartDate(),
+		chore.recurrenceEndDate(),
+		chore.recurrenceDaysOfWeek())));
 	}
 }

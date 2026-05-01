@@ -35,6 +35,7 @@ import {
   updateChore,
   type ChoreResponse,
   type CreateChorePayload,
+  type RecurrenceDayOfWeek,
   type UpdateChorePayload,
   type UpdateScope,
 } from '../services/choreService'
@@ -135,6 +136,15 @@ const toChoreItem = (chore: ChoreResponse): ChoreItem => ({
   completed: chore.status === 'COMPLETED',
   recurring: Boolean(chore.recurrenceSeriesId),
   recurrenceSeriesId: chore.recurrenceSeriesId,
+  recurrence: chore.recurrence
+    ? {
+        type: chore.recurrence.type,
+        startDate: chore.recurrence.startDate ?? '',
+        endDate: chore.recurrence.endDate ?? '',
+        daysOfWeek: (chore.recurrence.daysOfWeek ?? []) as RecurrenceDayOfWeek[],
+        timeOfDay: chore.recurrence.timeOfDay ?? undefined,
+      }
+    : undefined,
 })
 
 const toRewardItem = (reward: RewardResponse): RewardItem => ({
@@ -979,6 +989,7 @@ export default function DashboardPage() {
             dueDate: selectedChore.dueDate ?? '',
             status: selectedChore.status,
             recurrenceSeriesId: selectedChore.recurrenceSeriesId,
+            recurrence: selectedChore.recurrence,
           }}
           onClose={closeEditChoreDialog}
           onSubmit={handleUpdateChore}

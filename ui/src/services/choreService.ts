@@ -23,6 +23,13 @@ export interface ChoreResponse {
   createdAt: string
   updatedAt: string
   recurrenceSeriesId?: string | null
+  recurrence?: {
+    type: RecurrenceType
+    startDate: string | null
+    endDate: string | null
+    daysOfWeek: string[] | null
+    timeOfDay: string | null
+  } | null
 }
 
 export interface CreateChorePayload {

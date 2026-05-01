@@ -2,6 +2,7 @@ package com.computech.ctui.chore;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 public record ChoreResponse(
 		String id,
@@ -14,5 +15,14 @@ public record ChoreResponse(
 		ChoreStatus status,
 		Instant createdAt,
 		Instant updatedAt,
-		String recurrenceSeriesId) {
+		String recurrenceSeriesId,
+		ChoreRecurrenceResponse recurrence) {
+
+	public record ChoreRecurrenceResponse(
+			RecurrenceType type,
+			LocalDate startDate,
+			LocalDate endDate,
+			List<String> daysOfWeek,
+			String timeOfDay) {
+	}
 }
