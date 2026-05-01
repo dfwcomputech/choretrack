@@ -34,7 +34,20 @@ const currentUtcDate = () => {
 
 const isSmallScreen = () => (typeof window !== 'undefined' ? window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`).matches : false)
 
-const parseSeasonPassMilestones = (defaultDescription: string): RewardMilestone[] => {
+const DEFAULT_REWARD_KEY_MAP: Record<string, string> = {
+  'local-reward-icecream': 'rewards.defaultRewards.icecream',
+  'local-reward-gaming-time': 'rewards.defaultRewards.gaming',
+  'local-reward-movies': 'rewards.defaultRewards.movies',
+}
+
+const resolveRewardKeys = (id: string | undefined, storedNameKey: string | undefined, storedDescKey: string | undefined) => {
+  const baseKey = id ? DEFAULT_REWARD_KEY_MAP[id] : undefined
+  const nameKey = storedNameKey ?? (baseKey ? `${baseKey}.name` : undefined)
+  const descriptionKey = storedDescKey ?? (baseKey ? `${baseKey}.description` : undefined)
+  return { nameKey, descriptionKey }
+}
+
+const parseSeasonPassMilestones = (t: (key: string) => string, defaultDescription: string): RewardMilestone[] => {
   const raw = localStorage.getItem(STORAGE_KEY)
   if (!raw) return []
 
@@ -60,15 +73,20 @@ const parseSeasonPassMilestones = (defaultDescription: string): RewardMilestone[
                   title?: string
                   description?: string
                   icon?: string
+                  nameKey?: string
+                  descriptionKey?: string
                 }
                 if (typeof rewardRecord.id !== 'string' || !rewardRecord.id.trim()) return null
                 if (typeof rewardRecord.title !== 'string' || !rewardRecord.title.trim()) return null
                 if (typeof rewardRecord.description !== 'string') return null
                 if (typeof rewardRecord.icon !== 'string' || !rewardRecord.icon.trim()) return null
+                const storedNameKey = typeof rewardRecord.nameKey === 'string' ? rewardRecord.nameKey : undefined
+                const storedDescKey = typeof rewardRecord.descriptionKey === 'string' ? rewardRecord.descriptionKey : undefined
+                const { nameKey, descriptionKey } = resolveRewardKeys(rewardRecord.id, storedNameKey, storedDescKey)
                 return {
                   id: rewardRecord.id,
-                  title: rewardRecord.title,
-                  description: rewardRecord.description,
+                  title: nameKey ? t(nameKey) : rewardRecord.title,
+                  description: descriptionKey ? t(descriptionKey) : rewardRecord.description,
                   icon: rewardRecord.icon,
                 }
               })
@@ -76,11 +94,14 @@ const parseSeasonPassMilestones = (defaultDescription: string): RewardMilestone[
           : []
 
         if (parsedRewards.length === 0 && typeof record.title === 'string' && record.title.trim()) {
+          const rewardId = typeof record.rewardId === 'string' && record.rewardId.trim() ? record.rewardId : undefined
           const rewardTitleSlug = record.title.trim().toLowerCase().replace(/\s+/g, '-')
+          const finalRewardId = rewardId ?? `${record.id}-reward-${rewardTitleSlug}-${record.pointsRequired}`
+          const { nameKey, descriptionKey } = resolveRewardKeys(rewardId, undefined, undefined)
             parsedRewards.push({
-              id: typeof record.rewardId === 'string' && record.rewardId.trim() ? record.rewardId : `${record.id}-reward-${rewardTitleSlug}-${record.pointsRequired}`,
-              title: record.title,
-              description: typeof record.description === 'string' ? record.description : defaultDescription,
+              id: finalRewardId,
+              title: nameKey ? t(nameKey) : record.title,
+              description: descriptionKey ? t(descriptionKey) : (typeof record.description === 'string' ? record.description : defaultDescription),
               icon: typeof record.icon === 'string' && record.icon.trim() ? record.icon : '🎁',
             })
         }
@@ -117,7 +138,7 @@ export default function ChildDashboardPage({
   const { t } = useTranslation()
   const [selectedDate, setSelectedDate] = useState(currentUtcDate)
   const [showMobileNavigator, setShowMobileNavigator] = useState(isSmallScreen)
-  const childRewardMilestones = useMemo(() => parseSeasonPassMilestones(t('seasonPass.defaultRewardDescription')), [t])
+  const childRewardMilestones = useMemo(() => parseSeasonPassMilestones(t, t('seasonPass.defaultRewardDescription')), [t])
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
