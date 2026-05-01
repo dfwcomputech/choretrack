@@ -37,7 +37,7 @@ export default function ParentChildSection({
 
   const today = currentUtcDateString()
   const dailyChores = chores.filter((chore) => chore.dueDate === today)
-  const upcomingChores = chores.filter((chore) => chore.dueDate != null && chore.dueDate > today)
+  const upcomingChores = chores.filter((chore) => chore.dueDate !== null && chore.dueDate > today)
 
   return (
     <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
