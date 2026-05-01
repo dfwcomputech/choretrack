@@ -14,6 +14,23 @@ export interface RewardTemplateResponse {
   category: string | null
 }
 
+export interface SeasonTemplateRewardResponse {
+  id: string
+  name: string
+  description: string | null
+  pointCost: number
+  category: string | null
+  sortOrder: number
+}
+
+export interface SeasonTemplateResponse {
+  id: string
+  name: string
+  description: string | null
+  rewardCount: number
+  rewards: SeasonTemplateRewardResponse[]
+}
+
 export class LibraryServiceError extends Error {
   status: number
 
@@ -78,4 +95,56 @@ export const searchRewardTemplates = async (query: string, token: string): Promi
   }
 
   throw new LibraryServiceError('Unable to load reward library. Please try again.', response.status)
+}
+
+export const listSeasonTemplates = async (token: string): Promise<SeasonTemplateResponse[]> => {
+  requireToken(token)
+  let response: Response
+  try {
+    response = await fetch('/api/library/season-templates', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  } catch {
+    throw new LibraryServiceError('Unable to load season templates. Please check your connection and try again.', 0)
+  }
+
+  if (response.ok) {
+    return (await response.json()) as SeasonTemplateResponse[]
+  }
+
+  if (response.status === 401) {
+    throw new LibraryServiceError('Your session has expired. Please log in again.', response.status)
+  }
+
+  throw new LibraryServiceError('Unable to load season templates. Please try again.', response.status)
+}
+
+export const getSeasonTemplate = async (templateId: string, token: string): Promise<SeasonTemplateResponse> => {
+  requireToken(token)
+  let response: Response
+  try {
+    response = await fetch(`/api/library/season-templates/${encodeURIComponent(templateId)}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  } catch {
+    throw new LibraryServiceError('Unable to load season template. Please check your connection and try again.', 0)
+  }
+
+  if (response.ok) {
+    return (await response.json()) as SeasonTemplateResponse
+  }
+
+  if (response.status === 401) {
+    throw new LibraryServiceError('Your session has expired. Please log in again.', response.status)
+  }
+
+  if (response.status === 404) {
+    throw new LibraryServiceError('Season template not found.', response.status)
+  }
+
+  throw new LibraryServiceError('Unable to load season template. Please try again.', response.status)
 }

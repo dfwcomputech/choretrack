@@ -761,6 +761,12 @@ export default function DashboardPage() {
     }
   }
 
+  const handleApplyTemplate = (appliedRewards: RewardItem[]) => {
+    setRewards(appliedRewards)
+    setIsUsingLocalRewards(false)
+    setRewardSuccessMessage(t('dashboard.success.templateApplied'))
+  }
+
   const openAddChildDialog = () => {
     setChildSuccessMessage('')
     setCreateChildErrorMessage('')
@@ -940,6 +946,7 @@ export default function DashboardPage() {
           onAddChild={openAddChildDialog}
           onEditChild={openEditChildDialog}
           onDeleteChild={openDeleteChildDialog}
+          onApplyTemplate={handleApplyTemplate}
         />
       )}
 

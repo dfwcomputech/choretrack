@@ -29,6 +29,7 @@ interface ParentDashboardPageProps {
   onAddChild: () => void
   onEditChild: (kid: KidAccount) => void
   onDeleteChild: (kid: KidAccount) => void
+  onApplyTemplate: (rewards: RewardItem[]) => void
 }
 
 interface StoredSeasonPassReward {
@@ -95,6 +96,7 @@ export default function ParentDashboardPage({
   onAddChild,
   onEditChild,
   onDeleteChild,
+  onApplyTemplate,
 }: ParentDashboardPageProps) {
   const { t } = useTranslation()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
@@ -242,7 +244,7 @@ export default function ParentDashboardPage({
     rewards: (
       <div className="space-y-6">
         <RewardList rewards={rewards} onAddReward={onAddReward} onEditReward={onEditReward} onDeleteReward={onDeleteReward} />
-        <SeasonPassBuilder rewards={rewards} milestones={seasonPassMilestones} onSave={handleSaveSeasonPass} />
+        <SeasonPassBuilder rewards={rewards} milestones={seasonPassMilestones} onSave={handleSaveSeasonPass} onApplyTemplate={onApplyTemplate} />
       </div>
     ),
     settings: (

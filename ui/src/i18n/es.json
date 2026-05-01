@@ -323,6 +323,7 @@
       "rewardCreated": "Recompensa creada correctamente.",
       "rewardUpdated": "Recompensa actualizada correctamente.",
       "rewardDeleted": "Recompensa eliminada correctamente.",
+      "templateApplied": "Plantilla de Pase de Temporada aplicada correctamente.",
       "childAdded": "{{name}} se agregó a tu familia.",
       "childUpdated": "{{name}} se actualizó.",
       "childRemoved": "{{name}} se eliminó de tu panel.",
@@ -456,6 +457,19 @@
     "noneAssigned": "No hay recompensa de temporada asignada",
     "defaultRewardName": "Recompensa de temporada",
     "defaultRewardDescription": "Recompensa de Pase de Temporada"
+  },
+  "seasonTemplates": {
+    "title": "Elegir Plantilla de Temporada",
+    "subtitle": "Elige un Pase de Temporada prediseñado para comenzar rápidamente.",
+    "chooseTemplate": "Elegir Plantilla de Temporada",
+    "applyTemplate": "Aplicar Plantilla",
+    "applying": "Aplicando...",
+    "rewardCount": "{{count}} recompensas",
+    "loadError": "No se pudieron cargar las plantillas de temporada. Inténtalo de nuevo.",
+    "applyError": "No se pudo aplicar la plantilla de temporada. Inténtalo de nuevo.",
+    "replaceTitle": "¿Reemplazar Pase de Temporada?",
+    "replaceMessage": "Ya tienes recompensas en tu Pase de Temporada. Aplicar \"{{name}}\" reemplazará todas las recompensas actuales. Esto no se puede deshacer.",
+    "replaceConfirm": "Sí, Reemplazar"
   },
   "battlePass": {
     "title": "Pase de Batalla",
