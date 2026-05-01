@@ -437,6 +437,11 @@
       "pointsPositive": "Los puntos deben ser positivos.",
       "assignedChildRequired": "El hijo asignado es obligatorio.",
       "assignedChildInvalid": "Selecciona una cuenta infantil válida."
+    },
+    "updateScope": {
+      "seriesNotice": "Esta tarea es parte de una serie diaria.",
+      "thisOccurrence": "Actualizar solo este día",
+      "allOccurrences": "Actualizar todas las tareas de esta serie diaria"
     }
   },
   "seasonPass": {

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { KidAccount } from '../dashboard/types'
-import type { ChoreRecurrencePayload, ChoreStatus, RecurrenceDayOfWeek, UpdateChorePayload } from '../../services/choreService'
+import type { ChoreRecurrencePayload, ChoreStatus, RecurrenceDayOfWeek, UpdateChorePayload, UpdateScope } from '../../services/choreService'
 
 interface EditChoreFormProps {
   isOpen: boolean
@@ -17,9 +17,10 @@ interface EditChoreFormProps {
     dueDate: string
     status: ChoreStatus
     recurrence?: ChoreRecurrencePayload
+    recurrenceSeriesId?: string | null
   }
   onClose: () => void
-  onSubmit: (payload: UpdateChorePayload) => Promise<void>
+  onSubmit: (payload: UpdateChorePayload, scope?: UpdateScope) => Promise<void>
 }
 
 interface ChoreFormValues {
@@ -57,6 +58,8 @@ export default function EditChoreForm({
   onSubmit,
 }: EditChoreFormProps) {
   const { t } = useTranslation()
+  const isPartOfSeries = Boolean(initialValues.recurrenceSeriesId)
+  const [updateScope, setUpdateScope] = useState<UpdateScope>('INSTANCE')
   const initialFormValues = useMemo<ChoreFormValues>(() => ({
     title: initialValues.title,
     description: initialValues.description,
@@ -138,7 +141,7 @@ export default function EditChoreForm({
             timeOfDay: formValues.recurrenceTimeOfDay.trim() || undefined,
           }
         : undefined,
-    })
+    }, isPartOfSeries ? updateScope : undefined)
   }
 
   const mergedFieldErrors = { ...validationErrors, ...fieldErrors }
@@ -303,6 +306,36 @@ export default function EditChoreForm({
                 <option value="COMPLETED">{t('common.completed')}</option>
               </select>
             </label>
+
+            {isPartOfSeries ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <p className="text-sm font-semibold text-amber-800">{t('chores.updateScope.seriesNotice')}</p>
+                <div className="mt-2 space-y-1">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="radio"
+                      name="update-scope"
+                      value="INSTANCE"
+                      checked={updateScope === 'INSTANCE'}
+                      onChange={() => setUpdateScope('INSTANCE')}
+                      className="h-4 w-4 accent-primary-600"
+                    />
+                    {t('chores.updateScope.thisOccurrence')}
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="radio"
+                      name="update-scope"
+                      value="SERIES"
+                      checked={updateScope === 'SERIES'}
+                      onChange={() => setUpdateScope('SERIES')}
+                      className="h-4 w-4 accent-primary-600"
+                    />
+                    {t('chores.updateScope.allOccurrences')}
+                  </label>
+                </div>
+              </div>
+            ) : null}
           </div>
           <div className="mt-5 flex justify-end gap-2">
             <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 px-3 py-2 text-slate-700">

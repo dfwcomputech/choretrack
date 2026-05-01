@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -350,6 +351,67 @@ class ChoreApiControllerWebMvcUnitTests {
 				.principal(new UsernamePasswordAuthenticationToken("preston1", "n/a", List.of())))
 				.andExpect(status().isConflict())
 				.andExpect(jsonPath("$.message").value("chore is already pending"));
+	}
+
+	@Test
+	void updateChoreWithSeriesScopeCallsUpdateSeriesChores() throws Exception {
+		when(choreService.updateSeriesChores(eq("chore-123"), any(), eq("angie"))).thenReturn(new ChoreResponse(
+				"chore-123",
+				"Feed Jessie",
+				null,
+				10,
+				"child-123",
+				"Preston",
+				LocalDate.parse("2026-05-01"),
+				ChoreStatus.PENDING,
+				Instant.parse("2026-04-19T10:00:00Z"),
+				Instant.parse("2026-04-19T10:15:00Z"),
+				"series-abc"));
+
+		mockMvc.perform(put("/api/chores/chore-123")
+				.param("scope", "SERIES")
+				.principal(new UsernamePasswordAuthenticationToken("angie", "n/a", List.of()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{
+						  "title":"Feed Jessie",
+						  "points":10,
+						  "assignedChildId":"child-123"
+						}
+						"""))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.title").value("Feed Jessie"))
+				.andExpect(jsonPath("$.recurrenceSeriesId").value("series-abc"));
+	}
+
+	@Test
+	void updateChoreWithInstanceScopeCallsUpdateChore() throws Exception {
+		when(choreService.updateChore(eq("chore-123"), any(), eq("angie"))).thenReturn(new ChoreResponse(
+				"chore-123",
+				"Feed Jessie",
+				null,
+				10,
+				"child-123",
+				"Preston",
+				LocalDate.parse("2026-05-01"),
+				ChoreStatus.PENDING,
+				Instant.parse("2026-04-19T10:00:00Z"),
+				Instant.parse("2026-04-19T10:15:00Z"),
+				"series-abc"));
+
+		mockMvc.perform(put("/api/chores/chore-123")
+				.param("scope", "INSTANCE")
+				.principal(new UsernamePasswordAuthenticationToken("angie", "n/a", List.of()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{
+						  "title":"Feed Jessie",
+						  "points":10,
+						  "assignedChildId":"child-123"
+						}
+						"""))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.title").value("Feed Jessie"));
 	}
 
 	@Test

@@ -36,6 +36,7 @@ import {
   type ChoreResponse,
   type CreateChorePayload,
   type UpdateChorePayload,
+  type UpdateScope,
 } from '../services/choreService'
 import {
   RewardServiceError,
@@ -133,6 +134,7 @@ const toChoreItem = (chore: ChoreResponse): ChoreItem => ({
   status: chore.status,
   completed: chore.status === 'COMPLETED',
   recurring: Boolean(chore.recurrenceSeriesId),
+  recurrenceSeriesId: chore.recurrenceSeriesId,
 })
 
 const toRewardItem = (reward: RewardResponse): RewardItem => ({
@@ -530,13 +532,13 @@ export default function DashboardPage() {
     setSelectedChore(null)
   }
 
-  const handleUpdateChore = async (payload: UpdateChorePayload) => {
+  const handleUpdateChore = async (payload: UpdateChorePayload, scope?: UpdateScope) => {
     if (!selectedChore) return
     setUpdateChoreErrorMessage('')
     setUpdateChoreFieldErrors({})
     setIsUpdatingChore(true)
     try {
-      await updateChore(selectedChore.id, payload, token)
+      await updateChore(selectedChore.id, payload, token, scope)
       const refreshedChores = await listChores(token)
       setChores(refreshedChores.map(toChoreItem))
       setChoreSuccessMessage(t('dashboard.success.choreUpdated'))
@@ -969,6 +971,7 @@ export default function DashboardPage() {
             assignedChildId: selectedChore.childId,
             dueDate: selectedChore.dueDate ?? '',
             status: selectedChore.status,
+            recurrenceSeriesId: selectedChore.recurrenceSeriesId,
           }}
           onClose={closeEditChoreDialog}
           onSubmit={handleUpdateChore}

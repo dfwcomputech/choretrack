@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.computech.ctui.chore.ChoreCreateRequest;
@@ -53,9 +54,14 @@ public class ChoreApiController {
 
 	@PutMapping("/{choreId}")
 	public ResponseEntity<ChoreResponse> updateChore(@PathVariable final String choreId,
-			@Valid @RequestBody final ChoreUpdateRequest request, final Authentication authentication) {
+			@Valid @RequestBody final ChoreUpdateRequest request,
+			@RequestParam(required = false, defaultValue = "INSTANCE") final String scope,
+			final Authentication authentication) {
 		if (authentication == null || !authentication.isAuthenticated()) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		if ("SERIES".equals(scope)) {
+			return ResponseEntity.ok(choreService.updateSeriesChores(choreId, request, authentication.getName()));
 		}
 		return ResponseEntity.ok(choreService.updateChore(choreId, request, authentication.getName()));
 	}

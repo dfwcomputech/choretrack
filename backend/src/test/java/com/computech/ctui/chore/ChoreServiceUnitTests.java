@@ -554,6 +554,158 @@ class ChoreServiceUnitTests {
 				.hasMessage("child cannot access another child account");
 	}
 
+	@Test
+	void updateSeriesChoresUpdatesAllOccurrencesInSeries() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed the dog",
+				null,
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING,
+				new ChoreRecurrenceRequest(
+						RecurrenceType.DAILY,
+						LocalDate.parse("2026-05-01"),
+						LocalDate.parse("2026-05-07"),
+						null,
+						null)), "angie");
+
+		final ChoreResponse anyOccurrence = choreService.listActiveChores("angie")
+				.stream()
+				.filter(chore -> "Feed the dog".equals(chore.title()))
+				.findFirst()
+				.orElseThrow();
+
+		choreService.updateSeriesChores(anyOccurrence.id(), new ChoreUpdateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING), "angie");
+
+		final List<ChoreResponse> updated = choreService.listActiveChores("angie");
+		assertThat(updated).isNotEmpty();
+		assertThat(updated).allMatch(chore -> "Feed Jessie".equals(chore.title()));
+	}
+
+	@Test
+	void updateSeriesChoresPreservesCompletionStatus() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed the dog",
+				null,
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING,
+				new ChoreRecurrenceRequest(
+						RecurrenceType.DAILY,
+						LocalDate.parse("2026-05-01"),
+						LocalDate.parse("2026-05-03"),
+						null,
+						null)), "angie");
+
+		final List<ChoreResponse> occurrences = choreService.listActiveChores("angie")
+				.stream()
+				.filter(chore -> "Feed the dog".equals(chore.title()))
+				.sorted((a, b) -> a.dueDate().compareTo(b.dueDate()))
+				.toList();
+
+		assertThat(occurrences).hasSize(3);
+		final String completedChoreId = occurrences.get(0).id();
+		choreService.completeChore(completedChoreId, "angie");
+
+		choreService.updateSeriesChores(occurrences.get(1).id(), new ChoreUpdateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING), "angie");
+
+		final List<ChoreResponse> afterUpdate = choreService.listActiveChores("angie")
+				.stream()
+				.filter(chore -> "Feed Jessie".equals(chore.title()))
+				.sorted((a, b) -> a.dueDate().compareTo(b.dueDate()))
+				.toList();
+
+		assertThat(afterUpdate).hasSize(3);
+		assertThat(afterUpdate.get(0).status()).isEqualTo(ChoreStatus.COMPLETED);
+		assertThat(afterUpdate.get(1).status()).isEqualTo(ChoreStatus.PENDING);
+		assertThat(afterUpdate.get(2).status()).isEqualTo(ChoreStatus.PENDING);
+	}
+
+	@Test
+	void updateSeriesChoresFallsBackToSingleUpdateWhenNotInSeries() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		final ChoreResponse created = choreService.createChore(new ChoreCreateRequest(
+				"Clean room",
+				null,
+				25,
+				child.id(),
+				LocalDate.parse("2026-05-01"),
+				ChoreStatus.PENDING), "angie");
+
+		final ChoreResponse updated = choreService.updateSeriesChores(created.id(), new ChoreUpdateRequest(
+				"Tidy room",
+				null,
+				30,
+				child.id(),
+				LocalDate.parse("2026-05-01"),
+				ChoreStatus.PENDING), "angie");
+
+		assertThat(updated.title()).isEqualTo("Tidy room");
+		assertThat(updated.points()).isEqualTo(30);
+	}
+
+	@Test
+	void updateSeriesChoresRejectsUnauthorizedParent() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+		createParentAndChild("karen", "rylan1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed the dog",
+				null,
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING,
+				new ChoreRecurrenceRequest(
+						RecurrenceType.DAILY,
+						LocalDate.parse("2026-05-01"),
+						LocalDate.parse("2026-05-03"),
+						null,
+						null)), "angie");
+
+		final ChoreResponse anyOccurrence = choreService.listActiveChores("angie")
+				.stream()
+				.findFirst()
+				.orElseThrow();
+
+		assertThatThrownBy(() -> choreService.updateSeriesChores(anyOccurrence.id(), new ChoreUpdateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING), "karen"))
+				.isInstanceOf(ForbiddenOperationException.class)
+				.hasMessage("parent cannot access this chore");
+	}
+
 	private ChoreService createService(final InMemoryUserAccountRepository userRepository) {
 		return new ChoreService(new InMemoryChoreRepository(), userRepository, new AccountPlanService());
 	}

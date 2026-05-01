@@ -19,6 +19,7 @@ export interface ChoreItem {
   status: 'PENDING' | 'COMPLETED'
   completed: boolean
   recurring: boolean
+  recurrenceSeriesId?: string | null
 }
 
 export interface RewardItem {
