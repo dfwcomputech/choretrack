@@ -375,7 +375,7 @@ class ChoreServiceUnitTests {
 				"Pick up clothes",
 				25,
 				child.id(),
-				LocalDate.parse("2026-04-25"),
+				LocalDate.now(),
 				ChoreStatus.PENDING), "angie");
 
 		final ChoreCompletionResponse completion = choreService.completeChore(created.id(), "preston1");
