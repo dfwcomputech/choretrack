@@ -49,7 +49,14 @@ export default function ChoresSection({ chores, kids, onToggleChore, onEditChore
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">{kid?.avatar ?? '🧒'}</span>
                   <div>
-                    <p className="text-xl font-semibold text-slate-900">{chore.title}</p>
+                    <p className="text-xl font-semibold text-slate-900">
+                      {chore.title}
+                      {chore.recurring ? (
+                        <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700" title="Daily recurring chore">
+                          🔁 Daily
+                        </span>
+                      ) : null}
+                    </p>
                      <p className="text-base text-slate-600">{kid?.name ?? chore.assignedChildName ?? t('chores.unassigned')}</p>
                      <p className="text-xs text-slate-500">{t('chores.due')}: {formatDueDate(chore.dueDate, t)}</p>
                      <p className="text-xs text-slate-500">{t('chores.status')}: {formatStatus(chore.status, t)}</p>

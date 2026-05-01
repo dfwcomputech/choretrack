@@ -71,6 +71,11 @@ export default function ChildChoreGroup({
                   <div className="min-w-0">
                     <p className={`text-sm font-semibold ${chore.completed ? 'text-emerald-800 line-through' : 'text-slate-900'}`}>
                       {chore.title}
+                      {chore.recurring ? (
+                        <span className="ml-1.5 inline-flex items-center rounded-full bg-blue-100 px-1.5 py-0.5 text-xs font-semibold text-blue-700" title="Daily recurring chore">
+                          🔁
+                        </span>
+                      ) : null}
                     </p>
                     <p className="text-xs text-slate-500">
                       {t('chores.due')}: {formatDueDate(chore.dueDate, t)}
