@@ -36,6 +36,16 @@ interface StoredSeasonPassReward {
   title: string
   description: string
   icon: string
+  /** i18n translation key for the reward name (e.g. 'rewards.defaultRewards.icecream.name') */
+  nameKey?: string
+  /** i18n translation key for the reward description (e.g. 'rewards.defaultRewards.icecream.description') */
+  descriptionKey?: string
+}
+
+const DEFAULT_REWARD_KEY_MAP: Record<string, string> = {
+  'local-reward-icecream': 'rewards.defaultRewards.icecream',
+  'local-reward-gaming-time': 'rewards.defaultRewards.gaming',
+  'local-reward-movies': 'rewards.defaultRewards.movies',
 }
 
 interface StoredSeasonPassMilestone {
@@ -132,12 +142,16 @@ export default function ParentDashboardPage({
       id: milestone.id,
       level: index + 1,
       pointsRequired: milestone.pointsRequired,
-      rewards: milestone.rewards.map((reward) => ({
-        id: reward.id,
-        title: reward.name,
-        description: reward.description || t('seasonPass.defaultRewardDescription'),
-        icon: reward.icon,
-      })),
+      rewards: milestone.rewards.map((reward) => {
+        const baseKey = DEFAULT_REWARD_KEY_MAP[reward.id]
+        return {
+          id: reward.id,
+          title: reward.name,
+          description: reward.description || t('seasonPass.defaultRewardDescription'),
+          icon: reward.icon,
+          ...(baseKey ? { nameKey: `${baseKey}.name`, descriptionKey: `${baseKey}.description` } : {}),
+        }
+      }),
     }))
     localStorage.setItem(STORAGE_KEY, JSON.stringify(storedSeasonPass))
     setSeasonPassMessage(t('seasonPass.saved'))
