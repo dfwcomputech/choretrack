@@ -13,6 +13,7 @@ interface ChildChoreGroupProps {
   onAddChore: () => void
   addLabel: string
   defaultCollapsed?: boolean
+  hideTitleBar?: boolean
 }
 
 
@@ -26,30 +27,33 @@ export default function ChildChoreGroup({
   onAddChore,
   addLabel,
   defaultCollapsed = false,
+  hideTitleBar = false,
 }: ChildChoreGroupProps) {
   const { t } = useTranslation()
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed)
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50/60">
-      <button
-        type="button"
-        onClick={() => setIsCollapsed((prev) => !prev)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-        aria-expanded={!isCollapsed}
-      >
-        <div className="flex items-center gap-2">
-          <span aria-hidden="true">{icon}</span>
-          <span className="text-base font-semibold text-slate-800">{title}</span>
-          <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-600">{chores.length}</span>
-        </div>
-        <span className="text-slate-400 transition-transform" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
-          ▾
-        </span>
-      </button>
+      {!hideTitleBar ? (
+        <button
+          type="button"
+          onClick={() => setIsCollapsed((prev) => !prev)}
+          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+          aria-expanded={!isCollapsed}
+        >
+          <div className="flex items-center gap-2">
+            <span aria-hidden="true">{icon}</span>
+            <span className="text-base font-semibold text-slate-800">{title}</span>
+            <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-600">{chores.length}</span>
+          </div>
+          <span className="text-slate-400 transition-transform" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
+            ▾
+          </span>
+        </button>
+      ) : null}
 
-      {!isCollapsed ? (
-        <div className="border-t border-slate-200 px-4 pb-4 pt-3">
+      {hideTitleBar || !isCollapsed ? (
+        <div className={hideTitleBar ? 'px-4 pb-4 pt-3' : 'border-t border-slate-200 px-4 pb-4 pt-3'}>
           <ul className="space-y-2">
             {chores.length === 0 ? (
               <li className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-4 text-center text-sm text-slate-500">
