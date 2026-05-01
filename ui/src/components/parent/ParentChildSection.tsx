@@ -3,6 +3,14 @@ import { useTranslation } from 'react-i18next'
 import type { ChoreItem, KidAccount } from '../dashboard/types'
 import ChildChoreGroup from './ChildChoreGroup'
 
+const currentUtcDateString = () => {
+  const now = new Date()
+  const year = now.getUTCFullYear()
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(now.getUTCDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 interface ParentChildSectionProps {
   kid: KidAccount
   chores: ChoreItem[]
@@ -27,8 +35,9 @@ export default function ParentChildSection({
   const { t } = useTranslation()
   const [isSectionCollapsed, setIsSectionCollapsed] = useState(false)
 
-  const dailyChores = chores.filter((chore) => chore.recurring)
-  const upcomingChores = chores.filter((chore) => !chore.recurring)
+  const today = currentUtcDateString()
+  const dailyChores = chores.filter((chore) => chore.dueDate === today)
+  const upcomingChores = chores.filter((chore) => chore.dueDate !== null && chore.dueDate > today)
 
   return (
     <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
