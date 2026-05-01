@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -616,7 +617,7 @@ class ChoreServiceUnitTests {
 		final List<ChoreResponse> occurrences = choreService.listActiveChores("angie")
 				.stream()
 				.filter(chore -> "Feed the dog".equals(chore.title()))
-				.sorted((a, b) -> a.dueDate().compareTo(b.dueDate()))
+				.sorted(Comparator.comparing(ChoreResponse::dueDate))
 				.toList();
 
 		assertThat(occurrences).hasSize(3);
@@ -634,7 +635,7 @@ class ChoreServiceUnitTests {
 		final List<ChoreResponse> afterUpdate = choreService.listActiveChores("angie")
 				.stream()
 				.filter(chore -> "Feed Jessie".equals(chore.title()))
-				.sorted((a, b) -> a.dueDate().compareTo(b.dueDate()))
+				.sorted(Comparator.comparing(ChoreResponse::dueDate))
 				.toList();
 
 		assertThat(afterUpdate).hasSize(3);
