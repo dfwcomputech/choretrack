@@ -375,7 +375,7 @@ class ChoreServiceUnitTests {
 				"Pick up clothes",
 				25,
 				child.id(),
-				LocalDate.parse("2026-04-25"),
+				LocalDate.now(),
 				ChoreStatus.PENDING), "angie");
 
 		final ChoreCompletionResponse completion = choreService.completeChore(created.id(), "preston1");
@@ -792,6 +792,179 @@ class ChoreServiceUnitTests {
 				ChoreStatus.PENDING), "karen"))
 				.isInstanceOf(ForbiddenOperationException.class)
 				.hasMessage("parent cannot access this chore");
+	}
+
+	@Test
+	void rejectsDuplicateOneTimeChoreForSameChildTitleAndDate() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				child.id(),
+				LocalDate.parse("2026-05-01"),
+				ChoreStatus.PENDING), "angie");
+
+		assertThatThrownBy(() -> choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				child.id(),
+				LocalDate.parse("2026-05-01"),
+				ChoreStatus.PENDING), "angie"))
+				.isInstanceOf(DuplicateChoreException.class)
+				.hasMessageContaining("already exists for this child during the selected date range");
+	}
+
+	@Test
+	void rejectsDuplicateOneTimeChoreWithDifferentCasing() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				child.id(),
+				LocalDate.parse("2026-05-01"),
+				ChoreStatus.PENDING), "angie");
+
+		assertThatThrownBy(() -> choreService.createChore(new ChoreCreateRequest(
+				"FEED JESSIE",
+				null,
+				10,
+				child.id(),
+				LocalDate.parse("2026-05-01"),
+				ChoreStatus.PENDING), "angie"))
+				.isInstanceOf(DuplicateChoreException.class);
+	}
+
+	@Test
+	void allowsSameTitleForDifferentChild() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse childA = createParentAndChild("angie", "preston1", userRepository);
+		final ChildAccountResponse childB = createChildForParent("angie", "rylan1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				childA.id(),
+				LocalDate.parse("2026-05-01"),
+				ChoreStatus.PENDING), "angie");
+
+		final ChoreResponse second = choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				childB.id(),
+				LocalDate.parse("2026-05-01"),
+				ChoreStatus.PENDING), "angie");
+
+		assertThat(second.assignedChildId()).isEqualTo(childB.id());
+	}
+
+	@Test
+	void allowsSameTitleOnNonOverlappingDate() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				child.id(),
+				LocalDate.parse("2026-05-01"),
+				ChoreStatus.PENDING), "angie");
+
+		final ChoreResponse second = choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				child.id(),
+				LocalDate.parse("2026-05-02"),
+				ChoreStatus.PENDING), "angie");
+
+		assertThat(second.title()).isEqualTo("Feed Jessie");
+	}
+
+	@Test
+	void rejectsDuplicateRecurringChoreWithOverlappingRange() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING,
+				new ChoreRecurrenceRequest(
+						RecurrenceType.DAILY,
+						LocalDate.parse("2026-05-01"),
+						LocalDate.parse("2026-05-07"),
+						null,
+						null)), "angie");
+
+		assertThatThrownBy(() -> choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING,
+				new ChoreRecurrenceRequest(
+						RecurrenceType.DAILY,
+						LocalDate.parse("2026-05-03"),
+						LocalDate.parse("2026-05-10"),
+						null,
+						null)), "angie"))
+				.isInstanceOf(DuplicateChoreException.class);
+	}
+
+	@Test
+	void allowsRecurringChoreWithNonOverlappingRange() {
+		final InMemoryUserAccountRepository userRepository = new InMemoryUserAccountRepository();
+		final ChoreService choreService = createService(userRepository);
+		final ChildAccountResponse child = createParentAndChild("angie", "preston1", userRepository);
+
+		choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING,
+				new ChoreRecurrenceRequest(
+						RecurrenceType.DAILY,
+						LocalDate.parse("2026-05-01"),
+						LocalDate.parse("2026-05-07"),
+						null,
+						null)), "angie");
+
+		final ChoreResponse second = choreService.createChore(new ChoreCreateRequest(
+				"Feed Jessie",
+				null,
+				10,
+				child.id(),
+				null,
+				ChoreStatus.PENDING,
+				new ChoreRecurrenceRequest(
+						RecurrenceType.DAILY,
+						LocalDate.parse("2026-05-08"),
+						LocalDate.parse("2026-05-14"),
+						null,
+						null)), "angie");
+
+		assertThat(second.title()).isEqualTo("Feed Jessie");
 	}
 
 	private ChoreService createService(final InMemoryUserAccountRepository userRepository) {
